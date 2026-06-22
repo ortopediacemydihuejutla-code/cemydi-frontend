@@ -20,6 +20,10 @@ export function getInternalApiUrl() {
 export function resolveApiUrl(path: string) {
   const normalizedPath = path.startsWith("/") ? path : `/${path}`;
 
+  if (typeof window === "undefined") {
+    return `${getInternalApiUrl()}${normalizedPath}`;
+  }
+
   if (API_URL.startsWith("http://") || API_URL.startsWith("https://")) {
     return `${API_URL.replace(/\/$/, "")}${normalizedPath}`;
   }

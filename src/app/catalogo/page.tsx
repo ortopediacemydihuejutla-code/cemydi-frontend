@@ -52,9 +52,8 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
     promotedProductIds = promotionsResult.promotions.map(
       (promotion) => promotion.productId,
     );
-  } catch (err) {
-    error =
-      err instanceof Error ? err.message : "No se pudo cargar el catálogo.";
+  } catch {
+    error = "No pudimos cargar el catalogo. Intenta nuevamente en unos minutos.";
   }
 
   const catalogStateKey = [

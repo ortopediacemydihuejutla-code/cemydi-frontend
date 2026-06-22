@@ -1,13 +1,47 @@
+"use client";
+
 import Header from "@/components/layout/Header";
 import Footer from "@/components/layout/Footer";
+import { usePathname } from "next/navigation";
+
+const PUBLIC_ROUTE_PREFIXES = [
+  "/",
+  "/carrito",
+  "/catalogo",
+  "/contactanos",
+  "/contacto",
+  "/forgot-password",
+  "/login",
+  "/perfil",
+  "/producto",
+  "/quienes-somos",
+  "/register",
+  "/reset-password",
+  "/verify-email",
+];
+
+function isPublicChromeRoute(pathname: string) {
+  if (pathname === "/") {
+    return true;
+  }
+
+  return PUBLIC_ROUTE_PREFIXES.some((route) => {
+    return route !== "/" && (pathname === route || pathname.startsWith(`${route}/`));
+  });
+}
 
 export default function AppShell({
   children,
-  hidePublicChrome,
+  initialPathname,
 }: {
   children: React.ReactNode;
-  hidePublicChrome: boolean;
+  initialPathname: string;
 }) {
+  const currentPathname = usePathname();
+  const pathname = currentPathname || initialPathname;
+  const hidePublicChrome =
+    pathname.startsWith("/admin") || !isPublicChromeRoute(pathname);
+
   if (hidePublicChrome) {
     return <>{children}</>;
   }

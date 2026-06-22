@@ -44,7 +44,6 @@ export default async function RootLayout({
 }) {
   const requestHeaders = await headers();
   const pathname = requestHeaders.get("x-pathname") ?? "";
-  const hidePublicChrome = pathname.startsWith("/admin");
 
   return (
     <html lang="es">
@@ -52,7 +51,7 @@ export default async function RootLayout({
         <AuthProvider>
           <CartProvider>
             <ToasterClient />
-            <AppShell hidePublicChrome={hidePublicChrome}>{children}</AppShell>
+            <AppShell initialPathname={pathname}>{children}</AppShell>
           </CartProvider>
         </AuthProvider>
       </body>

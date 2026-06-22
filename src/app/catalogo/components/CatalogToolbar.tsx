@@ -14,6 +14,7 @@ import {
   type CatalogSort,
   type CatalogView,
 } from "../utils/catalog-params";
+import { resolveApiUrl } from "@/lib/api-config";
 
 type CatalogToolbarProps = {
   searchQuery: string;
@@ -71,7 +72,7 @@ export default function CatalogToolbar({
         params.set("pageSize", "6");
         params.set("sort", "nombre-asc");
 
-        const res = await fetch(`/api/products?${params.toString()}`, {
+        const res = await fetch(resolveApiUrl(`/products?${params.toString()}`), {
           signal: controller.signal,
         });
 

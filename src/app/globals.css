@@ -199,6 +199,11 @@ a[data-sidebar="menu-sub-button"] {
   min-height: 0;
 }
 
+.appShell:has([data-not-found]) > header,
+.appShell:has([data-not-found]) > footer {
+  display: none;
+}
+
 .authShell {
   min-height: calc(100vh - 160px);
   background: linear-gradient(180deg, #eef7f6 0%, #f8fbfb 100%);

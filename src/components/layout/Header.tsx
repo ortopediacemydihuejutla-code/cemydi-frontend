@@ -3,9 +3,12 @@
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { Suspense } from "react";
 import HeaderAuth from "@/components/layout/header/HeaderAuth";
 import HeaderCart from "@/components/layout/header/HeaderCart";
-import HeaderSearch from "@/components/layout/header/HeaderSearch";
+import HeaderSearch, {
+  HeaderSearchSkeleton,
+} from "@/components/layout/header/HeaderSearch";
 
 export default function Header() {
   const pathname = usePathname();
@@ -23,12 +26,15 @@ export default function Header() {
           alt="CEMYDI"
           width={150}
           height={56}
+          priority
           className="block h-auto w-[100px] object-contain"
         />
       </Link>
 
       <div className="flex justify-center">
-        <HeaderSearch />
+        <Suspense fallback={<HeaderSearchSkeleton />}>
+          <HeaderSearch />
+        </Suspense>
       </div>
 
       <nav className="flex flex-wrap items-center justify-center gap-4 lg:justify-end">
