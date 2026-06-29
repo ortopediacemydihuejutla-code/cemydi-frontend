@@ -47,7 +47,11 @@ export function HeaderSearchSkeleton() {
   );
 }
 
-export default function HeaderSearch() {
+type HeaderSearchProps = {
+  inputId?: string;
+};
+
+export default function HeaderSearch({ inputId = "header-search" }: HeaderSearchProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -67,7 +71,7 @@ export default function HeaderSearch() {
 
   return (
     <form className="relative w-full max-w-full lg:max-w-[560px]" onSubmit={onSearchSubmit}>
-      <label htmlFor="header-search" className="sr-only">
+      <label htmlFor={inputId} className="sr-only">
         Buscar productos
       </label>
       <span
@@ -93,7 +97,7 @@ export default function HeaderSearch() {
         </svg>
       </span>
       <input
-        id="header-search"
+        id={inputId}
         key={`${pathname}-${searchParams.get("q") ?? ""}`}
         name="header-search"
         type="search"

@@ -34,6 +34,7 @@ const ADMIN_BREADCRUMB_CONFIG: Record<
   "/admin/analytics": { label: "Analytics", parent: "/admin" },
   "/admin/database": { label: "Monitoreo BD", parent: "/admin" },
   "/admin/users": { label: "Usuarios", parent: "/admin" },
+  "/admin/rentals": { label: "Rentas", parent: "/admin" },
   "/admin/reviews": { label: "Reseñas", parent: "/admin" },
 }
 
@@ -63,6 +64,7 @@ export function PageHeader({ title, subtitle, breadcrumbs, children }: PageHeade
 
     while (currentKey) {
       const node = ADMIN_BREADCRUMB_CONFIG[currentKey]
+      if (!node) break
       dynamicCrumbs.push({ label: node.label, href: currentKey })
       currentKey = node.parent as keyof typeof ADMIN_BREADCRUMB_CONFIG | undefined
     }
@@ -82,10 +84,10 @@ export function PageHeader({ title, subtitle, breadcrumbs, children }: PageHeade
   const hasBreadcrumbs = resolvedBreadcrumbs && resolvedBreadcrumbs.length > 0
 
   return (
-    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-      <div className="flex flex-col gap-2">
+    <div className="flex min-w-0 flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <div className="flex min-w-0 flex-col gap-2">
         {hasBreadcrumbs ? (
-          <Breadcrumb>
+          <Breadcrumb className="min-w-0 overflow-x-auto">
             <BreadcrumbList>
               {resolvedBreadcrumbs!.map((crumb, index) => {
                 const isLast = index === resolvedBreadcrumbs!.length - 1
@@ -110,11 +112,11 @@ export function PageHeader({ title, subtitle, breadcrumbs, children }: PageHeade
         ) : null}
 
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground sm:text-2xl">
             {title}
           </h1>
           {subtitle ? (
-            <p className="mt-1 max-w-2xl text-[15px] leading-relaxed text-muted-foreground">
+            <p className="mt-1 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-[15px]">
               {subtitle}
             </p>
           ) : null}
@@ -122,7 +124,7 @@ export function PageHeader({ title, subtitle, breadcrumbs, children }: PageHeade
       </div>
       
       {children ? (
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex shrink-0 flex-wrap items-center gap-2 sm:gap-3">
           {children}
         </div>
       ) : null}

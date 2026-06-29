@@ -3,7 +3,13 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { CircleUserRound, LayoutDashboard, LogOut, UserRound } from "lucide-react";
+import {
+  CircleUserRound,
+  ClipboardList,
+  LayoutDashboard,
+  LogOut,
+  UserRound,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
@@ -21,10 +27,10 @@ import { logoutUser } from "@/services/auth";
 
 export function HeaderAuthSkeleton() {
   return (
-    <div className="flex items-center gap-3" aria-hidden="true">
-      <span className="inline-block h-9 w-24 animate-pulse rounded-full bg-white/20" />
-      <span className="inline-block size-6 animate-pulse bg-white/25" />
-    </div>
+    <div
+      className="inline-flex size-11 shrink-0 animate-pulse rounded-full bg-white/15"
+      aria-hidden="true"
+    />
   );
 }
 
@@ -76,7 +82,7 @@ export default function HeaderAuth() {
         <Button
           size="icon"
           variant="ghost"
-          className="size-auto rounded-none bg-transparent p-0 text-white shadow-none hover:bg-transparent hover:text-white/80"
+          className="size-11 shrink-0 rounded-full bg-transparent p-0 text-white shadow-none hover:bg-white/12 hover:text-white"
           aria-label="Abrir menú de cuenta"
         >
           <CircleUserRound className="size-6" aria-hidden="true" />
@@ -95,6 +101,14 @@ export default function HeaderAuth() {
               Mi perfil
             </Link>
           </DropdownMenuItem>
+          {user.rol === "CLIENT" ? (
+            <DropdownMenuItem asChild>
+              <Link href="/mis-rentas">
+                <ClipboardList aria-hidden="true" />
+                Mis rentas
+              </Link>
+            </DropdownMenuItem>
+          ) : null}
           {user.rol === "ADMIN" ? (
             <DropdownMenuItem asChild>
               <Link href="/admin">

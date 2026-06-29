@@ -31,7 +31,7 @@ export default async function AdminLayout({ children }: { children: ReactNode })
             <SidebarInset className="admin-route min-h-0 flex-1 bg-[var(--card)] text-[var(--text-main)] antialiased">
               <DashboardHeader />
               {/* px debe coincidir con dashboard-header para alinear breadcrumb con la barra superior */}
-              <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-y-auto overflow-x-hidden px-6 py-4 lg:px-8 lg:py-5">
+              <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden px-3 py-3 sm:px-5 sm:py-4 lg:px-8 lg:py-5">
                 {children}
               </div>
             </SidebarInset>

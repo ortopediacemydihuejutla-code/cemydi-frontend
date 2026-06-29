@@ -4,6 +4,7 @@ import { useEffect, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 
 import { useAuth } from "@/providers/AuthContext";
+import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
 
 /**
  * No monta el chrome del panel hasta confirmar rol ADMIN; si no aplica, redirige.
@@ -25,7 +26,7 @@ export function AdminRouteShell({ children }: { children: ReactNode }) {
   const showPanel = user?.rol === "ADMIN";
 
   if (!showPanel) {
-    return null;
+    return <AdminPageLoading layout="viewport" />;
   }
 
   return <>{children}</>;

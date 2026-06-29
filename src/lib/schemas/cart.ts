@@ -12,6 +12,10 @@ const cartProductSchema = z.object({
   proveedor: z.string(),
   tipoAdquisicion: z.enum(["VENTA", "RENTA", "MIXTO"]),
   requiereReceta: z.boolean(),
+  rentalDailyPrice: z.number().nullable().optional(),
+  rentalMinDays: z.number().optional(),
+  rentalDeposit: z.number().optional(),
+  rentalTerms: z.string().nullable().optional(),
   activo: z.boolean(),
   imageUrl: z.string().nullable(),
 });
@@ -24,10 +28,26 @@ const cartAvailabilitySchema = z.object({
 
 const cartItemSchema = z.object({
   id: z.number(),
+  mode: z.enum(["VENTA", "RENTA"]).default("VENTA"),
   quantity: z.number(),
+  rentalStartDate: z.string().nullable().optional(),
+  rentalEndDate: z.string().nullable().optional(),
+  rentalDays: z.number().optional(),
+  rentalNotes: z.string().nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
   lineTotal: z.number(),
+  rentalSummary: z
+    .object({
+      dailyPrice: z.number(),
+      minDays: z.number(),
+      deposit: z.number(),
+      subtotal: z.number(),
+      depositTotal: z.number(),
+      total: z.number(),
+    })
+    .nullable()
+    .optional(),
   originalLineTotal: z.number().optional(),
   discountAmount: z.number().optional(),
   finalLineTotal: z.number().optional(),
@@ -52,8 +72,13 @@ const shoppingCartSchema = z.object({
     distinctItems: z.number(),
     totalQuantity: z.number(),
     subtotal: z.number(),
-    discountTotal: z.number().optional(),
+    saleSubtotal: z.number().optional(),
+    rentalSubtotal: z.number().optional(),
+    rentalDepositTotal: z.number().optional(),
     total: z.number().optional(),
+    saleItems: z.number().optional(),
+    rentalItems: z.number().optional(),
+    discountTotal: z.number().optional(),
     hasUnavailableItems: z.boolean(),
   }),
 });

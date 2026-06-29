@@ -75,6 +75,13 @@ function renderStars(value: number) {
   return `${"\u2605".repeat(safeValue)}${"\u2606".repeat(5 - safeValue)}`;
 }
 
+function toDateInputValue(date: Date) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 function getReviewerInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
 
@@ -145,7 +152,12 @@ export default function ProductDetailClient({
   const { addItem } = useCart();
   const [notifyRequested, setNotifyRequested] = useState(false);
   const [cartQuantity, setCartQuantity] = useState(1);
+  const [rentalQuantity, setRentalQuantity] = useState(1);
+  const [rentalStartDate, setRentalStartDate] = useState("");
+  const [rentalEndDate, setRentalEndDate] = useState("");
+  const [rentalNotes, setRentalNotes] = useState("");
   const [addingToCart, setAddingToCart] = useState(false);
+  const [addingRental, setAddingRental] = useState(false);
   const [relatedProducts, setRelatedProducts] = useState<CatalogProduct[]>([]);
   const [relatedLoading, setRelatedLoading] = useState(false);
   const [canScrollRelatedPrev, setCanScrollRelatedPrev] = useState(false);
@@ -315,6 +327,43 @@ export default function ProductDetailClient({
   const showBuyAction = product.tipoAdquisicion !== "RENTA";
   const showRentAction = product.tipoAdquisicion !== "VENTA";
   const maxCartQuantity = Math.max(1, Math.min(product.stock, 25));
+  const rentalMinDays = Math.max(1, product.rentalMinDays ?? 1);
+  const rentalDailyPrice = product.rentalDailyPrice ?? 0;
+  const todayInputValue = useMemo(() => toDateInputValue(new Date()), []);
+  const rentalEndMinDate = useMemo(() => {
+    if (!rentalStartDate) return todayInputValue;
+    const start = new Date(`${rentalStartDate}T00:00:00`);
+    if (Number.isNaN(start.getTime())) return todayInputValue;
+    start.setDate(start.getDate() + rentalMinDays - 1);
+    return toDateInputValue(start);
+  }, [rentalMinDays, rentalStartDate, todayInputValue]);
+  const rentalEstimate = useMemo(() => {
+    if (!rentalStartDate || !rentalEndDate || rentalDailyPrice <= 0) {
+      return null;
+    }
+
+    const start = new Date(`${rentalStartDate}T00:00:00`);
+    const end = new Date(`${rentalEndDate}T00:00:00`);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+      return null;
+    }
+
+    const days = Math.floor((end.getTime() - start.getTime()) / 86_400_000) + 1;
+    const subtotal = rentalQuantity * rentalDailyPrice * days;
+    const deposit = rentalQuantity * (product.rentalDeposit ?? 0);
+    return {
+      days,
+      subtotal,
+      deposit,
+      total: subtotal + deposit,
+    };
+  }, [
+    product.rentalDeposit,
+    rentalDailyPrice,
+    rentalEndDate,
+    rentalQuantity,
+    rentalStartDate,
+  ]);
   const myApprovedReview = useMemo(() => {
     if (!user?.id) return null;
 
@@ -328,6 +377,7 @@ export default function ProductDetailClient({
 
   useEffect(() => {
     setCartQuantity((current) => Math.max(1, Math.min(current, maxCartQuantity)));
+    setRentalQuantity((current) => Math.max(1, Math.min(current, maxCartQuantity)));
   }, [maxCartQuantity]);
 
   const onOpenReviewModal = () => {
@@ -418,6 +468,58 @@ export default function ProductDetailClient({
     }
   };
 
+  const handleAddRentalToCart = async () => {
+    if (!user) {
+      toast.error("Debes iniciar sesión para solicitar una renta.");
+      router.push("/login");
+      return;
+    }
+
+    if (user.rol !== "CLIENT") {
+      toast.error("Solo las cuentas de cliente pueden solicitar rentas.");
+      return;
+    }
+
+    if (!rentalStartDate || !rentalEndDate) {
+      toast.error("Selecciona fecha de inicio y fin de renta.");
+      return;
+    }
+
+    const start = new Date(`${rentalStartDate}T00:00:00`);
+    const end = new Date(`${rentalEndDate}T00:00:00`);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime()) || end < start) {
+      toast.error("Revisa las fechas de renta.");
+      return;
+    }
+
+    const days = Math.floor((end.getTime() - start.getTime()) / 86_400_000) + 1;
+    if (days < rentalMinDays) {
+      toast.error(`La renta mínima para este producto es de ${rentalMinDays} día(s).`);
+      return;
+    }
+
+    try {
+      setAddingRental(true);
+      const result = await addItem({
+        productId,
+        quantity: rentalQuantity,
+        mode: "RENTA",
+        rentalStartDate,
+        rentalEndDate,
+        rentalNotes,
+      });
+      toast.success(result.message);
+    } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "No se pudo agregar la renta al carrito.";
+      toast.error(message);
+    } finally {
+      setAddingRental(false);
+    }
+  };
+
   return (
     <section className="mx-auto max-w-[1440px] px-4 pb-11 pt-6 lg:px-6">
       <div className="mb-5 border-b border-[#e3ebee] pb-4">
@@ -444,7 +546,7 @@ export default function ProductDetailClient({
         </Breadcrumb>
       </div>
 
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1.2fr)_minmax(0,0.95fr)_320px]">
+      <div className="grid gap-8 xl:grid-cols-[minmax(0,1.12fr)_minmax(0,0.9fr)_360px]">
         <section className="grid gap-4 xl:sticky xl:top-24 xl:self-start">
           <div className="grid gap-4">
             <div className="relative overflow-hidden bg-[#f7fbfb]">
@@ -649,7 +751,9 @@ export default function ProductDetailClient({
         <aside className="grid content-start gap-4 xl:sticky xl:top-24 xl:self-start">
           <div className="rounded-2xl border border-[#dbe4e6] bg-white p-5 shadow-[0_18px_38px_rgba(15,61,59,0.08)]">
             <div className="grid gap-2">
-              <strong className="text-[2rem] leading-none text-[#1d6a67]">{formatMoney(product.precio)}</strong>
+              <strong className="text-[2rem] leading-none text-[#1d6a67]">
+                {showBuyAction ? formatMoney(product.precio) : `${formatMoney(rentalDailyPrice)} / día`}
+              </strong>
               <p className={`text-sm font-medium ${isOutOfStock ? "text-[#b42318]" : "text-[#157347]"}`}>
                 {disponibilidad}
               </p>
@@ -698,13 +802,120 @@ export default function ProductDetailClient({
                 </>
               ) : null}
               {showRentAction ? (
-                <button
-                  type="button"
-                  className={secondaryButtonClassName}
-                  disabled={isOutOfStock}
-                >
-                  Reservar para renta
-                </button>
+                <div className="grid gap-3 rounded-2xl border border-[#dbe4e6] bg-[#f8fbfb] p-4">
+                  <div className="grid gap-1">
+                    <strong className="text-[#17333f]">
+                      {formatMoney(rentalDailyPrice)} por día
+                    </strong>
+                    <span className="text-sm text-[#5a707a]">
+                      Mínimo {rentalMinDays} día{rentalMinDays === 1 ? "" : "s"}
+                      {(product.rentalDeposit ?? 0) > 0
+                        ? ` · Depósito ${formatMoney(product.rentalDeposit ?? 0)}`
+                        : ""}
+                    </span>
+                  </div>
+                  <label className="grid gap-2 text-sm font-semibold text-[#36515e]">
+                    Cantidad para renta
+                    <input
+                      type="number"
+                      min={1}
+                      max={maxCartQuantity}
+                      value={rentalQuantity}
+                      onChange={(event) => {
+                        const nextValue = Number(event.target.value);
+                        setRentalQuantity(
+                          Number.isFinite(nextValue)
+                            ? Math.max(1, Math.min(Math.trunc(nextValue), maxCartQuantity))
+                            : 1,
+                        );
+                      }}
+                      disabled={isOutOfStock || addingRental}
+                      className="h-11 rounded-[14px] border border-[#d4dfe2] px-4 text-[#193844] outline-none"
+                    />
+                  </label>
+                  <div className="grid gap-2">
+                    <label className="grid gap-2 text-sm font-semibold text-[#36515e]">
+                      Inicio
+                      <input
+                        type="date"
+                        min={todayInputValue}
+                        value={rentalStartDate}
+                        onChange={(event) => {
+                          const nextStart = event.target.value;
+                          setRentalStartDate(nextStart);
+                          if (rentalEndDate && rentalEndDate < nextStart) {
+                            setRentalEndDate("");
+                          }
+                        }}
+                        disabled={isOutOfStock || addingRental}
+                        className="h-11 rounded-[14px] border border-[#d4dfe2] px-4 text-[#193844] outline-none"
+                      />
+                    </label>
+                    <label className="grid gap-2 text-sm font-semibold text-[#36515e]">
+                      Fin
+                      <input
+                        type="date"
+                        min={rentalEndMinDate}
+                        value={rentalEndDate}
+                        onChange={(event) => setRentalEndDate(event.target.value)}
+                        disabled={isOutOfStock || addingRental}
+                        className="h-11 rounded-[14px] border border-[#d4dfe2] px-4 text-[#193844] outline-none"
+                      />
+                    </label>
+                  </div>
+                  <label className="grid gap-2 text-sm font-semibold text-[#36515e]">
+                    Notas para CEMYDI
+                    <textarea
+                      value={rentalNotes}
+                      onChange={(event) => setRentalNotes(event.target.value)}
+                      disabled={isOutOfStock || addingRental}
+                      maxLength={500}
+                      rows={3}
+                      placeholder="Ej. Necesito entrega a domicilio o medidas del paciente."
+                      className="rounded-[14px] border border-[#d4dfe2] px-4 py-3 text-[#193844] outline-none"
+                    />
+                  </label>
+                  {product.rentalTerms ? (
+                    <p className="text-sm leading-6 text-[#5a707a]">{product.rentalTerms}</p>
+                  ) : null}
+                  {product.requiereReceta ? (
+                    <p className="rounded-xl border border-[#dbe4e6] bg-white px-4 py-3 text-sm leading-6 text-[#36515e]">
+                      La receta en PDF o imagen se adjunta al revisar el carrito antes de
+                      enviar la solicitud.
+                    </p>
+                  ) : null}
+                  {rentalEstimate ? (
+                    <div className="rounded-xl border border-[#dbe4e6] bg-white px-4 py-3 text-sm text-[#36515e]">
+                      <div className="flex justify-between gap-3">
+                        <span>{rentalEstimate.days} día(s) de renta</span>
+                        <strong>{formatMoney(rentalEstimate.subtotal)}</strong>
+                      </div>
+                      {rentalEstimate.deposit > 0 ? (
+                        <div className="mt-1 flex justify-between gap-3">
+                          <span>Depósito estimado</span>
+                          <strong>{formatMoney(rentalEstimate.deposit)}</strong>
+                        </div>
+                      ) : null}
+                      <div className="mt-2 flex justify-between border-t border-[#e8eef0] pt-2 text-[#17333f]">
+                        <span>Total estimado</span>
+                        <strong>{formatMoney(rentalEstimate.total)}</strong>
+                      </div>
+                    </div>
+                  ) : null}
+                  {rentalDailyPrice <= 0 ? (
+                    <p className="rounded-xl border border-[#f4d8a8] bg-[#fff7e8] px-4 py-3 text-sm text-[#845b12]">
+                      Este producto aún no tiene tarifa de renta configurada.
+                    </p>
+                  ) : null}
+                  <button
+                    type="button"
+                    className={secondaryButtonClassName}
+                    disabled={isOutOfStock || addingRental || rentalDailyPrice <= 0}
+                    onClick={() => void handleAddRentalToCart()}
+                  >
+                    {addingRental ? "Agregando..." : "Agregar renta al carrito"}
+                  </button>
+                </div>
               ) : null}
               {isOutOfStock ? (
                 <button

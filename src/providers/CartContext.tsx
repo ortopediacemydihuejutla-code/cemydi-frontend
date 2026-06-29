@@ -22,11 +22,24 @@ type CartContextType = {
   cart: ShoppingCart;
   loading: boolean;
   refreshCart: () => Promise<ShoppingCart>;
-  addItem: (payload: { productId: number; quantity: number }) => Promise<{
+  addItem: (payload: {
+    productId: number;
+    quantity: number;
+    mode?: "VENTA" | "RENTA";
+    rentalStartDate?: string;
+    rentalEndDate?: string;
+    rentalNotes?: string;
+  }) => Promise<{
     cart: ShoppingCart;
     message: string;
   }>;
-  updateItemQuantity: (payload: { itemId: number; quantity: number }) => Promise<{
+  updateItemQuantity: (payload: {
+    itemId: number;
+    quantity: number;
+    rentalStartDate?: string;
+    rentalEndDate?: string;
+    rentalNotes?: string;
+  }) => Promise<{
     cart: ShoppingCart;
     message: string;
   }>;
@@ -52,6 +65,12 @@ function createEmptyCart(): ShoppingCart {
       distinctItems: 0,
       totalQuantity: 0,
       subtotal: 0,
+      saleSubtotal: 0,
+      rentalSubtotal: 0,
+      rentalDepositTotal: 0,
+      total: 0,
+      saleItems: 0,
+      rentalItems: 0,
       hasUnavailableItems: false,
     },
   };
@@ -192,7 +211,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   }, [user]);
 
   const addItem = useCallback(
-    async (payload: { productId: number; quantity: number }) => {
+    async (payload: {
+      productId: number;
+      quantity: number;
+      mode?: "VENTA" | "RENTA";
+      rentalStartDate?: string;
+      rentalEndDate?: string;
+      rentalNotes?: string;
+    }) => {
       assertClientSession();
       const result = await addCartItem(payload);
       setState((previous) => ({
@@ -205,10 +231,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   );
 
   const updateItemQuantity = useCallback(
-    async (payload: { itemId: number; quantity: number }) => {
+    async (payload: {
+      itemId: number;
+      quantity: number;
+      rentalStartDate?: string;
+      rentalEndDate?: string;
+      rentalNotes?: string;
+    }) => {
       assertClientSession();
       const result = await updateCartItem(payload.itemId, {
         quantity: payload.quantity,
+        rentalStartDate: payload.rentalStartDate,
+        rentalEndDate: payload.rentalEndDate,
+        rentalNotes: payload.rentalNotes,
       });
       setState((previous) => ({
         ownerUserId: clientUserId,

@@ -22,35 +22,37 @@ export function AdminFilterTabs<T extends string>({
   formatCount = (n) => String(n),
 }: AdminFilterTabsProps<T>) {
   return (
-    <div className="inline-flex w-fit max-w-full flex-wrap items-center gap-1 rounded-xl bg-[var(--surface)] p-1">
-      {tabs.map((tab) => {
-        const active = activeId === tab.id;
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => onChange(tab.id)}
-            className={cn(
-              "inline-flex min-h-0 items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition",
-              active
-                ? "bg-[var(--card)] text-[var(--brand-900)] shadow-[0_1px_3px_rgba(15,61,59,0.14)]"
-                : "text-[var(--text-muted)] hover:text-[var(--brand-800)]",
-            )}
-          >
-            <span>{tab.label}</span>
-            <span
+    <div className="w-full max-w-full overflow-x-auto rounded-xl bg-[var(--surface)] p-1 [-webkit-overflow-scrolling:touch]">
+      <div className="flex w-max min-w-full items-center gap-1">
+        {tabs.map((tab) => {
+          const active = activeId === tab.id;
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => onChange(tab.id)}
               className={cn(
-                "rounded-sm px-1.5 py-0.5 text-xs",
+                "inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-medium whitespace-nowrap transition sm:px-4",
                 active
-                  ? "bg-[color-mix(in_srgb,var(--brand-600)_12%,var(--surface))] text-[var(--brand-800)]"
-                  : "bg-[var(--card)] text-[var(--brand-800)]",
+                  ? "bg-[var(--card)] text-[var(--brand-900)] shadow-[0_1px_3px_rgba(15,61,59,0.14)]"
+                  : "text-[var(--text-muted)] hover:text-[var(--brand-800)]",
               )}
             >
-              {formatCount(tab.count)}
-            </span>
-          </button>
-        );
-      })}
+              <span>{tab.label}</span>
+              <span
+                className={cn(
+                  "rounded-sm px-1.5 py-0.5 text-xs",
+                  active
+                    ? "bg-[color-mix(in_srgb,var(--brand-600)_12%,var(--surface))] text-[var(--brand-800)]"
+                    : "bg-[var(--card)] text-[var(--brand-800)]",
+                )}
+              >
+                {formatCount(tab.count)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

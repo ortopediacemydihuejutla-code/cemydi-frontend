@@ -3,10 +3,22 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { AlertTriangle, Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  CalendarDays,
+  Edit3,
+  FileText,
+  Minus,
+  Plus,
+  ShoppingBag,
+  Trash2,
+  Upload,
+  X,
+} from "lucide-react";
 import toast from "react-hot-toast";
 import { useAuth } from "@/providers/AuthContext";
 import { useCart } from "@/providers/CartContext";
+import { createRentalFromCart } from "@/services/rentals";
 import { isOptimizableImageUrl } from "@/lib/cloudinary-image";
 import { formatCurrencyMx, formatDateEsMx } from "@/lib/formatters";
 
@@ -45,16 +57,61 @@ function getDiscountLabel(percent?: number) {
   return `-${Math.round(percent)}%`;
 }
 
+function dateInputFromIso(value?: string | null) {
+  return value ? value.slice(0, 10) : "";
+}
+
+type RentalCartEdit = {
+  rentalStartDate: string;
+  rentalEndDate: string;
+  rentalNotes: string;
+};
+
+const PRESCRIPTION_ACCEPT = "application/pdf,image/jpeg,image/png,image/gif,image/webp,image/avif";
+const MAX_PRESCRIPTION_BYTES = 8 * 1024 * 1024;
+
+function formatFileSize(bytes: number) {
+  if (bytes >= 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
 export default function CarritoPage() {
   const { user, loading: authLoading } = useAuth();
-  const { cart, loading: cartLoading, updateItemQuantity, removeItem, clearCart } = useCart();
+  const {
+    cart,
+    loading: cartLoading,
+    refreshCart,
+    updateItemQuantity,
+    removeItem,
+    clearCart,
+  } = useCart();
   const [pendingItemId, setPendingItemId] = useState<number | null>(null);
   const [clearing, setClearing] = useState(false);
+  const [submittingRental, setSubmittingRental] = useState(false);
+  const [rentalEdits, setRentalEdits] = useState<Record<number, RentalCartEdit>>({});
+  const [prescriptionFiles, setPrescriptionFiles] = useState<Record<number, File>>({});
+  const [editingRentalItemId, setEditingRentalItemId] = useState<number | null>(null);
 
   const hasItems = cart.summary.totalQuantity > 0;
+  const saleItems = cart.items.filter((item) => item.mode !== "RENTA");
+  const rentalItems = cart.items.filter((item) => item.mode === "RENTA");
+  const hasSaleItems = saleItems.length > 0;
+  const hasRentalItems = rentalItems.length > 0;
   const cartDiscount = Math.max(0, cart.summary.discountTotal ?? 0);
   const cartTotal = cart.summary.total ?? Math.max(0, cart.summary.subtotal - cartDiscount);
-  const canProceedToPayment = hasItems && !cart.summary.hasUnavailableItems;
+  const hasUnavailableSaleItems = saleItems.some((item) => !item.availability.isAvailable);
+  const hasUnavailableRentalItems = rentalItems.some((item) => !item.availability.isAvailable);
+  const rentalItemsMissingPrescription = rentalItems.filter(
+    (item) => item.product.requiereReceta && !prescriptionFiles[item.id],
+  );
+  const canProceedToPayment = hasSaleItems && !hasUnavailableSaleItems;
+  const canSubmitRental =
+    hasRentalItems &&
+    !hasUnavailableRentalItems &&
+    rentalItemsMissingPrescription.length === 0;
   const lastUpdatedLabel = useMemo(() => {
     if (!cart.updatedAt) {
       return "Aún no has agregado productos.";
@@ -101,6 +158,63 @@ export default function CarritoPage() {
     }
   };
 
+  const getRentalEdit = (item: (typeof cart.items)[number]) =>
+    rentalEdits[item.id] ?? {
+      rentalStartDate: dateInputFromIso(item.rentalStartDate),
+      rentalEndDate: dateInputFromIso(item.rentalEndDate),
+      rentalNotes: item.rentalNotes ?? "",
+    };
+
+  const updateRentalEdit = (
+    itemId: number,
+    patch: Partial<RentalCartEdit>,
+  ) => {
+    const item = cart.items.find((candidate) => candidate.id === itemId);
+    if (!item) return;
+    setRentalEdits((current) => ({
+      ...current,
+      [itemId]: {
+        ...getRentalEdit(item),
+        ...patch,
+      },
+    }));
+  };
+
+  const handleRentalDetailsSave = async (itemId: number) => {
+    const item = cart.items.find((candidate) => candidate.id === itemId);
+    if (!item) return;
+    const edit = getRentalEdit(item);
+
+    if (!edit.rentalStartDate || !edit.rentalEndDate) {
+      toast.error("Selecciona fecha de inicio y fin para la renta.");
+      return;
+    }
+
+    try {
+      setPendingItemId(itemId);
+      const result = await updateItemQuantity({
+        itemId,
+        quantity: item.quantity,
+        rentalStartDate: edit.rentalStartDate,
+        rentalEndDate: edit.rentalEndDate,
+        rentalNotes: edit.rentalNotes,
+      });
+      setRentalEdits((current) => {
+        const next = { ...current };
+        delete next[itemId];
+        return next;
+      });
+      setEditingRentalItemId(null);
+      toast.success(result.message);
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "No se pudo actualizar la renta.";
+      toast.error(message);
+    } finally {
+      setPendingItemId(null);
+    }
+  };
+
   const handleProceedToPayment = () => {
     if (!canProceedToPayment) {
       toast.error("Revisa disponibilidad y stock antes de proceder al pago.");
@@ -108,6 +222,32 @@ export default function CarritoPage() {
     }
 
     toast.success("Listo para conectar el flujo de pago.");
+  };
+
+  const handleSubmitRental = async () => {
+    if (rentalItemsMissingPrescription.length > 0) {
+      toast.error("Adjunta la receta en cada producto de renta que la requiere.");
+      return;
+    }
+
+    if (!canSubmitRental) {
+      toast.error("Revisa disponibilidad y fechas antes de enviar la solicitud.");
+      return;
+    }
+
+    try {
+      setSubmittingRental(true);
+      const result = await createRentalFromCart({ prescriptions: prescriptionFiles });
+      toast.success(result.message);
+      setPrescriptionFiles({});
+      await refreshCart();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "No se pudo enviar la solicitud.";
+      toast.error(message);
+    } finally {
+      setSubmittingRental(false);
+    }
   };
 
   const handleRemoveItem = async (itemId: number) => {
@@ -136,6 +276,49 @@ export default function CarritoPage() {
       setClearing(false);
     }
   };
+
+  const handlePrescriptionChange = (itemId: number, fileList: FileList | null) => {
+    const file = fileList?.[0];
+    if (!file) return;
+
+    const allowedTypes = PRESCRIPTION_ACCEPT.split(",");
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("La receta debe ser PDF o imagen.");
+      return;
+    }
+
+    if (file.size > MAX_PRESCRIPTION_BYTES) {
+      toast.error("La receta no debe superar 8 MB.");
+      return;
+    }
+
+    setPrescriptionFiles((current) => ({
+      ...current,
+      [itemId]: file,
+    }));
+  };
+
+  const removePrescriptionFile = (itemId: number) => {
+    setPrescriptionFiles((current) => {
+      const next = { ...current };
+      delete next[itemId];
+      return next;
+    });
+  };
+
+  const openRentalEditDialog = (item: (typeof cart.items)[number]) => {
+    setRentalEdits((current) => ({
+      ...current,
+      [item.id]: getRentalEdit(item),
+    }));
+    setEditingRentalItemId(item.id);
+  };
+
+  const editingRentalItem =
+    editingRentalItemId !== null
+      ? cart.items.find((item) => item.id === editingRentalItemId) ?? null
+      : null;
+  const editingRental = editingRentalItem ? getRentalEdit(editingRentalItem) : null;
 
   if (authLoading || (user?.rol === "CLIENT" && cartLoading)) {
     return (
@@ -242,9 +425,9 @@ export default function CarritoPage() {
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_340px] lg:items-start">
-            <section className="overflow-hidden rounded-2xl border border-[#dbe5e7] bg-white shadow-[0_18px_34px_rgba(15,61,59,0.07)]">
+            <div className="grid gap-5">
               {cart.summary.hasUnavailableItems ? (
-                <div className="m-4 flex items-start gap-3 rounded-2xl border border-[#f4d8a8] bg-[#fff7e8] px-4 py-4 text-[#845b12]">
+                <div className="flex items-start gap-3 rounded-2xl border border-[#f4d8a8] bg-[#fff7e8] px-4 py-4 text-[#845b12]">
                   <AlertTriangle className="mt-0.5 size-5 shrink-0" />
                   <p className="text-sm leading-6">
                     Algunos productos requieren tu atención porque su disponibilidad cambió.
@@ -253,7 +436,25 @@ export default function CarritoPage() {
                 </div>
               ) : null}
 
-              {cart.items.map((item) => {
+              {[
+                { id: "sale", title: "Productos para compra", items: saleItems },
+                { id: "rental", title: "Productos para renta", items: rentalItems },
+              ]
+                .filter((section) => section.items.length > 0)
+                .map((section) => (
+                  <section
+                    key={section.id}
+                    className="overflow-hidden rounded-2xl border border-[#dbe5e7] bg-white shadow-[0_18px_34px_rgba(15,61,59,0.07)]"
+                  >
+                    <div className="flex items-center justify-between gap-3 border-b border-[#edf2f3] bg-[#fbfdfd] px-4 py-4">
+                      <h2 className="text-sm font-bold uppercase tracking-[0.08em] text-[#405b65]">
+                        {section.title}
+                      </h2>
+                      <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#60727a]">
+                        {section.items.length} producto{section.items.length === 1 ? "" : "s"}
+                      </span>
+                    </div>
+                    {section.items.map((item) => {
                 const quantityOptions = buildQuantityOptions(
                   item.quantity,
                   item.availability.maxQuantity,
@@ -269,15 +470,16 @@ export default function CarritoPage() {
                   item.quantity < item.availability.maxQuantity &&
                   item.availability.maxQuantity > 0;
                 const acquisitionLabel = getAcquisitionLabel(item.product.tipoAdquisicion);
+                const isRental = item.mode === "RENTA";
 
                 return (
                   <article
                     key={item.id}
-                    className="relative grid gap-5 border-b border-[#edf2f3] p-4 last:border-b-0 sm:grid-cols-[136px_minmax(0,1fr)] lg:grid-cols-[136px_minmax(0,1fr)_220px]"
+                    className="relative grid items-start gap-5 border-b border-[#edf2f3] p-4 last:border-b-0 sm:grid-cols-[136px_minmax(0,1fr)] lg:grid-cols-[136px_minmax(0,1fr)_220px]"
                   >
                     <Link
                       href={`/producto/${item.product.id}`}
-                      className="relative flex min-h-[136px] items-center justify-center overflow-hidden rounded-xl border border-[#e5edef] bg-[#f7fbfb] p-4"
+                      className="relative flex h-[136px] w-full items-center justify-center overflow-hidden rounded-xl border border-[#e5edef] bg-[#f7fbfb] p-4"
                     >
                       {isOptimizableImageUrl(item.product.imageUrl) ? (
                         <Image
@@ -305,15 +507,86 @@ export default function CarritoPage() {
                         {item.product.nombre}
                       </Link>
                       <span className="mt-2 inline-flex min-h-0 min-w-0 rounded-full bg-[#e4f6ee] px-3 py-1 text-xs font-bold text-[#1e7c55]">
-                        {acquisitionLabel}
+                        {isRental ? "Renta" : acquisitionLabel}
                       </span>
+                      {item.product.requiereReceta ? (
+                        <span className="ml-2 mt-2 inline-flex min-h-0 min-w-0 items-center gap-1 rounded-full bg-[#eef2ff] px-3 py-1 text-xs font-bold text-[#243c78]">
+                          <FileText className="size-3.5" />
+                          Requiere receta
+                        </span>
+                      ) : null}
                       <p className="mt-3 text-sm leading-6 text-[#5b717c]">
                         Marca: <strong className="font-semibold text-[#344f5b]">{item.product.marca}</strong>{" "}
                         · SKU: <strong className="font-semibold text-[#344f5b]">{item.product.modelo || `CEMYDI-${item.product.id}`}</strong>
                       </p>
                       <p className="mt-1 text-sm leading-6 text-[#6b7f87]">
-                        Precio unitario {formatCurrencyMx(item.product.precio, { fractionDigits: 0 })}
+                        {isRental
+                          ? `Tarifa diaria ${formatCurrencyMx(item.rentalSummary?.dailyPrice ?? item.product.rentalDailyPrice ?? 0, { fractionDigits: 0 })}`
+                          : `Precio unitario ${formatCurrencyMx(item.product.precio, { fractionDigits: 0 })}`}
                       </p>
+                      {isRental ? (
+                        <div className="mt-3 flex max-w-[620px] flex-wrap items-center gap-2 text-sm text-[#405b65]">
+                          <span className="inline-flex h-10 min-w-0 items-center gap-2 rounded-full border border-[#dbe5e7] bg-[#f8fbfb] px-3 font-semibold text-[#17333f]">
+                            <CalendarDays className="size-4 shrink-0 text-[#1f6a67]" />
+                            <span className="truncate">
+                              {item.rentalStartDate
+                                ? formatDateEsMx(item.rentalStartDate, { style: "short" })
+                                : "Sin inicio"}{" "}
+                              -{" "}
+                              {item.rentalEndDate
+                                ? formatDateEsMx(item.rentalEndDate, { style: "short" })
+                                : "Sin fin"}
+                            </span>
+                            <span className="shrink-0 font-normal text-[#60727a]">
+                              {item.rentalDays ? `${item.rentalDays} día(s)` : "Periodo pendiente"}
+                            </span>
+                          </span>
+                          <button
+                            type="button"
+                            disabled={isPending}
+                            onClick={() => openRentalEditDialog(item)}
+                            className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full border border-[#9ac9d7] bg-white px-3 text-xs font-bold text-[#176c83] transition hover:bg-[#edf9fb] disabled:cursor-not-allowed disabled:opacity-60"
+                          >
+                            <Edit3 className="size-4" />
+                            Editar
+                          </button>
+                          {item.product.requiereReceta ? (
+                            prescriptionFiles[item.id] ? (
+                              <button
+                                type="button"
+                                onClick={() => removePrescriptionFile(item.id)}
+                                title={prescriptionFiles[item.id].name}
+                                className="inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-full border border-[#b9d8dd] bg-white px-3 text-xs font-bold text-[#176c83] transition hover:bg-[#edf9fb]"
+                              >
+                                <FileText className="size-4 shrink-0" />
+                                <span className="max-w-[180px] truncate">
+                                  {prescriptionFiles[item.id].name}
+                                </span>
+                                <X className="size-4 shrink-0 text-[#b42318]" />
+                              </button>
+                            ) : (
+                              <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-full border border-dashed border-[#d8a85c] bg-[#fffaf0] px-3 text-xs font-bold text-[#845b12] transition hover:bg-[#fff4dd]">
+                                <Upload className="size-4" />
+                                Adjuntar receta
+                                <input
+                                  type="file"
+                                  accept={PRESCRIPTION_ACCEPT}
+                                  className="sr-only"
+                                  onChange={(event) => {
+                                    handlePrescriptionChange(item.id, event.target.files);
+                                    event.currentTarget.value = "";
+                                  }}
+                                />
+                              </label>
+                            )
+                          ) : null}
+                          {item.rentalNotes ? (
+                            <span className="min-w-0 truncate text-sm text-[#60727a]">
+                              Nota: {item.rentalNotes}
+                            </span>
+                          ) : null}
+                        </div>
+                      ) : null}
 
                       {!item.availability.isAvailable && item.availability.reason ? (
                         <div className="mt-3 rounded-xl border border-[#f4d8a8] bg-[#fff7e8] px-4 py-3 text-sm leading-6 text-[#845b12]">
@@ -374,7 +647,11 @@ export default function CarritoPage() {
 
                       <div className="grid gap-1 text-left lg:text-right">
                         <span className="text-sm font-semibold text-[#5b717c]">
-                          {hasPromotion ? "Precio con promoción" : "Subtotal"}
+                          {isRental
+                            ? "Total estimado"
+                            : hasPromotion
+                              ? "Precio con promoción"
+                              : "Subtotal"}
                         </span>
                         {hasPromotion ? (
                           <div className="flex items-center gap-2 lg:justify-end">
@@ -397,14 +674,16 @@ export default function CarritoPage() {
                       onClick={() => handleRemoveItem(item.id)}
                       disabled={isPending}
                       aria-label="Eliminar producto"
-                      className="absolute right-4 top-4 grid size-10 place-items-center rounded-full text-[#7f9198] transition hover:bg-[#f1f5f5] hover:text-[#344f5b] disabled:cursor-not-allowed disabled:opacity-50"
+                      className="absolute right-4 top-4 grid size-10 place-items-center rounded-full text-[#b42318] transition hover:bg-[#fff1f1] hover:text-[#8f1d18] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Trash2 className="size-5" />
                     </button>
                   </article>
                 );
-              })}
-            </section>
+                    })}
+                  </section>
+                ))}
+            </div>
 
             <aside className="h-fit rounded-2xl border border-[#dbe5e7] bg-white p-6 shadow-[0_18px_34px_rgba(15,61,59,0.07)] lg:sticky lg:top-24">
               <h2 className="text-sm font-bold uppercase tracking-[0.1em] text-[#405b65]">
@@ -412,12 +691,22 @@ export default function CarritoPage() {
               </h2>
               <div className="mt-5 grid gap-3">
                 <div className="flex items-center justify-between text-[0.95rem] text-[#5b717c]">
-                  <span>Productos</span>
-                  <strong className="text-[#193844]">{cart.summary.distinctItems}</strong>
+                  <span>Compra</span>
+                  <strong className="text-[#193844]">
+                    {formatCurrencyMx(cart.summary.saleSubtotal ?? 0, { fractionDigits: 0 })}
+                  </strong>
                 </div>
                 <div className="flex items-center justify-between text-[0.95rem] text-[#5b717c]">
-                  <span>Unidades</span>
-                  <strong className="text-[#193844]">{cart.summary.totalQuantity}</strong>
+                  <span>Renta estimada</span>
+                  <strong className="text-[#193844]">
+                    {formatCurrencyMx(cart.summary.rentalSubtotal ?? 0, { fractionDigits: 0 })}
+                  </strong>
+                </div>
+                <div className="flex items-center justify-between text-[0.95rem] text-[#5b717c]">
+                  <span>Depósitos</span>
+                  <strong className="text-[#193844]">
+                    {formatCurrencyMx(cart.summary.rentalDepositTotal ?? 0, { fractionDigits: 0 })}
+                  </strong>
                 </div>
               </div>
 
@@ -444,14 +733,38 @@ export default function CarritoPage() {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleProceedToPayment}
-                disabled={!canProceedToPayment}
-                className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#1f6a67] px-5 py-3.5 text-base font-bold text-white shadow-[0_16px_28px_rgba(31,106,103,0.22)] transition hover:bg-[#185856] disabled:cursor-not-allowed disabled:bg-[#9ab8b6] disabled:shadow-none"
-              >
-                Proceder al pago
-              </button>
+              {hasSaleItems ? (
+                <button
+                  type="button"
+                  onClick={handleProceedToPayment}
+                  disabled={!canProceedToPayment}
+                  className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#1f6a67] px-5 py-3.5 text-base font-bold text-white shadow-[0_16px_28px_rgba(31,106,103,0.22)] transition hover:bg-[#185856] disabled:cursor-not-allowed disabled:bg-[#9ab8b6] disabled:shadow-none"
+                >
+                  Proceder al pago
+                </button>
+              ) : null}
+
+              {hasRentalItems ? (
+                <>
+                  {rentalItemsMissingPrescription.length > 0 ? (
+                    <div className="mt-5 flex items-start gap-3 rounded-2xl border border-[#f4d8a8] bg-[#fff7e8] px-4 py-3 text-sm leading-6 text-[#845b12]">
+                      <AlertTriangle className="mt-0.5 size-5 shrink-0 text-[#c47b13]" />
+                      <p>
+                        Falta receta en {rentalItemsMissingPrescription.length} producto
+                        {rentalItemsMissingPrescription.length === 1 ? "" : "s"} de renta.
+                      </p>
+                    </div>
+                  ) : null}
+                  <button
+                    type="button"
+                    onClick={() => void handleSubmitRental()}
+                    disabled={!canSubmitRental || submittingRental}
+                    className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-[#1f6a67] bg-white px-5 py-3.5 text-base font-bold text-[#1f6a67] transition hover:bg-[#eef7f6] disabled:cursor-not-allowed disabled:border-[#9ab8b6] disabled:text-[#9ab8b6]"
+                  >
+                    {submittingRental ? "Enviando..." : "Enviar solicitud de renta"}
+                  </button>
+                </>
+              ) : null}
 
               <Link
                 href="/catalogo"
@@ -463,6 +776,165 @@ export default function CarritoPage() {
           </div>
         )}
       </div>
+      {editingRentalItem && editingRental ? (
+        <div
+          className="fixed inset-0 z-[80] grid place-items-center bg-[#082928]/55 px-4 py-6"
+          role="presentation"
+          onClick={() => setEditingRentalItemId(null)}
+        >
+          <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="rental-period-dialog-title"
+            className="max-h-[90vh] w-full max-w-[520px] overflow-y-auto rounded-2xl border border-[#dbe5e7] bg-white p-5 shadow-[0_24px_60px_rgba(8,41,40,0.28)]"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 border-b border-[#edf2f3] pb-4">
+              <div>
+                <h2
+                  id="rental-period-dialog-title"
+                  className="text-[1.35rem] font-semibold text-[#132633]"
+                >
+                  Editar renta
+                </h2>
+                <p className="mt-1 text-sm leading-6 text-[#60727a]">
+                  {editingRentalItem.product.nombre}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingRentalItemId(null)}
+                className="grid size-9 shrink-0 place-items-center rounded-full text-[#60727a] transition hover:bg-[#eef4f5] hover:text-[#132633]"
+                aria-label="Cerrar editor de periodo"
+              >
+                <X className="size-4" />
+              </button>
+            </div>
+
+            <div className="mt-5 grid gap-4">
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.06em] text-[#60727a]">
+                  Inicio
+                  <input
+                    type="date"
+                    value={editingRental.rentalStartDate}
+                    disabled={pendingItemId === editingRentalItem.id}
+                    onChange={(event) =>
+                      updateRentalEdit(editingRentalItem.id, {
+                        rentalStartDate: event.target.value,
+                      })
+                    }
+                    className="h-11 rounded-xl border border-[#d4dfe2] bg-white px-3 text-sm font-medium normal-case tracking-normal text-[#193844] outline-none focus:border-[#1f6a67] focus:ring-2 focus:ring-[#d6eeee]"
+                  />
+                </label>
+                <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.06em] text-[#60727a]">
+                  Fin
+                  <input
+                    type="date"
+                    value={editingRental.rentalEndDate}
+                    disabled={pendingItemId === editingRentalItem.id}
+                    onChange={(event) =>
+                      updateRentalEdit(editingRentalItem.id, {
+                        rentalEndDate: event.target.value,
+                      })
+                    }
+                    className="h-11 rounded-xl border border-[#d4dfe2] bg-white px-3 text-sm font-medium normal-case tracking-normal text-[#193844] outline-none focus:border-[#1f6a67] focus:ring-2 focus:ring-[#d6eeee]"
+                  />
+                </label>
+              </div>
+
+              <label className="grid gap-1 text-xs font-bold uppercase tracking-[0.06em] text-[#60727a]">
+                Notas para CEMYDI
+                <textarea
+                  value={editingRental.rentalNotes}
+                  disabled={pendingItemId === editingRentalItem.id}
+                  maxLength={500}
+                  rows={4}
+                  onChange={(event) =>
+                    updateRentalEdit(editingRentalItem.id, {
+                      rentalNotes: event.target.value,
+                    })
+                  }
+                  className="min-h-24 rounded-xl border border-[#d4dfe2] bg-white px-3 py-2 text-sm font-medium normal-case tracking-normal text-[#193844] outline-none focus:border-[#1f6a67] focus:ring-2 focus:ring-[#d6eeee]"
+                  placeholder="Ej. Necesito entrega a domicilio o medidas del paciente."
+                />
+              </label>
+
+              {editingRentalItem.product.requiereReceta ? (
+                <div className="rounded-xl border border-[#cfe0e3] bg-[#f8fbfb] p-4">
+                  <div className="flex items-start gap-3">
+                    <div className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-[#176c83]">
+                      <FileText className="size-5" />
+                    </div>
+                    <div className="min-w-0">
+                      <strong className="text-sm text-[#17333f]">
+                        Receta de este producto
+                      </strong>
+                      <p className="mt-1 text-sm leading-6 text-[#60727a]">
+                        Adjunta PDF o imagen. Máximo 8 MB.
+                      </p>
+                    </div>
+                  </div>
+
+                  {prescriptionFiles[editingRentalItem.id] ? (
+                    <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-[#d8e5e7] bg-white px-3 py-2">
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-[#17333f]">
+                          {prescriptionFiles[editingRentalItem.id].name}
+                        </p>
+                        <p className="text-xs text-[#6a7f88]">
+                          {formatFileSize(prescriptionFiles[editingRentalItem.id].size)}
+                        </p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removePrescriptionFile(editingRentalItem.id)}
+                        className="grid size-9 shrink-0 place-items-center rounded-full text-[#b42318] transition hover:bg-[#fff1f1] hover:text-[#8f1d18]"
+                        aria-label="Quitar receta"
+                      >
+                        <X className="size-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <label className="mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[#9abdc0] bg-white px-4 py-3 text-sm font-bold text-[#176c83] transition hover:bg-[#edf9fb]">
+                      <Upload className="size-4" />
+                      Adjuntar receta
+                      <input
+                        type="file"
+                        accept={PRESCRIPTION_ACCEPT}
+                        className="sr-only"
+                        onChange={(event) => {
+                          handlePrescriptionChange(editingRentalItem.id, event.target.files);
+                          event.currentTarget.value = "";
+                        }}
+                      />
+                    </label>
+                  )}
+                </div>
+              ) : null}
+            </div>
+
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:justify-end">
+              <button
+                type="button"
+                onClick={() => setEditingRentalItemId(null)}
+                className="rounded-xl border border-[#d6e2e4] bg-white px-5 py-3 text-sm font-bold text-[#405b65] transition hover:bg-[#f4f8f8]"
+              >
+                Cancelar
+              </button>
+              <button
+                type="button"
+                disabled={pendingItemId === editingRentalItem.id}
+                onClick={() => void handleRentalDetailsSave(editingRentalItem.id)}
+                className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1f6a67] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#185856] disabled:cursor-not-allowed disabled:bg-[#9ab8b6]"
+              >
+                <Edit3 className="size-4" />
+                {pendingItemId === editingRentalItem.id ? "Guardando..." : "Guardar periodo"}
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

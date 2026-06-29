@@ -21,6 +21,16 @@ const LEGACY_AUTH_STORAGE_KEYS = [
   "GDPR_REMOVAL_FLAG",
 ] as const;
 
+const PUBLIC_AUTH_PATHS = [
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/verify-email",
+] as const;
+
+const PUBLIC_AUTH_LOADING_FALLBACK_MS = 900;
+
 export type AuthUserProfile = AuthUser & {
   telefono?: string | null;
   direccion?: string | null;
@@ -43,9 +53,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true);
   const hydratedFromServerRef = useRef(false);
   const isAdminRoute = pathname.startsWith("/admin");
+  const isPublicAuthRoute = PUBLIC_AUTH_PATHS.some((path) =>
+    pathname.startsWith(path),
+  );
 
   useEffect(() => {
-    if (isAdminRoute) {
+    if (isAdminRoute || isPublicAuthRoute) {
       setLoading(false);
       return;
     }
@@ -55,6 +68,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     let cancelled = false;
+    const loadingFallback = window.setTimeout(() => {
+      if (!cancelled) {
+        setLoading(false);
+      }
+    }, PUBLIC_AUTH_LOADING_FALLBACK_MS);
 
     const clearLegacyAuthStorage = () => {
       for (const key of LEGACY_AUTH_STORAGE_KEYS) {
@@ -86,8 +104,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     return () => {
       cancelled = true;
+      window.clearTimeout(loadingFallback);
     };
-  }, [isAdminRoute]);
+  }, [isAdminRoute, isPublicAuthRoute]);
 
   const login = useCallback(({ user: nextUser }: { user: AuthUserProfile }) => {
     hydratedFromServerRef.current = false;

@@ -6,11 +6,11 @@ function Table({ className, ...props }: React.ComponentProps<'table'>) {
   return (
     <div
       data-slot="table-container"
-      className="relative block w-full min-w-0 max-w-full overflow-x-auto overflow-y-hidden overscroll-x-contain [scrollbar-gutter:stable] [-webkit-overflow-scrolling:touch] touch-pan-x"
+      className="relative block w-full min-w-0 max-w-full overflow-x-auto overflow-y-hidden rounded-b-2xl overscroll-x-contain [scrollbar-gutter:stable] [-webkit-overflow-scrolling:touch] touch-pan-x"
     >
       <table
         data-slot="table"
-        className={cn('w-full min-w-full caption-bottom text-sm', className)}
+        className={cn('w-full min-w-[720px] caption-bottom text-sm md:min-w-full', className)}
         {...props}
       />
     </div>
@@ -74,7 +74,7 @@ function TableHead({ className, ...props }: React.ComponentProps<'th'>) {
     <th
       data-slot="table-head"
       className={cn(
-        'h-11 px-4 text-left align-middle text-xs font-semibold tracking-wide text-[var(--text-muted)] uppercase',
+        'h-10 px-3 text-left align-middle text-xs font-semibold tracking-wide text-[var(--text-muted)] uppercase sm:h-11 sm:px-4',
         className,
       )}
       {...props}
@@ -86,7 +86,7 @@ function TableCell({ className, ...props }: React.ComponentProps<'td'>) {
   return (
     <td
       data-slot="table-cell"
-      className={cn('px-4 py-4 align-middle', className)}
+      className={cn('px-3 py-3 align-middle sm:px-4 sm:py-4', className)}
       {...props}
     />
   )

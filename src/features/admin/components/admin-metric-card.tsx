@@ -41,6 +41,10 @@ type AdminMetricContext =
   | "reviews-approved"
   | "reviews-rejected"
   | "reviews-featured"
+  | "rentals-total"
+  | "rentals-pending"
+  | "rentals-approved"
+  | "rentals-delivered"
   | "analytics-sessions"
   | "analytics-conversion"
   | "analytics-revenue"
@@ -174,6 +178,38 @@ const METRIC_TONES: Record<AdminMetricContext, MetricTone> = {
     accentClassName:
       "bg-[radial-gradient(circle_at_top_right,rgba(20,184,166,0.10),transparent_56%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(45,212,191,0.10),transparent_56%)]",
   },
+  "rentals-total": {
+    icon: ClipboardList,
+    iconWrapperClassName:
+      "bg-sky-500/12 dark:bg-sky-400/14",
+    iconClassName: "text-sky-700 dark:text-sky-300",
+    accentClassName:
+      "bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.10),transparent_56%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.10),transparent_56%)]",
+  },
+  "rentals-pending": {
+    icon: Clock3,
+    iconWrapperClassName:
+      "bg-amber-500/12 dark:bg-amber-400/14",
+    iconClassName: "text-amber-700 dark:text-amber-300",
+    accentClassName:
+      "bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.10),transparent_56%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.10),transparent_56%)]",
+  },
+  "rentals-approved": {
+    icon: CheckCircle2,
+    iconWrapperClassName:
+      "bg-emerald-500/12 dark:bg-emerald-400/14",
+    iconClassName: "text-emerald-700 dark:text-emerald-300",
+    accentClassName:
+      "bg-[radial-gradient(circle_at_top_right,rgba(34,197,94,0.10),transparent_56%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(74,222,128,0.10),transparent_56%)]",
+  },
+  "rentals-delivered": {
+    icon: Warehouse,
+    iconWrapperClassName:
+      "bg-indigo-500/12 dark:bg-indigo-400/14",
+    iconClassName: "text-indigo-700 dark:text-indigo-300",
+    accentClassName:
+      "bg-[radial-gradient(circle_at_top_right,rgba(79,70,229,0.10),transparent_56%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(129,140,248,0.10),transparent_56%)]",
+  },
   "analytics-sessions": {
     icon: Globe2,
     iconWrapperClassName:
@@ -223,13 +259,13 @@ export function AdminMetricCard({
   helper,
   className,
 }: AdminMetricCardProps) {
-  const tone = METRIC_TONES[context];
+  const tone = METRIC_TONES[context] ?? METRIC_TONES["products-active"];
   const Icon = tone.icon;
 
   return (
     <Card
       className={cn(
-        "group relative min-h-[148px] overflow-hidden rounded-3xl border border-(--border-soft) bg-(--card) shadow-[0_8px_28px_rgba(15,61,59,0.07)] ring-1 ring-black/3 transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(15,61,59,0.1)] dark:shadow-[0_12px_36px_rgba(0,0,0,0.38)] dark:ring-white/6 dark:hover:shadow-[0_18px_48px_rgba(0,0,0,0.45)]",
+        "group relative min-h-[116px] overflow-hidden rounded-2xl border border-(--border-soft) bg-(--card) shadow-[0_8px_28px_rgba(15,61,59,0.07)] ring-1 ring-black/3 transition-[transform,box-shadow,border-color] duration-300 ease-out hover:-translate-y-0.5 hover:shadow-[0_14px_40px_rgba(15,61,59,0.1)] sm:min-h-[148px] sm:rounded-3xl dark:shadow-[0_12px_36px_rgba(0,0,0,0.38)] dark:ring-white/6 dark:hover:shadow-[0_18px_48px_rgba(0,0,0,0.45)]",
         className,
       )}
     >
@@ -245,14 +281,14 @@ export function AdminMetricCard({
         className="pointer-events-none absolute inset-0 bg-[linear-gradient(165deg,rgba(255,255,255,0.14)_0%,transparent_42%,transparent_100%)] dark:bg-[linear-gradient(165deg,rgba(255,255,255,0.06)_0%,transparent_45%)]"
       />
 
-      <CardContent className="relative flex h-full flex-col gap-5 p-6 sm:p-7">
-        <div className="flex items-start justify-between gap-4">
-          <div className="min-w-0 flex-1 pr-2">
-            <p className="text-[0.9375rem] font-semibold leading-snug tracking-tight text-(--text-muted) sm:text-[1rem]">
+      <CardContent className="relative flex h-full flex-col gap-3 px-4 py-4 sm:gap-5 sm:px-6 sm:py-6 lg:px-7 lg:py-7">
+        <div className="flex items-start justify-between gap-3 sm:gap-4">
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.875rem] font-semibold leading-snug tracking-tight text-(--text-muted) sm:text-[1rem]">
               {label}
             </p>
             {helper ? (
-              <p className="mt-2 max-w-[20rem] text-xs font-normal leading-relaxed text-(--text-muted)/88 sm:text-[0.8125rem]">
+              <p className="mt-1.5 max-w-[20rem] text-xs font-normal leading-relaxed text-(--text-muted)/88 sm:mt-2 sm:text-[0.8125rem]">
                 {helper}
               </p>
             ) : null}
@@ -260,7 +296,7 @@ export function AdminMetricCard({
 
           <div
             className={cn(
-              "flex size-13 shrink-0 items-center justify-center rounded-2xl border border-white/50 shadow-[0_4px_14px_rgba(15,61,59,0.08),inset_0_1px_0_rgba(255,255,255,0.45)] ring-1 ring-black/4 transition-transform duration-300 ease-out group-hover:scale-[1.06] dark:border-white/10 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:ring-white/7",
+              "flex size-11 shrink-0 items-center justify-center rounded-xl border border-white/50 shadow-[0_4px_14px_rgba(15,61,59,0.08),inset_0_1px_0_rgba(255,255,255,0.45)] ring-1 ring-black/4 transition-transform duration-300 ease-out group-hover:scale-[1.06] sm:size-13 sm:rounded-2xl dark:border-white/10 dark:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] dark:ring-white/7",
               tone.iconWrapperClassName,
             )}
           >
@@ -269,7 +305,7 @@ export function AdminMetricCard({
         </div>
 
         <div className={cn(helper ? "mt-auto" : "")}>
-          <p className="text-[2rem] font-bold leading-[1.05] tracking-[-0.045em] text-(--text-main) tabular-nums sm:text-[2.35rem]">
+          <p className="text-[1.85rem] font-bold leading-none text-(--text-main) tabular-nums sm:text-[2.35rem]">
             {value}
           </p>
         </div>

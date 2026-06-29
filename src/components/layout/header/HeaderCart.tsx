@@ -8,7 +8,7 @@ import { useCart } from "@/providers/CartContext";
 export function HeaderCartSkeleton() {
   return (
     <div
-      className="inline-flex size-6 animate-pulse bg-white/20"
+      className="inline-flex size-11 shrink-0 animate-pulse rounded-full bg-white/15"
       aria-hidden="true"
     />
   );
@@ -18,7 +18,7 @@ export default function HeaderCart() {
   const { user, loading: authLoading } = useAuth();
   const { cart, loading: cartLoading } = useCart();
 
-  if (authLoading || (user?.rol === "CLIENT" && cartLoading)) {
+  if (authLoading) {
     return <HeaderCartSkeleton />;
   }
 
@@ -26,16 +26,18 @@ export default function HeaderCart() {
     return null;
   }
 
-  const itemCount = cart.summary.totalQuantity;
+  const itemCount = cartLoading ? 0 : cart.summary.totalQuantity;
   const href = user ? "/carrito" : "/login";
 
   return (
     <Link
       href={href}
-      className="relative inline-flex items-center justify-center text-white no-underline transition hover:text-white/80"
+      className="relative inline-flex size-11 shrink-0 items-center justify-center rounded-full text-white no-underline transition hover:bg-white/12 hover:text-white"
       aria-label={
-        user
+        user && !cartLoading
           ? `Abrir carrito con ${itemCount} producto${itemCount === 1 ? "" : "s"}`
+          : user
+            ? "Abrir carrito"
           : "Inicia sesión para usar el carrito"
       }
     >

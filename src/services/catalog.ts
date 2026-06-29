@@ -17,6 +17,10 @@ export type CatalogProduct = {
   proveedor: string;
   tipoAdquisicion: "VENTA" | "RENTA" | "MIXTO";
   requiereReceta: boolean;
+  rentalDailyPrice?: number | null;
+  rentalMinDays?: number;
+  rentalDeposit?: number;
+  rentalTerms?: string | null;
   activo: boolean;
   imageUrl: string | null;
   images: Array<{

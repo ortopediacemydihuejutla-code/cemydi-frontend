@@ -71,7 +71,7 @@ export function DashboardHeader() {
 
   return (
     <header className="sticky top-0 z-30 border-b border-[var(--border-soft)] bg-[var(--card)] shadow-[0_1px_0_rgba(15,61,59,0.06)]">
-      <div className="flex h-[60px] shrink-0 items-center gap-3 px-6 lg:h-16 lg:gap-4 lg:px-8">
+      <div className="flex h-[60px] shrink-0 items-center gap-2 px-3 sm:gap-3 sm:px-5 lg:h-16 lg:gap-4 lg:px-8">
         <Tooltip>
           <TooltipTrigger asChild>
             <SidebarTrigger className="text-[var(--brand-700)] hover:bg-[color-mix(in_srgb,var(--brand-600)_12%,transparent)] hover:text-[var(--brand-900)]" />
@@ -94,7 +94,7 @@ export function DashboardHeader() {
           </TooltipContent>
         </Tooltip>
         
-        <div className="relative max-w-md flex-1">
+        <div className="relative hidden max-w-md flex-1 sm:block">
           <Search
             className="pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2 text-[var(--brand-700)]"
             aria-hidden

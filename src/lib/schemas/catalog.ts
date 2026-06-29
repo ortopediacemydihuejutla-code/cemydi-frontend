@@ -12,6 +12,10 @@ export const catalogProductSchema = z.object({
   proveedor: z.string(),
   tipoAdquisicion: z.enum(["VENTA", "RENTA", "MIXTO"]),
   requiereReceta: z.boolean(),
+  rentalDailyPrice: z.number().nullable().optional(),
+  rentalMinDays: z.number().optional(),
+  rentalDeposit: z.number().optional(),
+  rentalTerms: z.string().nullable().optional(),
   activo: z.boolean(),
   imageUrl: z.string().nullable(),
   images: z.array(

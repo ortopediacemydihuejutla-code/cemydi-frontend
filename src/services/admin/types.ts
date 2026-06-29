@@ -1,5 +1,12 @@
 export type UserRole = "ADMIN" | "CLIENT";
 export type ProductMode = "VENTA" | "RENTA" | "MIXTO";
+export type RentalStatus =
+  | "PENDING"
+  | "APPROVED"
+  | "REJECTED"
+  | "CANCELLED"
+  | "DELIVERED"
+  | "RETURNED";
 
 export type ProductImage = {
   id: number;
@@ -33,6 +40,10 @@ export type AdminProduct = {
   proveedor: string;
   tipoAdquisicion: ProductMode;
   requiereReceta: boolean;
+  rentalDailyPrice: number | null;
+  rentalMinDays: number;
+  rentalDeposit: number;
+  rentalTerms: string | null;
   activo: boolean;
   imageUrl: string | null;
   images: ProductImage[];
@@ -151,6 +162,71 @@ export type AdminReview = {
     nombre: string;
     correo: string;
   } | null;
+};
+
+export type AdminRentalRequest = {
+  id: string;
+  status: RentalStatus;
+  subtotal: number;
+  depositTotal: number;
+  total: number;
+  notes: string | null;
+  rejectedReason: string | null;
+  approvedAt: string | null;
+  rejectedAt: string | null;
+  cancelledAt: string | null;
+  deliveredAt: string | null;
+  returnedAt: string | null;
+  statusUpdatedAt: string;
+  createdAt: string;
+  updatedAt: string;
+  user: {
+    id: number;
+    nombre: string;
+    correo: string;
+    telefono: string | null;
+    direccion: string | null;
+  };
+  approvedBy: {
+    id: number;
+    nombre: string;
+    correo: string;
+  } | null;
+  statusUpdatedBy: {
+    id: number;
+    nombre: string;
+    correo: string;
+  } | null;
+  items: Array<{
+    id: number;
+    productId: number;
+    quantity: number;
+    startDate: string;
+    endDate: string;
+    days: number;
+    dailyPrice: number;
+    deposit: number;
+    lineSubtotal: number;
+    lineDeposit: number;
+    lineTotal: number;
+    notes: string | null;
+    prescription: {
+      fileName: string;
+      mimeType: string | null;
+      sizeBytes: number | null;
+    } | null;
+    product: {
+      id: number;
+      nombre: string;
+      marca: string;
+      modelo: string;
+      clasificacion: string;
+      stock: number;
+      tipoAdquisicion: ProductMode;
+      requiereReceta: boolean;
+      imageUrl: string | null;
+    };
+  }>;
 };
 
 export type DatabaseStatus = {
@@ -280,6 +356,10 @@ export type CreateProductPayload = {
   stock: number;
   proveedor: string;
   tipoAdquisicion: ProductMode;
+  rentalDailyPrice?: number | null;
+  rentalMinDays?: number;
+  rentalDeposit?: number;
+  rentalTerms?: string | null;
   requiereReceta: boolean;
   activo: boolean;
 };

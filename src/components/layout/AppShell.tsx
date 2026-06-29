@@ -12,6 +12,7 @@ const PUBLIC_ROUTE_PREFIXES = [
   "/contacto",
   "/forgot-password",
   "/login",
+  "/mis-rentas",
   "/perfil",
   "/producto",
   "/quienes-somos",

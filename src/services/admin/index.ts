@@ -5,6 +5,7 @@ export * from "./catalogs";
 export * from "./suppliers";
 export * from "./promotions";
 export * from "./reviews";
+export * from "./rentals";
 export * from "./analytics";
 export * from "./activity";
 export * from "./database";

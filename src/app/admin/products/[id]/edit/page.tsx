@@ -220,6 +220,10 @@ export default function EditProductPage() {
           stock: Math.max(0, Math.trunc(Number(product.stock))),
           proveedor: product.proveedor,
           tipoAdquisicion: product.tipoAdquisicion,
+          rentalDailyPrice: product.rentalDailyPrice,
+          rentalMinDays: product.rentalMinDays,
+          rentalDeposit: product.rentalDeposit,
+          rentalTerms: product.rentalTerms ?? "",
           requiereReceta: product.requiereReceta,
           activo: product.activo,
         });
@@ -409,6 +413,10 @@ export default function EditProductPage() {
       stock: form.stock,
       proveedor: form.proveedor,
       tipoAdquisicion: form.tipoAdquisicion,
+      rentalDailyPrice: form.rentalDailyPrice,
+      rentalMinDays: form.rentalMinDays,
+      rentalDeposit: form.rentalDeposit,
+      rentalTerms: form.rentalTerms,
       requiereReceta: form.requiereReceta,
       activo: form.activo,
     };
@@ -654,6 +662,76 @@ export default function EditProductPage() {
                         <option value="MIXTO">Mixto</option>
                       </select>
                     </label>
+
+                    {form.tipoAdquisicion !== "VENTA" ? (
+                      <>
+                        <label className="grid gap-2 text-sm font-medium text-foreground">
+                          <ProductFieldLabel icon={DollarSign}>Tarifa diaria de renta</ProductFieldLabel>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            inputMode="decimal"
+                            className={productFieldClassName}
+                            value={String(form.rentalDailyPrice ?? "")}
+                            onChange={(event) =>
+                              updateField(
+                                "rentalDailyPrice",
+                                event.target.value === ""
+                                  ? null
+                                  : Number(event.target.value) || 0,
+                              )
+                            }
+                          />
+                        </label>
+
+                        <label className="grid gap-2 text-sm font-medium text-foreground">
+                          <ProductFieldLabel icon={Repeat2}>Días mínimos de renta</ProductFieldLabel>
+                          <Input
+                            type="number"
+                            min="1"
+                            step="1"
+                            inputMode="numeric"
+                            className={productFieldClassName}
+                            value={String(form.rentalMinDays ?? 1)}
+                            onChange={(event) =>
+                              updateField(
+                                "rentalMinDays",
+                                Math.max(1, Math.trunc(Number(event.target.value) || 1)),
+                              )
+                            }
+                          />
+                        </label>
+
+                        <label className="grid gap-2 text-sm font-medium text-foreground">
+                          <ProductFieldLabel icon={BadgeDollarSign}>Depósito de renta</ProductFieldLabel>
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            inputMode="decimal"
+                            className={productFieldClassName}
+                            value={String(form.rentalDeposit ?? 0)}
+                            onChange={(event) =>
+                              updateField("rentalDeposit", Number(event.target.value) || 0)
+                            }
+                          />
+                        </label>
+
+                        <label className="grid gap-2 text-sm font-medium text-foreground md:col-span-2">
+                          <ProductFieldLabel icon={FileText}>Condiciones de renta</ProductFieldLabel>
+                          <textarea
+                            value={form.rentalTerms ?? ""}
+                            onChange={(event) =>
+                              updateField("rentalTerms", event.target.value)
+                            }
+                            placeholder="Ej. Incluye revisión inicial; entrega sujeta a disponibilidad."
+                            className={productTextareaClassName}
+                            maxLength={800}
+                          />
+                        </label>
+                      </>
+                    ) : null}
                   </div>
                 </section>
               </div>

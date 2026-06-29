@@ -137,7 +137,8 @@ export default function PerfilPage() {
 
   return (
     <div className="min-h-[calc(100vh-120px)] bg-[#f3f6f6] px-4 py-9">
-      <div className="mx-auto grid max-w-[1080px] overflow-hidden rounded-[28px] border border-[#dae5e5] bg-white shadow-[0_20px_44px_rgba(16,50,49,0.12)] min-[981px]:grid-cols-[340px_1fr]">
+      <div className="mx-auto grid max-w-[1080px] gap-6">
+      <div className="grid overflow-hidden rounded-[28px] border border-[#dae5e5] bg-white shadow-[0_20px_44px_rgba(16,50,49,0.12)] min-[981px]:grid-cols-[340px_1fr]">
         <aside className="flex flex-col gap-[14px] bg-[#1f6a67] px-[34px] py-11 text-white max-[980px]:px-[22px] max-[980px]:py-[30px]">
           <div className="grid size-[120px] place-items-center rounded-full bg-white/14 text-[2.6rem] font-extrabold">
             {initials}
@@ -260,6 +261,7 @@ export default function PerfilPage() {
             </button>
           </div>
         </section>
+      </div>
       </div>
     </div>
   );

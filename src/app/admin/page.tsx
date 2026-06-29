@@ -17,6 +17,7 @@ import {
   AlertTriangle,
   ShoppingBag,
   TrendingUp,
+  ClipboardCheck,
 } from "lucide-react";
 
 import {
@@ -71,6 +72,14 @@ const QUICK_LINKS = [
     icon: Users,
     color: "text-rose-600 dark:text-rose-400",
     bg: "bg-rose-500/10 dark:bg-rose-400/12",
+  },
+  {
+    label: "Rentas",
+    description: "Aprueba, entrega y recibe solicitudes",
+    href: "/admin/rentals",
+    icon: ClipboardCheck,
+    color: "text-cyan-600 dark:text-cyan-400",
+    bg: "bg-cyan-500/10 dark:bg-cyan-400/12",
   },
   {
     label: "Promociones",
@@ -193,6 +202,29 @@ const ACTIVITY_STYLES: Record<
     iconBg: "bg-amber-500/10 dark:bg-amber-400/12",
   },
 };
+
+const DASHBOARD_METRIC_PLACEHOLDERS = [
+  {
+    context: "analytics-sessions" as const,
+    label: "Nuevos usuarios",
+    helper: "Últimos 30 días",
+  },
+  {
+    context: "analytics-sessions" as const,
+    label: "Actividad de sesión",
+    helper: "Eventos registrados en el periodo",
+  },
+  {
+    context: "products-active" as const,
+    label: "Productos activos",
+    helper: "En catálogo y visibles",
+  },
+  {
+    context: "reviews-pending" as const,
+    label: "Reseñas pendientes",
+    helper: "Esperando moderación",
+  },
+];
 
 function formatRelativeTime(iso: string): string {
   const date = new Date(iso);
@@ -332,9 +364,15 @@ export default function AdminPage() {
       {/* KPI Cards */}
       <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {dashboardLoading || !dashboard ? (
-          <div className="col-span-full">
-            <AdminPageLoading layout="section" />
-          </div>
+          DASHBOARD_METRIC_PLACEHOLDERS.map((item) => (
+            <AdminMetricCard
+              key={item.label}
+              context={item.context}
+              label={item.label}
+              value="--"
+              helper={item.helper}
+            />
+          ))
         ) : (
           <>
             <AdminMetricCard
@@ -417,7 +455,9 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
             {dashboardLoading ? (
-              <AdminPageLoading layout="section" />
+              <p className="m-0 rounded-xl border border-(--border-soft) bg-(--surface) px-3 py-4 text-center text-sm text-(--text-muted)">
+                Revisando alertas operativas...
+              </p>
             ) : (
               <ul className="flex flex-col gap-3">
                 {alerts.map((alert) => {
@@ -472,7 +512,9 @@ export default function AdminPage() {
         </CardHeader>
         <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
           {activityLoading ? (
-            <AdminPageLoading layout="section" />
+            <p className="m-0 rounded-xl border border-(--border-soft) bg-(--surface) px-3 py-4 text-center text-sm text-(--text-muted)">
+              Cargando actividad reciente...
+            </p>
           ) : activityError ? (
             <p className="m-0 text-center text-sm text-red-600 dark:text-red-400">
               {activityError}

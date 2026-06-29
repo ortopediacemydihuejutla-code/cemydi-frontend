@@ -59,7 +59,14 @@ export function normalizeAdminProduct(raw: AdminProduct): AdminProduct {
     precio,
     tipoAdquisicion,
     stock: Math.max(0, stock),
-    requiereReceta: Boolean(raw.requiereReceta),
+  requiereReceta: Boolean(raw.requiereReceta),
+    rentalDailyPrice:
+      raw.rentalDailyPrice === null || raw.rentalDailyPrice === undefined
+        ? null
+        : Number(raw.rentalDailyPrice),
+    rentalMinDays: Math.max(1, Math.trunc(Number(raw.rentalMinDays) || 1)),
+    rentalDeposit: Math.max(0, Number(raw.rentalDeposit) || 0),
+    rentalTerms: raw.rentalTerms ?? null,
     activo: Boolean(raw.activo),
     imageUrl,
     images,
@@ -89,6 +96,10 @@ export const EMPTY_PRODUCT_FORM = {
   stock: 0,
   proveedor: "",
   tipoAdquisicion: "VENTA",
+  rentalDailyPrice: null,
+  rentalMinDays: 1,
+  rentalDeposit: 0,
+  rentalTerms: "",
   requiereReceta: false,
   activo: true,
 } satisfies CreateProductPayload;
@@ -140,6 +151,24 @@ export function normalizeProductPayload(
     stock: Math.max(0, Math.trunc(stockRaw)),
     proveedor: form.proveedor.trim(),
     tipoAdquisicion: form.tipoAdquisicion,
+    rentalDailyPrice:
+      form.tipoAdquisicion === "VENTA"
+        ? null
+        : Number.isFinite(Number(form.rentalDailyPrice))
+          ? Number(form.rentalDailyPrice)
+          : null,
+    rentalMinDays:
+      form.tipoAdquisicion === "VENTA"
+        ? 1
+        : Math.max(1, Math.trunc(Number(form.rentalMinDays) || 1)),
+    rentalDeposit:
+      form.tipoAdquisicion === "VENTA"
+        ? 0
+        : Math.max(0, Number(form.rentalDeposit) || 0),
+    rentalTerms:
+      form.tipoAdquisicion === "VENTA"
+        ? null
+        : form.rentalTerms?.trim() || null,
     requiereReceta: form.requiereReceta,
     activo: form.activo,
   };
@@ -161,6 +190,18 @@ export function validateProductForm(form: CreateProductPayload) {
   if (!form.clasificacion.trim()) return "La clasificación es obligatoria";
   if (!form.proveedor.trim()) return "El proveedor es obligatorio";
   if (form.precio < 0) return "El precio no puede ser negativo";
+  if (form.tipoAdquisicion !== "VENTA") {
+    if (!form.rentalDailyPrice || Number(form.rentalDailyPrice) <= 0) {
+      return "La tarifa diaria de renta es obligatoria para productos de renta.";
+    }
+    const rentalMinDays = form.rentalMinDays ?? 1;
+    if (!Number.isInteger(rentalMinDays) || rentalMinDays < 1) {
+      return "Los días mínimos de renta deben ser un entero mayor o igual a 1.";
+    }
+    if ((form.rentalDeposit ?? 0) < 0) {
+      return "El depósito de renta no puede ser negativo.";
+    }
+  }
   if (!Number.isInteger(form.stock) || form.stock < 0) {
     return "El stock debe ser un entero 0 o mayor.";
   }

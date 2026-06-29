@@ -16,6 +16,7 @@ import {
   Megaphone,
   Percent,
   FileText,
+  ClipboardCheck,
 } from "lucide-react"
 
 import { NavMain } from "./nav-main"
@@ -67,6 +68,11 @@ const data = {
       title: "Usuarios",
       url: "/admin/users",
       icon: Users,
+    },
+    {
+      title: "Rentas",
+      url: "/admin/rentals",
+      icon: ClipboardCheck,
     },
     {
       title: "Marketing",

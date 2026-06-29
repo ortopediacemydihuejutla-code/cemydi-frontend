@@ -17,7 +17,14 @@ export async function getMyCart() {
   return parseApiResponse(res, "No se pudo cargar el carrito", cartResponseSchema);
 }
 
-export async function addCartItem(data: { productId: number; quantity: number }) {
+export async function addCartItem(data: {
+  productId: number;
+  quantity: number;
+  mode?: "VENTA" | "RENTA";
+  rentalStartDate?: string;
+  rentalEndDate?: string;
+  rentalNotes?: string;
+}) {
   const res = await apiFetch("/cart/items", {
     method: "POST",
     headers: {
@@ -33,7 +40,15 @@ export async function addCartItem(data: { productId: number; quantity: number })
   );
 }
 
-export async function updateCartItem(itemId: number, data: { quantity: number }) {
+export async function updateCartItem(
+  itemId: number,
+  data: {
+    quantity: number;
+    rentalStartDate?: string;
+    rentalEndDate?: string;
+    rentalNotes?: string;
+  },
+) {
   const res = await apiFetch(`/cart/items/${itemId}`, {
     method: "PATCH",
     headers: {
