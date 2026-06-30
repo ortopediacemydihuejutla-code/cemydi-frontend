@@ -8,6 +8,7 @@ import AppShell from "@/components/layout/AppShell";
 import { getSiteUrl } from "@/lib/site-config";
 
 const siteUrl = getSiteUrl();
+const iconVersion = "cemydi-20260630";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -31,15 +32,6 @@ export const metadata: Metadata = {
     description:
       "Equipos médicos, movilidad y rehabilitación. Catálogo de productos para venta y renta.",
   },
-  manifest: "/manifest.webmanifest",
-  icons: {
-    icon: [
-      { url: "/favicon.ico", sizes: "any", type: "image/x-icon" },
-      { url: "/icon.png", sizes: "512x512", type: "image/png" },
-    ],
-    shortcut: [{ url: "/favicon.ico", type: "image/x-icon" }],
-    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
-  },
 };
 
 export default async function RootLayout({
@@ -52,6 +44,31 @@ export default async function RootLayout({
 
   return (
     <html lang="es">
+      <head>
+        <link
+          rel="icon"
+          href={`/favicon-32x32.png?v=${iconVersion}`}
+          type="image/png"
+          sizes="32x32"
+        />
+        <link
+          rel="icon"
+          href={`/favicon-16x16.png?v=${iconVersion}`}
+          type="image/png"
+          sizes="16x16"
+        />
+        <link
+          rel="icon"
+          href={`/favicon-48x48.png?v=${iconVersion}`}
+          type="image/png"
+          sizes="48x48"
+        />
+        <link rel="shortcut icon" href={`/favicon.ico?v=${iconVersion}`} />
+        <link rel="icon" href={`/favicon.ico?v=${iconVersion}`} sizes="any" />
+        <link rel="icon" href={`/favicon.svg?v=${iconVersion}`} type="image/svg+xml" />
+        <link rel="apple-touch-icon" href={`/apple-icon.png?v=${iconVersion}`} sizes="180x180" />
+        <link rel="manifest" href="/manifest.webmanifest" />
+      </head>
       <body>
         <AuthProvider>
           <CartProvider>

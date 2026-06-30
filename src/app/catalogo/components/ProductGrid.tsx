@@ -17,6 +17,7 @@ type ProductGridProps = {
   view: CatalogView;
   searchQuery?: string;
   promotedProductIds?: Set<number>;
+  isPending?: boolean;
 };
 
 function escapeRegExp(value: string) {
@@ -180,6 +181,7 @@ export default function ProductGrid({
   view,
   searchQuery = "",
   promotedProductIds = new Set<number>(),
+  isPending = false,
 }: ProductGridProps) {
   if (products.length === 0) {
     return (
@@ -205,7 +207,11 @@ export default function ProductGrid({
       : "grid min-w-0 grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4";
 
   return (
-    <div className={gridClass}>
+    <div
+      className={`${gridClass} transition duration-200 ${
+        isPending ? "opacity-55 blur-[1px]" : "opacity-100 blur-0"
+      }`}
+    >
       {products.map((product) => (
         <ProductCard
           key={product.id}

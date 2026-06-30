@@ -20,6 +20,7 @@ type CatalogFiltersProps = {
   onToggleReceta: (value: "con" | "sin") => void;
   onToggleSoloDisponibles: () => void;
   onClearAll: () => void;
+  activeFilters?: ReactNode;
   className?: string;
 };
 
@@ -89,6 +90,7 @@ export default function CatalogFilters({
   onToggleReceta,
   onToggleSoloDisponibles,
   onClearAll,
+  activeFilters,
   className = "",
 }: CatalogFiltersProps) {
   const hasActiveFilters =
@@ -100,8 +102,8 @@ export default function CatalogFilters({
 
   return (
     <aside className={className || undefined}>
-      <div className="rounded-lg border border-[#ebeff0] bg-[#f9f9f9] p-5 shadow-[0_14px_32px_rgba(18,39,49,0.04)]">
-        <div className="grid gap-3 border-b border-[#e1e7e9] pb-4">
+      <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-lg border border-[#ebeff0] bg-[#f9f9f9] shadow-[0_14px_32px_rgba(18,39,49,0.04)]">
+        <div className="grid shrink-0 gap-3 border-b border-[#e1e7e9] p-5 pb-4">
           <div className="grid gap-1">
             <div className="inline-flex items-center gap-2 text-[0.95rem] font-semibold text-[#122731]">
               <SlidersHorizontal className="size-4" />
@@ -119,7 +121,14 @@ export default function CatalogFilters({
           </button>
         </div>
 
-        <div className="mt-4 grid gap-4">
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-4 pr-3 [scrollbar-color:#b7c9ce_transparent] [scrollbar-width:thin]">
+          <div className="grid gap-4">
+          {activeFilters ? (
+            <div className="border-b border-[#e7ecee] pb-4">
+              {activeFilters}
+            </div>
+          ) : null}
+
           <FilterSection title="Categoría">
             {availableClassifications.map((item) => (
               <FilterCheckbox
@@ -181,6 +190,7 @@ export default function CatalogFilters({
               onChange={() => onToggleReceta("sin")}
             />
           </FilterSection>
+          </div>
         </div>
       </div>
     </aside>

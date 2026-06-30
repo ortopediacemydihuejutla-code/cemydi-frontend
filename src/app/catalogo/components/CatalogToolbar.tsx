@@ -131,9 +131,24 @@ export default function CatalogToolbar({
   };
 
   return (
-    <section className="grid gap-3 border-b border-[#e5ecee] pb-5">
-      <div className="grid gap-4">
-        <form className="relative min-w-0" onSubmit={handleSearch}>
+    <section className="border-b border-[#e5ecee] pb-5">
+      <div className="grid gap-3 xl:grid-cols-[minmax(360px,1fr)_auto_auto] xl:items-center">
+        <div className="flex min-w-0 gap-3">
+          <button
+            type="button"
+            className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-lg border border-[#d7e3e6] bg-white px-4 text-sm font-semibold text-[#21414d] shadow-[0_8px_20px_rgba(18,39,49,0.04)] outline-none transition hover:border-[#b8ccd1] hover:bg-[#f8fbfb] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2 lg:hidden"
+            onClick={onOpenMobileFilters}
+          >
+            <SlidersHorizontal className="size-4" aria-hidden="true" />
+            Filtros
+            {activeFilterCount > 0 ? (
+              <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-[#18313f] px-2 py-0.5 text-xs font-semibold text-white">
+                {activeFilterCount}
+              </span>
+            ) : null}
+          </button>
+
+          <form className="relative min-w-0 flex-1" onSubmit={handleSearch}>
           <label htmlFor="catalog-search" className="sr-only">
             Buscar en el catálogo
           </label>
@@ -202,29 +217,16 @@ export default function CatalogToolbar({
               ))}
             </div>
           ) : null}
-        </form>
+          </form>
+        </div>
 
-        <div className="grid gap-3 sm:grid-cols-[auto_auto_auto] sm:items-end sm:justify-between">
-          <button
-            type="button"
-            className="inline-flex min-h-11 items-center justify-center gap-2 rounded-md border border-[#d7e3e6] bg-white px-4 text-sm font-semibold text-[#21414d] outline-none transition hover:border-[#b8ccd1] hover:bg-[#f8fbfb] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2 lg:hidden"
-            onClick={onOpenMobileFilters}
-          >
-            <SlidersHorizontal className="size-4" aria-hidden="true" />
-            Filtros
-            {activeFilterCount > 0 ? (
-              <span className="inline-flex min-w-6 items-center justify-center rounded-full bg-[#18313f] px-2 py-0.5 text-xs font-semibold text-white">
-                {activeFilterCount}
-              </span>
-            ) : null}
-          </button>
-
-          <label className="grid gap-1">
-            <span className="text-[0.7rem] font-semibold uppercase tracking-[0.08em] text-[#7a8e97]">
+        <div className="grid gap-3 sm:grid-cols-[minmax(220px,auto)_auto] sm:items-center sm:justify-between xl:contents">
+          <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[#d7e3e6] bg-white px-3 shadow-[0_8px_20px_rgba(18,39,49,0.04)]">
+            <span className="shrink-0 text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#7a8e97]">
               Ordenar
             </span>
             <select
-              className="min-h-11 cursor-pointer rounded-md border border-[#d7e3e6] bg-white px-4 text-sm font-medium text-[#21414d] outline-none transition focus:border-[#0f6a67] focus:ring-4 focus:ring-[rgba(15,106,103,0.12)]"
+              className="min-h-10 min-w-0 cursor-pointer rounded-md border-0 bg-transparent px-1 text-sm font-semibold text-[#21414d] outline-none focus:ring-0"
               value={sort}
               onChange={(event) => onSortChange(event.target.value as CatalogSort)}
               aria-label="Ordenar productos"
@@ -238,13 +240,13 @@ export default function CatalogToolbar({
           </label>
 
           <div
-            className="inline-flex min-h-11 overflow-hidden rounded-md border border-[#d7e3e6] bg-white"
+            className="hidden min-h-12 w-max overflow-hidden rounded-lg border border-[#d7e3e6] bg-white shadow-[0_8px_20px_rgba(18,39,49,0.04)] md:inline-flex"
             role="group"
             aria-label="Vista de productos"
           >
             <button
               type="button"
-              className={`inline-flex min-h-11 min-w-11 items-center justify-center outline-none transition focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#0f6a67] ${
+              className={`inline-flex min-h-12 min-w-12 items-center justify-center outline-none transition focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#0f6a67] ${
                 view === "grid" ? "bg-[#18313f] text-white" : "text-[#6f8590] hover:bg-[#f3f7f8]"
               }`}
               onClick={() => onViewChange("grid")}
@@ -255,7 +257,7 @@ export default function CatalogToolbar({
             </button>
             <button
               type="button"
-              className={`inline-flex min-h-11 min-w-11 items-center justify-center outline-none transition focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#0f6a67] ${
+              className={`inline-flex min-h-12 min-w-12 items-center justify-center outline-none transition focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#0f6a67] ${
                 view === "list" ? "bg-[#18313f] text-white" : "text-[#6f8590] hover:bg-[#f3f7f8]"
               }`}
               onClick={() => onViewChange("list")}

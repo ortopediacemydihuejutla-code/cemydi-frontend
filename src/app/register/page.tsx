@@ -10,6 +10,7 @@ import { registerUser } from "@/services/auth";
 import toast from "react-hot-toast";
 import { useAuth } from "@/providers/AuthContext";
 import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
+import { AuthRouteLoading } from "@/components/auth/auth-route-loading";
 import {
   AuthAlertBanner,
   AuthPasswordField,
@@ -84,6 +85,8 @@ export default function RegisterPage() {
 
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+  const [redirectRole, setRedirectRole] = useState<"ADMIN" | "USER" | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [passwordFocused, setPasswordFocused] = useState(false);
 
@@ -92,6 +95,8 @@ export default function RegisterPage() {
       return;
     }
 
+    setRedirectRole(user.rol === "ADMIN" ? "ADMIN" : "USER");
+    setRedirecting(true);
     router.replace(user.rol === "ADMIN" ? "/admin" : "/perfil");
   }, [authLoading, router, user]);
 
@@ -181,8 +186,17 @@ export default function RegisterPage() {
 
   const termsErrorId = "register-terms-error";
 
-  if (authLoading || user) {
-    return null;
+  if (authLoading || user || redirecting) {
+    return (
+      <AuthRouteLoading
+        title={redirectRole === "ADMIN" ? "Cargando panel" : "Cargando cuenta"}
+        description={
+          redirectRole === "ADMIN"
+            ? "Preparando el panel de administracion..."
+            : "Preparando tu perfil..."
+        }
+      />
+    );
   }
 
   return (

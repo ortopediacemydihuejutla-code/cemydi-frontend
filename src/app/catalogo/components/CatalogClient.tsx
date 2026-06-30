@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import type { CatalogProduct } from "@/services/catalog";
 import { normalizeClassificationKey } from "../utils/catalog-formatters";
@@ -49,6 +49,7 @@ export default function CatalogClient({
 }: CatalogClientProps) {
   const router = useRouter();
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const [isPending, startTransition] = useTransition();
 
   const currentPage = Math.min(applied.page, pagination.totalPages);
   const activeFilterCount = countActiveFilters(applied);
@@ -70,7 +71,9 @@ export default function CatalogClient({
       page: options.page ?? 1,
     });
 
-    router.push(catalogPathFromParams(params));
+    startTransition(() => {
+      router.push(catalogPathFromParams(params));
+    });
   };
 
   useEffect(() => {
@@ -157,13 +160,30 @@ export default function CatalogClient({
     onToggleSoloDisponibles: toggleSoloDisponibles,
     onClearAll: clearAllFilters,
   };
+  const activeFilters = (
+    <CatalogActiveFilters
+      applied={applied}
+      onRemoveSearch={() => navigateWithParams({ searchQuery: "", page: 1 })}
+      onRemoveClassification={toggleClassification}
+      onRemoveMarca={toggleMarca}
+      onRemoveTipo={toggleTipo}
+      onRemoveReceta={() => navigateWithParams({ receta: null, page: 1 })}
+      onRemoveSoloDisponibles={() =>
+        navigateWithParams({ soloDisponibles: false, page: 1 })
+      }
+      onClearAll={clearAllFilters}
+      compact
+      showClearAll={false}
+    />
+  );
 
   return (
     <div className="min-h-[calc(100vh-110px)] bg-white">
       <div className="grid min-h-[inherit] w-full grid-cols-1 gap-7 px-4 py-6 lg:grid-cols-[286px_minmax(0,1fr)] lg:px-8 lg:py-8 xl:gap-9 xl:px-10 2xl:px-12">
         <CatalogFilters
           {...filterProps}
-          className="sticky top-24 hidden self-start lg:block"
+          activeFilters={activeFilters}
+          className="sticky top-24 hidden h-[calc(100dvh-7rem)] self-start overflow-hidden lg:block"
         />
 
         <div className="grid min-w-0 content-start gap-5 pb-8 lg:pb-12">
@@ -193,19 +213,6 @@ export default function CatalogClient({
             onOpenMobileFilters={() => setMobileFiltersOpen(true)}
           />
 
-          <CatalogActiveFilters
-            applied={applied}
-            onRemoveSearch={() => navigateWithParams({ searchQuery: "", page: 1 })}
-            onRemoveClassification={toggleClassification}
-            onRemoveMarca={toggleMarca}
-            onRemoveTipo={toggleTipo}
-            onRemoveReceta={() => navigateWithParams({ receta: null, page: 1 })}
-            onRemoveSoloDisponibles={() =>
-              navigateWithParams({ soloDisponibles: false, page: 1 })
-            }
-            onClearAll={clearAllFilters}
-          />
-
           <div className="grid min-w-0 gap-5">
             {error ? (
               <p
@@ -217,12 +224,25 @@ export default function CatalogClient({
               </p>
             ) : null}
 
-            <section className="grid gap-5">
+            <section
+              className="relative grid gap-5"
+              aria-busy={isPending}
+              aria-live="polite"
+            >
+              {isPending ? (
+                <div className="pointer-events-none absolute inset-x-0 top-0 z-10 flex justify-center">
+                  <div className="inline-flex min-h-10 items-center gap-2 rounded-full border border-[#d7e6e7] bg-white/95 px-4 text-sm font-semibold text-[#1d454c] shadow-[0_12px_30px_rgba(18,39,49,0.12)] backdrop-blur">
+                    <span className="size-4 animate-spin rounded-full border-2 border-[#c6d8dc] border-t-[#0f6a67]" />
+                    Actualizando productos
+                  </div>
+                </div>
+              ) : null}
               <ProductGrid
                 products={products}
                 view={applied.view}
                 searchQuery={applied.searchQuery}
                 promotedProductIds={promotedSet}
+                isPending={isPending}
               />
             </section>
 
@@ -266,6 +286,7 @@ export default function CatalogClient({
             </div>
             <CatalogFilters
               {...filterProps}
+              activeFilters={activeFilters}
               className="flex-1 overflow-y-auto px-[18px] py-3"
               onClearAll={() => {
                 clearAllFilters();

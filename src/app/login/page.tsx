@@ -10,6 +10,7 @@ import { loginUser, resendVerificationEmail } from "@/services/auth";
 import { useAuth } from "@/providers/AuthContext";
 import toast from "react-hot-toast";
 import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
+import { AuthRouteLoading } from "@/components/auth/auth-route-loading";
 import {
   AuthAlertBanner,
   AuthPasswordField,
@@ -50,6 +51,8 @@ export default function LoginPage() {
   });
 
   const [loading, setLoading] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
+  const [redirectRole, setRedirectRole] = useState<"ADMIN" | "USER" | null>(null);
   const [resendingVerification, setResendingVerification] = useState(false);
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -77,6 +80,8 @@ export default function LoginPage() {
       return;
     }
 
+    setRedirectRole(user.rol === "ADMIN" ? "ADMIN" : "USER");
+    setRedirecting(true);
     router.replace(user.rol === "ADMIN" ? "/admin" : "/perfil");
   }, [authLoading, router, user]);
 
@@ -106,27 +111,31 @@ export default function LoginPage() {
       return;
     }
 
+    let shouldKeepRedirectLoader = false;
+
     try {
       setLoading(true);
       setShowResendVerification(false);
 
       const result = await loginUser(form);
+      const nextRole = result.user?.rol === "ADMIN" ? "ADMIN" : "USER";
 
+      shouldKeepRedirectLoader = true;
+      setRedirectRole(nextRole);
+      setRedirecting(true);
       login({ user: result.user });
 
       toast.success("Bienvenido");
-      if (result.user?.rol === "ADMIN") {
-        router.push("/admin");
-      } else {
-        router.push("/perfil");
-      }
+      router.replace(nextRole === "ADMIN" ? "/admin" : "/perfil");
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "No se pudo iniciar sesión. Verifica tus datos.";
       setSubmitError(message);
       setShowResendVerification(message.toLowerCase().includes("verificar tu correo"));
     } finally {
-      setLoading(false);
+      if (!shouldKeepRedirectLoader) {
+        setLoading(false);
+      }
     }
   };
 
@@ -149,8 +158,17 @@ export default function LoginPage() {
     }
   };
 
-  if (authLoading || user) {
-    return null;
+  if (authLoading || user || redirecting) {
+    return (
+      <AuthRouteLoading
+        title={redirectRole === "ADMIN" ? "Cargando panel" : "Cargando cuenta"}
+        description={
+          redirectRole === "ADMIN"
+            ? "Preparando el panel de administracion..."
+            : "Preparando tu perfil..."
+        }
+      />
+    );
   }
 
   return (

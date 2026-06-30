@@ -18,21 +18,27 @@ type CatalogActiveFiltersProps = {
   onRemoveReceta: () => void;
   onRemoveSoloDisponibles: () => void;
   onClearAll: () => void;
+  compact?: boolean;
+  showClearAll?: boolean;
 };
 
 function ActiveChip({
   label,
   onRemove,
   ariaLabel,
+  compact = false,
 }: {
   label: string;
   onRemove: () => void;
   ariaLabel: string;
+  compact?: boolean;
 }) {
   return (
     <button
       type="button"
-      className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#dce6e9] bg-white px-4 text-sm font-medium text-[#21414d] outline-none transition hover:border-[#b8ccd1] hover:bg-[#f8fbfb] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
+      className={`inline-flex items-center gap-2 rounded-full border border-[#dce6e9] bg-white font-medium text-[#21414d] outline-none transition hover:border-[#b8ccd1] hover:bg-[#f8fbfb] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2 ${
+        compact ? "min-h-9 px-3 text-xs" : "min-h-11 px-4 text-sm"
+      }`}
       onClick={onRemove}
       aria-label={ariaLabel}
     >
@@ -51,6 +57,8 @@ export default function CatalogActiveFilters({
   onRemoveReceta,
   onRemoveSoloDisponibles,
   onClearAll,
+  compact = false,
+  showClearAll = true,
 }: CatalogActiveFiltersProps) {
   const hasFilters =
     applied.searchQuery.trim().length > 0 ||
@@ -65,29 +73,34 @@ export default function CatalogActiveFilters({
   }
 
   return (
-    <section className="border-b border-[#e3ebee] pb-4" aria-label="Filtros activos">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+    <section className={compact ? "" : "border-b border-[#e3ebee] pb-4"} aria-label="Filtros activos">
+      <div className={compact ? "grid gap-2" : "flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between"}>
         <div>
           <p className="text-sm font-semibold text-[#18313f]">Filtros activos</p>
-          <p className="mt-1 text-sm text-[#61747d]">
+          <p className={`${compact ? "mt-0.5 text-xs leading-5" : "mt-1 text-sm"} text-[#61747d]`}>
             Quita chips individuales o reinicia toda la búsqueda.
           </p>
         </div>
-        <button
-          type="button"
-          className="min-h-11 rounded-xl border border-[#d7e3e6] bg-white px-4 text-sm font-semibold text-[#21414d] outline-none transition hover:border-[#b8ccd1] hover:bg-[#f8fbfb] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
-          onClick={onClearAll}
-        >
-          Limpiar todo
-        </button>
+        {showClearAll ? (
+          <button
+            type="button"
+            className={`rounded-lg border border-[#d7e3e6] bg-white font-semibold text-[#21414d] outline-none transition hover:border-[#b8ccd1] hover:bg-[#f8fbfb] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2 ${
+              compact ? "min-h-9 px-3 text-xs" : "min-h-11 px-4 text-sm"
+            }`}
+            onClick={onClearAll}
+          >
+            Limpiar todo
+          </button>
+        ) : null}
       </div>
 
-      <div className="mt-4 flex flex-wrap gap-2.5">
+      <div className={`${compact ? "mt-3 gap-2" : "mt-4 gap-2.5"} flex flex-wrap`}>
         {applied.searchQuery.trim() ? (
           <ActiveChip
             label={`Búsqueda: ${applied.searchQuery}`}
             onRemove={onRemoveSearch}
             ariaLabel={`Quitar búsqueda ${applied.searchQuery}`}
+            compact={compact}
           />
         ) : null}
 
@@ -97,6 +110,7 @@ export default function CatalogActiveFilters({
             label={item}
             onRemove={() => onRemoveClassification(item)}
             ariaLabel={`Quitar categoría ${item}`}
+            compact={compact}
           />
         ))}
 
@@ -106,6 +120,7 @@ export default function CatalogActiveFilters({
             label={item}
             onRemove={() => onRemoveMarca(item)}
             ariaLabel={`Quitar marca ${item}`}
+            compact={compact}
           />
         ))}
 
@@ -115,6 +130,7 @@ export default function CatalogActiveFilters({
             label={formatTipo(tipo)}
             onRemove={() => onRemoveTipo(tipo)}
             ariaLabel={`Quitar tipo ${formatTipo(tipo)}`}
+            compact={compact}
           />
         ))}
 
@@ -123,6 +139,7 @@ export default function CatalogActiveFilters({
             label="Receta requerida"
             onRemove={onRemoveReceta}
             ariaLabel="Quitar filtro receta requerida"
+            compact={compact}
           />
         ) : null}
 
@@ -131,6 +148,7 @@ export default function CatalogActiveFilters({
             label="Sin receta"
             onRemove={onRemoveReceta}
             ariaLabel="Quitar filtro sin receta"
+            compact={compact}
           />
         ) : null}
 
@@ -139,6 +157,7 @@ export default function CatalogActiveFilters({
             label="Solo disponibles"
             onRemove={onRemoveSoloDisponibles}
             ariaLabel="Quitar filtro solo disponibles"
+            compact={compact}
           />
         ) : null}
       </div>
