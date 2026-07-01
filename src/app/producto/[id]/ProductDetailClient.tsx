@@ -18,6 +18,7 @@ import {
   Weight,
   X,
 } from "lucide-react";
+import ProductShareMenu from "@/components/product/ProductShareMenu";
 import { getCatalogProducts, type CatalogProduct } from "@/services/catalog";
 import { isOptimizableImageUrl } from "@/lib/cloudinary-image";
 import {
@@ -35,6 +36,8 @@ import toast from "react-hot-toast";
 import { ProductCard } from "@/app/catalogo/components/ProductGrid";
 
 import { formatCurrencyMx } from "@/lib/formatters";
+import { getSiteUrl } from "@/lib/site-config";
+import { buildProductShareData } from "@/lib/product-share";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -347,6 +350,10 @@ export default function ProductDetailClient({
   const maxCartQuantity = Math.max(1, Math.min(product.stock, 25));
   const rentalMinDays = Math.max(1, product.rentalMinDays ?? 1);
   const rentalDailyPrice = product.rentalDailyPrice ?? 0;
+  const productShareData = useMemo(
+    () => buildProductShareData(product, getSiteUrl()),
+    [product],
+  );
   const todayInputValue = useMemo(() => toDateInputValue(new Date()), []);
   const rentalEndMinDate = useMemo(() => {
     if (!rentalStartDate) return todayInputValue;
@@ -711,6 +718,14 @@ export default function ProductDetailClient({
                     </div>
                   ) : null}
                 </div>
+
+                <ProductShareMenu
+                  shareData={productShareData}
+                  productName={product.nombre}
+                  className="absolute right-4 top-4 sm:right-5 sm:top-5"
+                  triggerClassName="bg-white/96"
+                  menuClassName="bottom-auto right-0 top-[calc(100%+10px)]"
+                />
               </div>
 
               <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[#5b6f79]">

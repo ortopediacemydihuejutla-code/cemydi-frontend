@@ -3,8 +3,11 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import ProductShareMenu from "@/components/product/ProductShareMenu";
 import type { CatalogProduct } from "@/services/catalog";
 import { isOptimizableImageUrl } from "@/lib/cloudinary-image";
+import { getSiteUrl } from "@/lib/site-config";
+import { buildProductShareData } from "@/lib/product-share";
 import {
   formatMoney,
   formatTipo,
@@ -66,6 +69,8 @@ export function ProductCard({
 }) {
   const hasImage = isOptimizableImageUrl(product.imageUrl);
   const isOutOfStock = product.stock <= 0;
+  const detailHref = `/producto/${product.id}`;
+  const shareData = buildProductShareData(product, getSiteUrl());
   const acquisitionBadges =
     product.tipoAdquisicion === "MIXTO"
       ? [
@@ -79,21 +84,25 @@ export function ProductCard({
         ];
 
   return (
-    <Link
-      href={`/producto/${product.id}`}
-      className={`group flex h-full overflow-hidden rounded-lg border border-[#e7edef] bg-white text-inherit no-underline shadow-[0_12px_30px_rgba(18,39,49,0.055)] outline-none transition hover:border-[#d0dde0] hover:shadow-[0_16px_34px_rgba(18,39,49,0.08)] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2 ${
+    <article
+      className={`group flex h-full overflow-visible rounded-lg border border-[#e7edef] bg-white text-inherit no-underline shadow-[0_12px_30px_rgba(18,39,49,0.055)] outline-none transition hover:border-[#d0dde0] hover:shadow-[0_16px_34px_rgba(18,39,49,0.08)] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2 ${
         view === "list"
           ? "flex-col sm:grid sm:grid-cols-[220px_minmax(0,1fr)]"
           : "flex-col"
       }`}
     >
       <div
-        className={`relative overflow-hidden border-b border-[#edf2f3] bg-[#fbfcfc] ${
+        className={`relative overflow-visible border-b border-[#edf2f3] bg-[#fbfcfc] outline-none focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-inset ${
           view === "list"
             ? "aspect-[4/3] sm:h-full sm:min-h-[240px] sm:aspect-auto sm:border-b-0 sm:border-r"
             : "aspect-[1/1] sm:aspect-[4/3]"
         }`}
       >
+        <Link
+          href={detailHref}
+          className="absolute inset-0 z-[1] outline-none"
+          aria-label={`Ver detalles de ${product.nombre}`}
+        />
         <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-start gap-2">
           {acquisitionBadges.map((badge) => (
             <span
@@ -115,7 +124,8 @@ export function ProductCard({
           ) : null}
         </div>
 
-        <div className="absolute inset-0 flex items-center justify-center p-5 sm:p-6">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-t-lg p-5 sm:p-6">
+          <div className="relative flex h-full w-full items-center justify-center">
           {hasImage ? (
             <div className="relative h-full w-full">
               <Image
@@ -135,7 +145,17 @@ export function ProductCard({
               {getProductMonogram(product.nombre)}
             </div>
           )}
+          </div>
         </div>
+
+        <ProductShareMenu
+          shareData={shareData}
+          productName={product.nombre}
+          compact
+          className="absolute right-3 top-3 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 sm:data-[open=true]:opacity-100"
+          triggerClassName="bg-white/96"
+          menuClassName="bottom-auto right-0 top-[calc(100%+8px)]"
+        />
       </div>
 
       <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-4">
@@ -145,7 +165,12 @@ export function ProductCard({
           </span>
 
           <h3 className="line-clamp-2 text-[1rem] font-semibold leading-6 text-[#142734] sm:text-[1.03rem]">
-            {highlightMatch(product.nombre, searchQuery)}
+            <Link
+              href={detailHref}
+              className="outline-none transition hover:text-[#0f6a67] focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
+            >
+              {highlightMatch(product.nombre, searchQuery)}
+            </Link>
           </h3>
         </div>
 
@@ -167,12 +192,17 @@ export function ProductCard({
             </span>
           </div>
 
-          <span className="mb-0.5 border-b border-[#c6d0d3] text-sm font-semibold text-[#344850] transition group-hover:border-[#0f6a67] group-hover:text-[#0f6a67]">
-            Ver detalles
-          </span>
+          <div className="flex items-center">
+            <Link
+              href={detailHref}
+              className="mb-0.5 border-b border-[#c6d0d3] text-sm font-semibold text-[#344850] transition group-hover:border-[#0f6a67] group-hover:text-[#0f6a67] focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
+            >
+              Ver detalles
+            </Link>
+          </div>
         </div>
       </div>
-    </Link>
+    </article>
   );
 }
 

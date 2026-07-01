@@ -2,6 +2,13 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { cache } from "react";
 import { getCatalogProductById } from "@/services/catalog";
+import { getSiteUrl } from "@/lib/site-config";
+import {
+  buildProductShareDescription,
+  getProductShareImageUrl,
+  getProductUrl,
+  truncateShareDescription,
+} from "@/lib/product-share";
 import ProductDetailClient from "./ProductDetailClient";
 
 type ProductDetailPageProps = {
@@ -9,15 +16,6 @@ type ProductDetailPageProps = {
     id: string;
   }>;
 };
-
-function truncateDescription(text: string, maxLength = 160) {
-  const clean = text.trim().replace(/\s+/g, " ");
-  if (clean.length <= maxLength) {
-    return clean;
-  }
-
-  return `${clean.slice(0, maxLength - 1).trimEnd()}…`;
-}
 
 const loadProductOrThrowNotFound = cache(async (productId: number) => {
   try {
@@ -33,10 +31,6 @@ const loadProductOrThrowNotFound = cache(async (productId: number) => {
   }
 });
 
-function getPrimaryProductImage(product: Awaited<ReturnType<typeof loadProductOrThrowNotFound>>) {
-  return product.images[0]?.imageUrl ?? product.imageUrl ?? null;
-}
-
 export async function generateMetadata({
   params,
 }: ProductDetailPageProps): Promise<Metadata> {
@@ -51,28 +45,40 @@ export async function generateMetadata({
 
   try {
     const product = await loadProductOrThrowNotFound(productId);
-    const primaryImage = getPrimaryProductImage(product);
-    const description = truncateDescription(
-      product.descripcion || `${product.nombre} — ${product.clasificacion}`,
+    const siteUrl = getSiteUrl();
+    const productUrl = getProductUrl(product, siteUrl);
+    const title = `${product.nombre} | CEMYDI`;
+    const description = truncateShareDescription(
+      buildProductShareDescription(product),
+      180,
     );
+    const imageUrl = getProductShareImageUrl(product, siteUrl);
 
     return {
-      title: product.nombre,
+      title,
       description,
       openGraph: {
-        title: product.nombre,
+        title,
         description,
+        url: productUrl,
         type: "website",
-        images: primaryImage ? [{ url: primaryImage, alt: product.nombre }] : [],
+        images: [
+          {
+            url: imageUrl,
+            width: 1200,
+            height: 630,
+            alt: product.nombre,
+          },
+        ],
       },
       twitter: {
         card: "summary_large_image",
-        title: product.nombre,
+        title,
         description,
-        images: primaryImage ? [primaryImage] : undefined,
+        images: [imageUrl],
       },
       alternates: {
-        canonical: `/producto/${productId}`,
+        canonical: productUrl,
       },
     };
   } catch {

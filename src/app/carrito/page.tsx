@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import {
   AlertTriangle,
   CalendarDays,
+  CheckCircle2,
   Edit3,
   FileText,
   Minus,
@@ -18,7 +19,8 @@ import {
 import toast from "react-hot-toast";
 import { useAuth } from "@/providers/AuthContext";
 import { useCart } from "@/providers/CartContext";
-import { createRentalFromCart } from "@/services/rentals";
+import type { ShoppingCartItem } from "@/services/cart";
+import { createRentalFromCart, type RentalRequest } from "@/services/rentals";
 import { isOptimizableImageUrl } from "@/lib/cloudinary-image";
 import { formatCurrencyMx, formatDateEsMx } from "@/lib/formatters";
 
@@ -67,7 +69,14 @@ type RentalCartEdit = {
   rentalNotes: string;
 };
 
-const PRESCRIPTION_ACCEPT = "application/pdf,image/jpeg,image/png,image/gif,image/webp,image/avif";
+type CartConfirmation = {
+  saleItems: ShoppingCartItem[];
+  rentalItems: RentalRequest["items"];
+  isMixed: boolean;
+};
+
+const PRESCRIPTION_ACCEPT = "application/pdf,image/jpeg,image/png,image/webp";
+const PRESCRIPTION_ALLOWED_EXTENSIONS = new Set(["pdf", "jpg", "jpeg", "png", "webp"]);
 const MAX_PRESCRIPTION_BYTES = 8 * 1024 * 1024;
 
 function formatFileSize(bytes: number) {
@@ -76,6 +85,28 @@ function formatFileSize(bytes: number) {
   }
 
   return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+}
+
+function getTodayDateInputValue() {
+  const today = new Date();
+  const offsetDate = new Date(today.getTime() - today.getTimezoneOffset() * 60_000);
+  return offsetDate.toISOString().slice(0, 10);
+}
+
+function validatePrescriptionFile(file: File) {
+  const extension = file.name.split(".").pop()?.toLowerCase() ?? "";
+  const isAllowedMime = PRESCRIPTION_ACCEPT.split(",").includes(file.type);
+  const isAllowedExtension = PRESCRIPTION_ALLOWED_EXTENSIONS.has(extension);
+
+  if (!isAllowedMime && !isAllowedExtension) {
+    return "La receta debe ser PDF, JPG, JPEG, PNG o WEBP.";
+  }
+
+  if (file.size > MAX_PRESCRIPTION_BYTES) {
+    return "La receta no debe superar 8 MB.";
+  }
+
+  return null;
 }
 
 export default function CarritoPage() {
@@ -94,6 +125,8 @@ export default function CarritoPage() {
   const [rentalEdits, setRentalEdits] = useState<Record<number, RentalCartEdit>>({});
   const [prescriptionFiles, setPrescriptionFiles] = useState<Record<number, File>>({});
   const [editingRentalItemId, setEditingRentalItemId] = useState<number | null>(null);
+  const [rentalEditError, setRentalEditError] = useState<string | null>(null);
+  const [confirmation, setConfirmation] = useState<CartConfirmation | null>(null);
 
   const hasItems = cart.summary.totalQuantity > 0;
   const saleItems = cart.items.filter((item) => item.mode !== "RENTA");
@@ -112,6 +145,8 @@ export default function CarritoPage() {
     hasRentalItems &&
     !hasUnavailableRentalItems &&
     rentalItemsMissingPrescription.length === 0;
+  const hasMissingRentalRequirements = rentalItemsMissingPrescription.length > 0;
+  const todayDateInputValue = useMemo(() => getTodayDateInputValue(), []);
   const lastUpdatedLabel = useMemo(() => {
     if (!cart.updatedAt) {
       return "Aún no has agregado productos.";
@@ -171,6 +206,7 @@ export default function CarritoPage() {
   ) => {
     const item = cart.items.find((candidate) => candidate.id === itemId);
     if (!item) return;
+    setRentalEditError(null);
     setRentalEdits((current) => ({
       ...current,
       [itemId]: {
@@ -186,7 +222,26 @@ export default function CarritoPage() {
     const edit = getRentalEdit(item);
 
     if (!edit.rentalStartDate || !edit.rentalEndDate) {
+      setRentalEditError("Selecciona fecha de inicio y fin para la renta.");
       toast.error("Selecciona fecha de inicio y fin para la renta.");
+      return;
+    }
+
+    if (edit.rentalStartDate < todayDateInputValue) {
+      setRentalEditError("La fecha de inicio no puede ser menor a la fecha actual.");
+      toast.error("La fecha de inicio no puede ser menor a la fecha actual.");
+      return;
+    }
+
+    if (edit.rentalEndDate < edit.rentalStartDate) {
+      setRentalEditError("La fecha de fin debe ser igual o posterior a la fecha de inicio.");
+      toast.error("La fecha de fin debe ser igual o posterior a la fecha de inicio.");
+      return;
+    }
+
+    if (item.product.requiereReceta && !prescriptionFiles[item.id]) {
+      setRentalEditError("Receta obligatoria para continuar.");
+      toast.error("Receta obligatoria para continuar.");
       return;
     }
 
@@ -205,6 +260,7 @@ export default function CarritoPage() {
         return next;
       });
       setEditingRentalItemId(null);
+      setRentalEditError(null);
       toast.success(result.message);
     } catch (err) {
       const message =
@@ -224,7 +280,7 @@ export default function CarritoPage() {
     toast.success("Listo para conectar el flujo de pago.");
   };
 
-  const handleSubmitRental = async () => {
+  const handleSubmitRental = async (isMixed: boolean) => {
     if (rentalItemsMissingPrescription.length > 0) {
       toast.error("Adjunta la receta en cada producto de renta que la requiere.");
       return;
@@ -237,8 +293,14 @@ export default function CarritoPage() {
 
     try {
       setSubmittingRental(true);
+      const saleItemsSnapshot = saleItems;
       const result = await createRentalFromCart({ prescriptions: prescriptionFiles });
-      toast.success(result.message);
+      setConfirmation({
+        saleItems: saleItemsSnapshot,
+        rentalItems: result.rental.items,
+        isMixed,
+      });
+      toast.success("Solicitud enviada correctamente.");
       setPrescriptionFiles({});
       await refreshCart();
     } catch (err) {
@@ -281,21 +343,19 @@ export default function CarritoPage() {
     const file = fileList?.[0];
     if (!file) return;
 
-    const allowedTypes = PRESCRIPTION_ACCEPT.split(",");
-    if (!allowedTypes.includes(file.type)) {
-      toast.error("La receta debe ser PDF o imagen.");
+    const error = validatePrescriptionFile(file);
+    if (error) {
+      setRentalEditError(error);
+      toast.error(error);
       return;
     }
 
-    if (file.size > MAX_PRESCRIPTION_BYTES) {
-      toast.error("La receta no debe superar 8 MB.");
-      return;
-    }
-
+    setRentalEditError(null);
     setPrescriptionFiles((current) => ({
       ...current,
       [itemId]: file,
     }));
+    toast.success("Archivo adjuntado correctamente.");
   };
 
   const removePrescriptionFile = (itemId: number) => {
@@ -311,7 +371,63 @@ export default function CarritoPage() {
       ...current,
       [item.id]: getRentalEdit(item),
     }));
+    setRentalEditError(null);
     setEditingRentalItemId(item.id);
+  };
+
+  const handleCompleteRentalRequirements = () => {
+    const firstPendingRental = rentalItemsMissingPrescription[0];
+    if (!firstPendingRental) {
+      return;
+    }
+
+    openRentalEditDialog(firstPendingRental);
+  };
+
+  const getPrimaryCartActionLabel = () => {
+    if (hasMissingRentalRequirements) {
+      return "Completar requisitos de renta";
+    }
+
+    if (hasSaleItems && hasRentalItems) {
+      return "Enviar pedido y solicitud";
+    }
+
+    if (hasRentalItems) {
+      return "Enviar solicitud de renta";
+    }
+
+    return "Proceder al pago";
+  };
+
+  const getPrimaryCartActionDisabled = () => {
+    if (submittingRental) {
+      return true;
+    }
+
+    if (hasMissingRentalRequirements) {
+      return false;
+    }
+
+    if (hasRentalItems) {
+      return !canSubmitRental || hasUnavailableSaleItems;
+    }
+
+    return !canProceedToPayment;
+  };
+
+  const handlePrimaryCartAction = () => {
+    if (hasMissingRentalRequirements) {
+      handleCompleteRentalRequirements();
+      return;
+    }
+
+    if (hasRentalItems) {
+      void handleSubmitRental(hasSaleItems);
+      return;
+    }
+
+    handleProceedToPayment();
   };
 
   const editingRentalItem =
@@ -377,6 +493,116 @@ export default function CarritoPage() {
           <p className="mt-3 text-[1rem] leading-7 text-[#5b717c]">
             El carrito está habilitado solo para cuentas de cliente.
           </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (confirmation) {
+    return (
+      <div className="min-h-[calc(100vh-140px)] bg-[#f5f8f8] px-4 py-10 sm:px-6">
+        <div className="mx-auto max-w-[920px] rounded-2xl border border-[#dbe5e7] bg-white p-6 shadow-[0_18px_34px_rgba(15,61,59,0.07)] sm:p-8">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+            <div className="grid size-14 shrink-0 place-items-center rounded-full bg-[#e4f6ee] text-[#1e7c55]">
+              <CheckCircle2 className="size-7" />
+            </div>
+            <div>
+              <h1 className="text-[1.9rem] font-semibold leading-tight text-[#132633]">
+                Solicitud enviada correctamente.
+              </h1>
+              <p className="mt-3 text-[1rem] leading-7 text-[#5b717c]">
+                CEMYDI revisará la disponibilidad de los productos en renta, la
+                receta médica si aplica y las condiciones de entrega. Te contactaremos
+                para confirmar.
+              </p>
+              {confirmation.isMixed ? (
+                <p className="mt-3 rounded-2xl border border-[#cfe0e3] bg-[#f8fbfb] px-4 py-3 text-sm leading-6 text-[#405b65]">
+                  La renta fue enviada a revisión. Los productos de compra permanecen
+                  en tu carrito para continuar con el flujo de pago cuando esté
+                  disponible.
+                </p>
+              ) : null}
+            </div>
+          </div>
+
+          {confirmation.saleItems.length > 0 ? (
+            <section className="mt-7 border-t border-[#edf2f3] pt-5">
+              <h2 className="text-sm font-bold uppercase tracking-[0.08em] text-[#405b65]">
+                Productos para compra
+              </h2>
+              <div className="mt-3 grid gap-3">
+                {confirmation.saleItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-4 rounded-xl border border-[#edf2f3] bg-[#fbfdfd] px-4 py-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[#17333f]">
+                        {item.product.nombre}
+                      </p>
+                      <p className="text-xs text-[#60727a]">
+                        Cantidad: {item.quantity}
+                      </p>
+                    </div>
+                    <strong className="shrink-0 text-sm text-[#193844]">
+                      {formatCurrencyMx(item.finalLineTotal ?? item.lineTotal, {
+                        fractionDigits: 0,
+                      })}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          {confirmation.rentalItems.length > 0 ? (
+            <section className="mt-7 border-t border-[#edf2f3] pt-5">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <h2 className="text-sm font-bold uppercase tracking-[0.08em] text-[#405b65]">
+                  Productos para renta
+                </h2>
+                <span className="rounded-full bg-[#fff7e8] px-3 py-1 text-xs font-bold text-[#845b12]">
+                  Pendiente de revisión
+                </span>
+              </div>
+              <div className="mt-3 grid gap-3">
+                {confirmation.rentalItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="flex items-center justify-between gap-4 rounded-xl border border-[#edf2f3] bg-[#fbfdfd] px-4 py-3"
+                  >
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-semibold text-[#17333f]">
+                        {item.product.nombre}
+                      </p>
+                      <p className="text-xs text-[#60727a]">
+                        {item.days} día(s) · Cantidad: {item.quantity}
+                      </p>
+                    </div>
+                    <strong className="shrink-0 text-sm text-[#193844]">
+                      {formatCurrencyMx(item.lineTotal, { fractionDigits: 0 })}
+                    </strong>
+                  </div>
+                ))}
+              </div>
+            </section>
+          ) : null}
+
+          <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+            <Link
+              href="/mis-rentas"
+              className="inline-flex items-center justify-center rounded-full bg-[#1f6a67] px-5 py-3 text-sm font-bold text-white no-underline transition hover:bg-[#185856]"
+            >
+              Ver mis rentas
+            </Link>
+            <Link
+              href="/carrito"
+              onClick={() => setConfirmation(null)}
+              className="inline-flex items-center justify-center rounded-full border border-[#1f6a67] px-5 py-3 text-sm font-bold text-[#1f6a67] no-underline transition hover:bg-[#eef7f6]"
+            >
+              Volver al carrito
+            </Link>
+          </div>
         </div>
       </div>
     );
@@ -525,22 +751,43 @@ export default function CarritoPage() {
                           : `Precio unitario ${formatCurrencyMx(item.product.precio, { fractionDigits: 0 })}`}
                       </p>
                       {isRental ? (
-                        <div className="mt-3 flex max-w-[620px] flex-wrap items-center gap-2 text-sm text-[#405b65]">
-                          <span className="inline-flex h-10 min-w-0 items-center gap-2 rounded-full border border-[#dbe5e7] bg-[#f8fbfb] px-3 font-semibold text-[#17333f]">
-                            <CalendarDays className="size-4 shrink-0 text-[#1f6a67]" />
-                            <span className="truncate">
-                              {item.rentalStartDate
-                                ? formatDateEsMx(item.rentalStartDate, { style: "short" })
-                                : "Sin inicio"}{" "}
-                              -{" "}
+                        <div className="mt-3 grid max-w-[640px] gap-3 text-sm text-[#405b65]">
+                          <div className="grid gap-2 rounded-xl border border-[#dbe5e7] bg-[#f8fbfb] p-3 sm:grid-cols-2">
+                            <div className="flex items-center gap-2">
+                              <CalendarDays className="size-4 shrink-0 text-[#1f6a67]" />
+                              <span>
+                                <strong className="font-semibold text-[#17333f]">
+                                  Fecha inicio:
+                                </strong>{" "}
+                                {item.rentalStartDate
+                                  ? formatDateEsMx(item.rentalStartDate, { style: "short" })
+                                  : "Sin inicio"}
+                              </span>
+                            </div>
+                            <div>
+                              <strong className="font-semibold text-[#17333f]">
+                                Fecha fin:
+                              </strong>{" "}
                               {item.rentalEndDate
                                 ? formatDateEsMx(item.rentalEndDate, { style: "short" })
                                 : "Sin fin"}
-                            </span>
-                            <span className="shrink-0 font-normal text-[#60727a]">
+                            </div>
+                            <div>
+                              <strong className="font-semibold text-[#17333f]">
+                                Número de días:
+                              </strong>{" "}
                               {item.rentalDays ? `${item.rentalDays} día(s)` : "Periodo pendiente"}
-                            </span>
-                          </span>
+                            </div>
+                            <div>
+                              <strong className="font-semibold text-[#17333f]">
+                                Total estimado:
+                              </strong>{" "}
+                              {formatCurrencyMx(item.finalLineTotal ?? item.lineTotal, {
+                                fractionDigits: 0,
+                              })}
+                            </div>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
                           <button
                             type="button"
                             disabled={isPending}
@@ -552,18 +799,16 @@ export default function CarritoPage() {
                           </button>
                           {item.product.requiereReceta ? (
                             prescriptionFiles[item.id] ? (
-                              <button
-                                type="button"
-                                onClick={() => removePrescriptionFile(item.id)}
+                              <span
                                 title={prescriptionFiles[item.id].name}
-                                className="inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-full border border-[#b9d8dd] bg-white px-3 text-xs font-bold text-[#176c83] transition hover:bg-[#edf9fb]"
+                                className="inline-flex h-10 min-w-0 items-center justify-center gap-2 rounded-full border border-[#b9d8dd] bg-white px-3 text-xs font-bold text-[#176c83]"
                               >
                                 <FileText className="size-4 shrink-0" />
+                                Receta adjunta
                                 <span className="max-w-[180px] truncate">
                                   {prescriptionFiles[item.id].name}
                                 </span>
-                                <X className="size-4 shrink-0 text-[#b42318]" />
-                              </button>
+                              </span>
                             ) : (
                               <label className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-full border border-dashed border-[#d8a85c] bg-[#fffaf0] px-3 text-xs font-bold text-[#845b12] transition hover:bg-[#fff4dd]">
                                 <Upload className="size-4" />
@@ -585,6 +830,7 @@ export default function CarritoPage() {
                               Nota: {item.rentalNotes}
                             </span>
                           ) : null}
+                          </div>
                         </div>
                       ) : null}
 
@@ -703,7 +949,7 @@ export default function CarritoPage() {
                   </strong>
                 </div>
                 <div className="flex items-center justify-between text-[0.95rem] text-[#5b717c]">
-                  <span>Depósitos</span>
+                  <span>Depósitos estimados</span>
                   <strong className="text-[#193844]">
                     {formatCurrencyMx(cart.summary.rentalDepositTotal ?? 0, { fractionDigits: 0 })}
                   </strong>
@@ -726,23 +972,14 @@ export default function CarritoPage() {
                   </div>
                 ) : null}
                 <div className="flex items-end justify-between border-t border-[#e8eff1] pt-4">
-                  <span className="text-[1rem] font-semibold text-[#193844]">Total</span>
+                  <span className="text-[1rem] font-semibold text-[#193844]">
+                    {hasRentalItems ? "Total estimado" : "Total"}
+                  </span>
                   <strong className="text-[2rem] leading-none text-[#1f6a67]">
                     {formatCurrencyMx(cartTotal, { fractionDigits: 0 })}
                   </strong>
                 </div>
               </div>
-
-              {hasSaleItems ? (
-                <button
-                  type="button"
-                  onClick={handleProceedToPayment}
-                  disabled={!canProceedToPayment}
-                  className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#1f6a67] px-5 py-3.5 text-base font-bold text-white shadow-[0_16px_28px_rgba(31,106,103,0.22)] transition hover:bg-[#185856] disabled:cursor-not-allowed disabled:bg-[#9ab8b6] disabled:shadow-none"
-                >
-                  Proceder al pago
-                </button>
-              ) : null}
 
               {hasRentalItems ? (
                 <>
@@ -755,16 +992,29 @@ export default function CarritoPage() {
                       </p>
                     </div>
                   ) : null}
-                  <button
-                    type="button"
-                    onClick={() => void handleSubmitRental()}
-                    disabled={!canSubmitRental || submittingRental}
-                    className="mt-3 inline-flex w-full items-center justify-center rounded-full border border-[#1f6a67] bg-white px-5 py-3.5 text-base font-bold text-[#1f6a67] transition hover:bg-[#eef7f6] disabled:cursor-not-allowed disabled:border-[#9ab8b6] disabled:text-[#9ab8b6]"
-                  >
-                    {submittingRental ? "Enviando..." : "Enviar solicitud de renta"}
-                  </button>
+                  <div className="mt-4 grid gap-3 rounded-2xl border border-[#cfe0e3] bg-[#f8fbfb] px-4 py-3 text-sm leading-6 text-[#405b65]">
+                    <p>
+                      Los productos en renta están sujetos a revisión de disponibilidad,
+                      receta médica y condiciones de entrega por parte de CEMYDI.
+                    </p>
+                    {hasSaleItems ? (
+                      <p>
+                        Tu carrito incluye productos de compra y renta. La compra puede
+                        confirmarse, pero la renta será revisada antes de aprobarse.
+                      </p>
+                    ) : null}
+                  </div>
                 </>
               ) : null}
+
+              <button
+                type="button"
+                onClick={handlePrimaryCartAction}
+                disabled={getPrimaryCartActionDisabled()}
+                className="mt-6 inline-flex w-full items-center justify-center rounded-full bg-[#1f6a67] px-5 py-3.5 text-base font-bold text-white shadow-[0_16px_28px_rgba(31,106,103,0.22)] transition hover:bg-[#185856] disabled:cursor-not-allowed disabled:bg-[#9ab8b6] disabled:shadow-none"
+              >
+                {submittingRental ? "Enviando..." : getPrimaryCartActionLabel()}
+              </button>
 
               <Link
                 href="/catalogo"
@@ -818,6 +1068,7 @@ export default function CarritoPage() {
                   <input
                     type="date"
                     value={editingRental.rentalStartDate}
+                    min={todayDateInputValue}
                     disabled={pendingItemId === editingRentalItem.id}
                     onChange={(event) =>
                       updateRentalEdit(editingRentalItem.id, {
@@ -832,6 +1083,7 @@ export default function CarritoPage() {
                   <input
                     type="date"
                     value={editingRental.rentalEndDate}
+                    min={editingRental.rentalStartDate || todayDateInputValue}
                     disabled={pendingItemId === editingRentalItem.id}
                     onChange={(event) =>
                       updateRentalEdit(editingRentalItem.id, {
@@ -871,13 +1123,17 @@ export default function CarritoPage() {
                         Receta de este producto
                       </strong>
                       <p className="mt-1 text-sm leading-6 text-[#60727a]">
-                        Adjunta PDF o imagen. Máximo 8 MB.
+                        Receta obligatoria para continuar.
+                      </p>
+                      <p className="text-sm leading-6 text-[#60727a]">
+                        Adjunta PDF, JPG, JPEG, PNG o WEBP. Máximo 8 MB.
                       </p>
                     </div>
                   </div>
 
                   {prescriptionFiles[editingRentalItem.id] ? (
-                    <div className="mt-3 flex items-center justify-between gap-3 rounded-xl border border-[#d8e5e7] bg-white px-3 py-2">
+                    <div className="mt-3 grid gap-3 rounded-xl border border-[#d8e5e7] bg-white px-3 py-3">
+                      <div className="flex items-center justify-between gap-3">
                       <div className="min-w-0">
                         <p className="truncate text-sm font-semibold text-[#17333f]">
                           {prescriptionFiles[editingRentalItem.id].name}
@@ -894,6 +1150,24 @@ export default function CarritoPage() {
                       >
                         <X className="size-4" />
                       </button>
+                      </div>
+                      <p className="flex items-center gap-2 text-xs font-bold text-[#1e7c55]">
+                        <CheckCircle2 className="size-4" />
+                        Archivo adjuntado correctamente.
+                      </p>
+                      <label className="flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[#9abdc0] bg-[#f8fbfb] px-4 py-2.5 text-sm font-bold text-[#176c83] transition hover:bg-[#edf9fb]">
+                        <Upload className="size-4" />
+                        Cambiar receta
+                        <input
+                          type="file"
+                          accept={PRESCRIPTION_ACCEPT}
+                          className="sr-only"
+                          onChange={(event) => {
+                            handlePrescriptionChange(editingRentalItem.id, event.target.files);
+                            event.currentTarget.value = "";
+                          }}
+                        />
+                      </label>
                     </div>
                   ) : (
                     <label className="mt-3 flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-dashed border-[#9abdc0] bg-white px-4 py-3 text-sm font-bold text-[#176c83] transition hover:bg-[#edf9fb]">
@@ -910,6 +1184,12 @@ export default function CarritoPage() {
                       />
                     </label>
                   )}
+                </div>
+              ) : null}
+
+              {rentalEditError ? (
+                <div className="rounded-xl border border-[#f4d8a8] bg-[#fff7e8] px-4 py-3 text-sm font-semibold leading-6 text-[#845b12]">
+                  {rentalEditError}
                 </div>
               ) : null}
             </div>
@@ -929,7 +1209,7 @@ export default function CarritoPage() {
                 className="inline-flex items-center justify-center gap-2 rounded-xl bg-[#1f6a67] px-5 py-3 text-sm font-bold text-white transition hover:bg-[#185856] disabled:cursor-not-allowed disabled:bg-[#9ab8b6]"
               >
                 <Edit3 className="size-4" />
-                {pendingItemId === editingRentalItem.id ? "Guardando..." : "Guardar periodo"}
+                {pendingItemId === editingRentalItem.id ? "Guardando..." : "Guardar cambios"}
               </button>
             </div>
           </div>
