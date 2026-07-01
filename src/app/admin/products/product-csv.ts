@@ -265,8 +265,8 @@ function validateCsvProductRow(form: CsvRowFormCandidate) {
     return "Selecciona marca, modelo, clasificación y proveedor.";
   }
 
-  if (descripcion.length < 5 || descripcion.length > 400) {
-    return "Descripción inválida. Entre 5 y 400 caracteres.";
+  if (descripcion.length < 5 || descripcion.length > 1200) {
+    return "Descripción inválida. Entre 5 y 1200 caracteres.";
   }
 
   if (precioRaw === "" || stockRaw === "") {

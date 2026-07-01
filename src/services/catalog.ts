@@ -11,6 +11,11 @@ export type CatalogProduct = {
   marca: string;
   modelo: string;
   descripcion: string;
+  medidas?: string | null;
+  pesoSoportado?: string | null;
+  material?: string | null;
+  contenidoCaja?: string | null;
+  indicacionesUso?: string | null;
   precio: number;
   clasificacion: string;
   stock: number;

@@ -8,9 +8,15 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  ClipboardList,
+  Layers3,
+  ListChecks,
+  Ruler,
   ShieldCheck,
   Store,
   Truck,
+  Weight,
+  X,
 } from "lucide-react";
 import { getCatalogProducts, type CatalogProduct } from "@/services/catalog";
 import { isOptimizableImageUrl } from "@/lib/cloudinary-image";
@@ -169,7 +175,11 @@ export default function ProductDetailClient({
   });
   const [reviewsLoading, setReviewsLoading] = useState(false);
   const [showReviewModal, setShowReviewModal] = useState(false);
+  const [showImageZoomModal, setShowImageZoomModal] = useState(false);
   const [savingReview, setSavingReview] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState<{ x: number; y: number } | null>(
+    null,
+  );
   const [myReview, setMyReview] = useState<MyProductReview | null>(null);
   const [reviewForm, setReviewForm] = useState({
     rating: 0,
@@ -203,6 +213,7 @@ export default function ProductDetailClient({
     const currentIndex = selectedImageIndex >= 0 ? selectedImageIndex : 0;
     const nextIndex =
       (currentIndex + direction + galleryImages.length) % galleryImages.length;
+    setZoomPosition(null);
     setSelectedImageUrl(galleryImages[nextIndex]?.url ?? null);
   };
 
@@ -323,6 +334,13 @@ export default function ProductDetailClient({
   const isOutOfStock = product.stock <= 0;
   const selectedGalleryImage =
     galleryImages.find((image) => image.url === selectedImageUrl) ?? galleryImages[0] ?? null;
+  const orthopedicDetails = [
+    { label: "Medidas", value: product.medidas, icon: Ruler },
+    { label: "Peso soportado", value: product.pesoSoportado, icon: Weight },
+    { label: "Material", value: product.material, icon: Layers3 },
+    { label: "Contenido", value: product.contenidoCaja, icon: ClipboardList },
+    { label: "Indicaciones", value: product.indicacionesUso, icon: ListChecks },
+  ].filter((item) => item.value?.trim());
 
   const showBuyAction = product.tipoAdquisicion !== "RENTA";
   const showRentAction = product.tipoAdquisicion !== "VENTA";
@@ -520,6 +538,19 @@ export default function ProductDetailClient({
     }
   };
 
+  const handleGalleryZoomMove = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (!selectedGalleryImage?.url) return;
+
+    const rect = event.currentTarget.getBoundingClientRect();
+    const x = ((event.clientX - rect.left) / rect.width) * 100;
+    const y = ((event.clientY - rect.top) / rect.height) * 100;
+
+    setZoomPosition({
+      x: Math.max(0, Math.min(100, x)),
+      y: Math.max(0, Math.min(100, y)),
+    });
+  };
+
   return (
     <section className="mx-auto max-w-[1440px] px-4 pb-11 pt-6 lg:px-6">
       <div className="mb-5 border-b border-[#e3ebee] pb-4">
@@ -548,56 +579,140 @@ export default function ProductDetailClient({
 
       <div className="grid gap-8 xl:grid-cols-[minmax(0,1.12fr)_minmax(0,0.9fr)_360px]">
         <section className="grid gap-4 xl:sticky xl:top-24 xl:self-start">
-          <div className="grid gap-4">
-            <div className="relative overflow-hidden bg-[#f7fbfb]">
-              {product.requiereReceta ? (
-                <span className="absolute left-4 top-4 z-[2] inline-flex items-center gap-1 rounded-full bg-[#1c2a3f] px-3 py-1.5 text-[0.74rem] font-bold text-white">
-                  <BadgeAlert className="size-3.5" />
-                  Requiere receta
-                </span>
-              ) : null}
-              {showGalleryArrows ? (
-                <>
+          <div
+            className={`grid gap-4 lg:items-start ${
+              galleryImages.length > 1 ? "lg:grid-cols-[76px_minmax(0,1fr)]" : ""
+            }`}
+          >
+            {galleryImages.length > 1 ? (
+              <div className="order-2 flex gap-3 overflow-x-auto pb-2 [scrollbar-width:none] lg:order-1 lg:max-h-[560px] lg:flex-col lg:overflow-x-hidden lg:overflow-y-auto lg:pb-0 [&::-webkit-scrollbar]:hidden">
+                {galleryImages.map((image, index) => (
                   <button
+                    key={image.key}
                     type="button"
-                    className="absolute left-3 top-1/2 z-[2] grid size-11 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.96)] text-[#1f6a67] shadow-[0_10px_18px_rgba(31,106,103,0.12)]"
-                    onClick={() => moveGallery(-1)}
-                    aria-label="Imagen anterior"
+                    className={`relative aspect-square size-[64px] shrink-0 overflow-hidden rounded-[8px] border bg-white transition sm:size-[72px] ${
+                      selectedImageUrl === image.url
+                        ? "border-[#1f6a67] shadow-[0_0_0_2px_rgba(31,106,103,0.18)]"
+                        : "border-[#d7e3e6] hover:border-[#97b5b7]"
+                    }`}
+                    onClick={() => {
+                      setZoomPosition(null);
+                      setSelectedImageUrl(image.url);
+                    }}
+                    aria-label={`Ver imagen ${index + 1} de ${galleryImages.length}`}
+                    aria-pressed={selectedImageUrl === image.url}
                   >
-                    <ChevronLeft className="size-5" />
+                    {isOptimizableImageUrl(image.url) ? (
+                      <Image
+                        src={image.url}
+                        alt={image.alt}
+                        fill
+                        sizes="72px"
+                        className="object-contain p-1.5"
+                      />
+                    ) : (
+                      <span className="grid h-full w-full place-items-center text-sm font-semibold text-[#1f6a67]">
+                        {index + 1}
+                      </span>
+                    )}
                   </button>
-                  <button
-                    type="button"
-                    className="absolute right-3 top-1/2 z-[2] grid size-11 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.96)] text-[#1f6a67] shadow-[0_10px_18px_rgba(31,106,103,0.12)]"
-                    onClick={() => moveGallery(1)}
-                    aria-label="Imagen siguiente"
-                  >
-                    <ChevronRight className="size-5" />
-                  </button>
-                </>
-              ) : null}
+                ))}
+              </div>
+            ) : null}
 
-              <div className="relative min-h-[360px] w-full sm:min-h-[460px] lg:min-h-[560px]">
-                <div className="absolute inset-0 mx-auto w-full max-w-[760px]">
-                  {isOptimizableImageUrl(selectedGalleryImage?.url) ? (
-                    <Image
-                      src={selectedGalleryImage.url}
-                      alt={selectedGalleryImage.alt}
-                      fill
-                      priority
-                      sizes="(max-width: 1024px) 100vw, 52vw"
-                      className="object-contain p-6 sm:p-8 lg:p-10"
-                    />
-                  ) : (
-                    <div className="grid h-full w-full place-items-center p-8 text-[4rem] font-extrabold text-[#1f6a67] sm:text-[5.5rem]">
+            <div className="order-1 grid gap-3 lg:order-2">
+              <div className="relative overflow-hidden">
+                {showGalleryArrows ? (
+                  <>
+                    <button
+                      type="button"
+                      className="absolute left-3 top-1/2 z-[2] grid size-11 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.96)] text-[#1f6a67] shadow-[0_10px_18px_rgba(31,106,103,0.12)]"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        moveGallery(-1);
+                      }}
+                      aria-label="Imagen anterior"
+                    >
+                      <ChevronLeft className="size-5" />
+                    </button>
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 z-[2] grid size-11 -translate-y-1/2 place-items-center rounded-full bg-[rgba(255,255,255,0.96)] text-[#1f6a67] shadow-[0_10px_18px_rgba(31,106,103,0.12)]"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        moveGallery(1);
+                      }}
+                      aria-label="Imagen siguiente"
+                    >
+                      <ChevronRight className="size-5" />
+                    </button>
+                  </>
+                ) : null}
+
+                <div
+                  className="group relative min-h-[360px] w-full cursor-zoom-in overflow-hidden bg-white sm:min-h-[460px] lg:min-h-[560px]"
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Ampliar imagen del producto"
+                  onMouseMove={handleGalleryZoomMove}
+                  onMouseLeave={() => setZoomPosition(null)}
+                  onClick={() => {
+                    if (selectedGalleryImage?.url) {
+                      setShowImageZoomModal(true);
+                    }
+                  }}
+                  onKeyDown={(event) => {
+                    if ((event.key === "Enter" || event.key === " ") && selectedGalleryImage?.url) {
+                      event.preventDefault();
+                      setShowImageZoomModal(true);
+                    }
+                  }}
+                >
+                  {product.requiereReceta ? (
+                    <span className="absolute left-4 top-4 z-[3] inline-flex items-center gap-1 rounded-full bg-[#1c2a3f] px-3 py-1.5 text-[0.74rem] font-bold text-white">
+                      <BadgeAlert className="size-3.5" />
+                      Requiere receta
+                    </span>
+                  ) : null}
+                  <div className="absolute inset-0 mx-auto w-full max-w-[760px]">
+                    {isOptimizableImageUrl(selectedGalleryImage?.url) ? (
+                      <Image
+                        src={selectedGalleryImage.url}
+                        alt={selectedGalleryImage.alt}
+                        fill
+                        priority
+                        loading="eager"
+                        sizes="(max-width: 1024px) 100vw, 52vw"
+                        className="object-contain"
+                      />
+                    ) : (
+                      <div className="grid h-full w-full place-items-center p-8 text-[4rem] font-extrabold text-[#1f6a67] sm:text-[5.5rem]">
                       {getProductMonogram(product.nombre)}
                     </div>
                   )}
+                  </div>
+                  {zoomPosition && isOptimizableImageUrl(selectedGalleryImage?.url) ? (
+                    <div
+                      className="pointer-events-none absolute z-[4] hidden size-[190px] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-full border border-[#d7e3e6] bg-white shadow-[0_18px_42px_rgba(15,61,59,0.18)] xl:block"
+                      style={{
+                        left: `${zoomPosition.x}%`,
+                        top: `${zoomPosition.y}%`,
+                      }}
+                      aria-hidden
+                    >
+                      <div
+                        className="h-full w-full bg-no-repeat"
+                        style={{
+                          backgroundImage: `url(${selectedGalleryImage.url})`,
+                          backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                          backgroundSize: "260%",
+                        }}
+                      />
+                    </div>
+                  ) : null}
                 </div>
               </div>
-            </div>
 
-            <div className="flex flex-col gap-3">
               <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-[#5b6f79]">
                 <span>
                   {galleryImages.length > 1
@@ -606,39 +721,6 @@ export default function ProductDetailClient({
                 </span>
                 <span className="truncate">Modelo: {product.modelo}</span>
               </div>
-
-              {galleryImages.length > 1 ? (
-                <div className="flex gap-3 overflow-x-auto pb-1">
-                  {galleryImages.map((image, index) => (
-                    <button
-                      key={image.key}
-                      type="button"
-                      className={`relative flex h-[88px] min-w-[88px] shrink-0 items-center justify-center overflow-hidden rounded-xl border bg-white p-1.5 transition sm:h-[96px] sm:min-w-[96px] ${
-                        selectedImageUrl === image.url
-                          ? "border-[#1f6a67] shadow-[0_0_0_2px_rgba(31,106,103,0.16)]"
-                          : "border-[#d7e3e6] hover:border-[#97b5b7]"
-                      }`}
-                      onClick={() => setSelectedImageUrl(image.url)}
-                      aria-label={`Ver imagen ${index + 1} de ${galleryImages.length}`}
-                      aria-pressed={selectedImageUrl === image.url}
-                    >
-                      {isOptimizableImageUrl(image.url) ? (
-                        <Image
-                          src={image.url}
-                          alt={image.alt}
-                          fill
-                          sizes="96px"
-                          className="object-cover"
-                        />
-                      ) : (
-                        <span className="text-sm font-semibold text-[#1f6a67]">
-                          {index + 1}
-                        </span>
-                      )}
-                    </button>
-                  ))}
-                </div>
-              ) : null}
             </div>
           </div>
         </section>
@@ -689,8 +771,6 @@ export default function ProductDetailClient({
               <span>{reviewsSummary.count} reseñas</span>
             </div>
           </div>
-
-          <p className="text-[1rem] leading-7 text-[#36515e]">{product.descripcion}</p>
 
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="rounded-2xl border border-[#e2eaec] bg-[#f8fbfb] p-4">
@@ -952,6 +1032,40 @@ export default function ProductDetailClient({
         </aside>
       </div>
 
+      <section className="mt-9 border-t border-[#e3ebee] py-8 xl:mr-[388px]">
+        <div className="grid gap-8">
+          <h2 className="text-[1.65rem] font-semibold text-[#142734]">
+            Descripción
+          </h2>
+          <p className="max-w-[1040px] whitespace-pre-line text-[1.04rem] leading-9 text-[#2d4d5b]">
+            {product.descripcion}
+          </p>
+        </div>
+
+        {orthopedicDetails.length > 0 ? (
+          <div className="mt-9 grid max-w-[1040px] gap-4 border-t border-[#e6eef1] pt-7">
+            <h2 className="text-[1.4rem] font-semibold text-[#142734]">
+              Ficha ortopédica
+            </h2>
+            <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
+              {orthopedicDetails.map(({ label, value, icon: Icon }) => (
+                <div key={label} className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
+                  <Icon className="mt-1 size-5 text-[#1f6a67]" aria-hidden />
+                  <div>
+                    <dt className="text-xs font-semibold uppercase tracking-[0.08em] text-[#80929b]">
+                      {label}
+                    </dt>
+                    <dd className="mt-1 whitespace-pre-line text-[0.98rem] leading-6 text-[#1b3141]">
+                      {value}
+                    </dd>
+                  </div>
+                </div>
+              ))}
+            </dl>
+          </div>
+        ) : null}
+      </section>
+
       <section className="mt-6 rounded-[22px] border border-[#dbe4e6] bg-white p-5 sm:p-6">
         <div className="grid gap-5 lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)]">
           <div className="rounded-2xl border border-[#e1ebee] bg-[linear-gradient(180deg,#f9fcfc_0%,#f0f6f7_100%)] p-5">
@@ -1098,6 +1212,34 @@ export default function ProductDetailClient({
           </div>
         ) : null}
       </section>
+
+      {showImageZoomModal && isOptimizableImageUrl(selectedGalleryImage?.url) ? (
+        <div
+          className="fixed inset-0 z-[90] grid place-items-center bg-[rgba(8,18,28,0.78)] p-4"
+          onClick={() => setShowImageZoomModal(false)}
+        >
+          <div
+            className="relative h-[min(86vh,780px)] w-full max-w-[1100px] overflow-hidden rounded-[14px] bg-white"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="absolute right-4 top-4 z-[2] grid size-11 place-items-center rounded-full bg-white text-[#17333f] shadow-[0_12px_28px_rgba(7,19,29,0.18)]"
+              onClick={() => setShowImageZoomModal(false)}
+              aria-label="Cerrar imagen ampliada"
+            >
+              <X className="size-5" />
+            </button>
+            <Image
+              src={selectedGalleryImage.url}
+              alt={selectedGalleryImage.alt}
+              fill
+              sizes="100vw"
+              className="object-contain p-4 sm:p-6"
+            />
+          </div>
+        </div>
+      ) : null}
 
       {showReviewModal ? (
         <div

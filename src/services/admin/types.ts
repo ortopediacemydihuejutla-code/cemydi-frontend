@@ -34,6 +34,11 @@ export type AdminProduct = {
   marca: string;
   modelo: string;
   descripcion: string;
+  medidas: string | null;
+  pesoSoportado: string | null;
+  material: string | null;
+  contenidoCaja: string | null;
+  indicacionesUso: string | null;
   precio: number;
   clasificacion: string;
   stock: number;
@@ -351,6 +356,11 @@ export type CreateProductPayload = {
   marca: string;
   modelo: string;
   descripcion: string;
+  medidas?: string | null;
+  pesoSoportado?: string | null;
+  material?: string | null;
+  contenidoCaja?: string | null;
+  indicacionesUso?: string | null;
   precio: number;
   clasificacion: string;
   stock: number;

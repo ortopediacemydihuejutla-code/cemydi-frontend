@@ -59,7 +59,12 @@ export function normalizeAdminProduct(raw: AdminProduct): AdminProduct {
     precio,
     tipoAdquisicion,
     stock: Math.max(0, stock),
-  requiereReceta: Boolean(raw.requiereReceta),
+    requiereReceta: Boolean(raw.requiereReceta),
+    medidas: raw.medidas ?? null,
+    pesoSoportado: raw.pesoSoportado ?? null,
+    material: raw.material ?? null,
+    contenidoCaja: raw.contenidoCaja ?? null,
+    indicacionesUso: raw.indicacionesUso ?? null,
     rentalDailyPrice:
       raw.rentalDailyPrice === null || raw.rentalDailyPrice === undefined
         ? null
@@ -91,6 +96,11 @@ export const EMPTY_PRODUCT_FORM = {
   marca: "",
   modelo: "",
   descripcion: "",
+  medidas: "",
+  pesoSoportado: "",
+  material: "",
+  contenidoCaja: "",
+  indicacionesUso: "",
   precio: 0,
   clasificacion: "",
   stock: 0,
@@ -146,6 +156,11 @@ export function normalizeProductPayload(
     marca: form.marca.trim(),
     modelo: form.modelo.trim(),
     descripcion: form.descripcion.trim(),
+    medidas: form.medidas?.trim() || null,
+    pesoSoportado: form.pesoSoportado?.trim() || null,
+    material: form.material?.trim() || null,
+    contenidoCaja: form.contenidoCaja?.trim() || null,
+    indicacionesUso: form.indicacionesUso?.trim() || null,
     precio: Number.isFinite(form.precio) ? form.precio : 0,
     clasificacion: form.clasificacion.trim(),
     stock: Math.max(0, Math.trunc(stockRaw)),
@@ -183,9 +198,14 @@ export function validateProductForm(form: CreateProductPayload) {
   if (!form.modelo.trim()) return "El modelo es obligatorio";
 
   const descripcion = form.descripcion.trim();
-  if (descripcion.length < 5 || descripcion.length > 400) {
-    return "La descripción debe tener entre 5 y 400 caracteres.";
+  if (descripcion.length < 5 || descripcion.length > 1200) {
+    return "La descripción debe tener entre 5 y 1200 caracteres.";
   }
+  if ((form.medidas?.trim().length ?? 0) > 160) return "Las medidas no pueden exceder 160 caracteres.";
+  if ((form.pesoSoportado?.trim().length ?? 0) > 120) return "El peso soportado no puede exceder 120 caracteres.";
+  if ((form.material?.trim().length ?? 0) > 160) return "El material no puede exceder 160 caracteres.";
+  if ((form.contenidoCaja?.trim().length ?? 0) > 240) return "El contenido no puede exceder 240 caracteres.";
+  if ((form.indicacionesUso?.trim().length ?? 0) > 400) return "Las indicaciones no pueden exceder 400 caracteres.";
 
   if (!form.clasificacion.trim()) return "La clasificación es obligatoria";
   if (!form.proveedor.trim()) return "El proveedor es obligatorio";

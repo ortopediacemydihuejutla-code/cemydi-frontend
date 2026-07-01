@@ -14,16 +14,20 @@ import {
   FileWarning,
   Hash,
   Images,
+  Layers3,
   LayoutGrid,
+  ListChecks,
   ArrowLeft,
   LoaderCircle,
   Package,
   Power,
   Repeat2,
+  Ruler,
   SlidersHorizontal,
   Tag,
   Trash2,
   Truck,
+  Weight,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
@@ -215,6 +219,11 @@ export default function EditProductPage() {
           marca: product.marca,
           modelo: product.modelo,
           descripcion: product.descripcion,
+          medidas: product.medidas ?? "",
+          pesoSoportado: product.pesoSoportado ?? "",
+          material: product.material ?? "",
+          contenidoCaja: product.contenidoCaja ?? "",
+          indicacionesUso: product.indicacionesUso ?? "",
           precio: product.precio,
           clasificacion: product.clasificacion,
           stock: Math.max(0, Math.trunc(Number(product.stock))),
@@ -408,6 +417,11 @@ export default function EditProductPage() {
       marca: form.marca,
       modelo: form.modelo,
       descripcion: form.descripcion,
+      medidas: form.medidas,
+      pesoSoportado: form.pesoSoportado,
+      material: form.material,
+      contenidoCaja: form.contenidoCaja,
+      indicacionesUso: form.indicacionesUso,
       precio: form.precio,
       clasificacion: form.clasificacion,
       stock: form.stock,
@@ -568,7 +582,70 @@ export default function EditProductPage() {
                       <textarea
                         value={form.descripcion}
                         onChange={(event) => updateField("descripcion", event.target.value)}
-                        placeholder="Describe el producto, beneficios, materiales y uso recomendado (5-400 caracteres)"
+                        placeholder="Describe el producto, beneficios, materiales y uso recomendado (5-1200 caracteres)"
+                        className={productTextareaClassName}
+                        maxLength={1200}
+                      />
+                    </label>
+
+                    <label className="grid gap-2 text-sm font-medium text-foreground">
+                      <ProductFieldLabel icon={Ruler}>Medidas</ProductFieldLabel>
+                      <Input
+                        className={productFieldClassName}
+                        value={form.medidas ?? ""}
+                        onChange={(event) => updateField("medidas", event.target.value)}
+                        placeholder="Ej. 45 x 38 x 92 cm"
+                        maxLength={160}
+                      />
+                    </label>
+
+                    <label className="grid gap-2 text-sm font-medium text-foreground">
+                      <ProductFieldLabel icon={Weight}>Peso soportado</ProductFieldLabel>
+                      <Input
+                        className={productFieldClassName}
+                        value={form.pesoSoportado ?? ""}
+                        onChange={(event) =>
+                          updateField("pesoSoportado", event.target.value)
+                        }
+                        placeholder="Ej. Hasta 120 kg"
+                        maxLength={120}
+                      />
+                    </label>
+
+                    <label className="grid gap-2 text-sm font-medium text-foreground">
+                      <ProductFieldLabel icon={Layers3}>Material</ProductFieldLabel>
+                      <Input
+                        className={productFieldClassName}
+                        value={form.material ?? ""}
+                        onChange={(event) => updateField("material", event.target.value)}
+                        placeholder="Ej. Acero cromado y vinil"
+                        maxLength={160}
+                      />
+                    </label>
+
+                    <label className="grid gap-2 text-sm font-medium text-foreground">
+                      <ProductFieldLabel icon={ClipboardList}>Contenido</ProductFieldLabel>
+                      <Input
+                        className={productFieldClassName}
+                        value={form.contenidoCaja ?? ""}
+                        onChange={(event) =>
+                          updateField("contenidoCaja", event.target.value)
+                        }
+                        placeholder="Ej. Equipo, accesorios y manual"
+                        maxLength={240}
+                      />
+                    </label>
+
+                    <label className="grid gap-2 text-sm font-medium text-foreground md:col-span-2">
+                      <ProductFieldLabel icon={ListChecks}>
+                        Indicaciones de uso
+                      </ProductFieldLabel>
+                      <textarea
+                        value={form.indicacionesUso ?? ""}
+                        onChange={(event) =>
+                          updateField("indicacionesUso", event.target.value)
+                        }
+                        placeholder="Recomendaciones de ajuste, limpieza, paciente o uso seguro."
                         className={productTextareaClassName}
                         maxLength={400}
                       />
