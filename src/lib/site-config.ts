@@ -8,3 +8,11 @@ export function getSiteUrl() {
 
   return configured.replace(/\/$/, "");
 }
+
+export function getClientSiteUrl() {
+  if (typeof window !== "undefined") {
+    return window.location.origin;
+  }
+
+  return getSiteUrl();
+}

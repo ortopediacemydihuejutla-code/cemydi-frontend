@@ -6,7 +6,7 @@ import Link from "next/link";
 import ProductShareMenu from "@/components/product/ProductShareMenu";
 import type { CatalogProduct } from "@/services/catalog";
 import { isOptimizableImageUrl } from "@/lib/cloudinary-image";
-import { getSiteUrl } from "@/lib/site-config";
+import { getClientSiteUrl } from "@/lib/site-config";
 import { buildProductShareData } from "@/lib/product-share";
 import {
   formatMoney,
@@ -70,7 +70,7 @@ export function ProductCard({
   const hasImage = isOptimizableImageUrl(product.imageUrl);
   const isOutOfStock = product.stock <= 0;
   const detailHref = `/producto/${product.id}`;
-  const shareData = buildProductShareData(product, getSiteUrl());
+  const shareData = buildProductShareData(product, getClientSiteUrl());
   const acquisitionBadges =
     product.tipoAdquisicion === "MIXTO"
       ? [

@@ -36,7 +36,7 @@ import toast from "react-hot-toast";
 import { ProductCard } from "@/app/catalogo/components/ProductGrid";
 
 import { formatCurrencyMx } from "@/lib/formatters";
-import { getSiteUrl } from "@/lib/site-config";
+import { getClientSiteUrl } from "@/lib/site-config";
 import { buildProductShareData } from "@/lib/product-share";
 import {
   Breadcrumb,
@@ -351,7 +351,7 @@ export default function ProductDetailClient({
   const rentalMinDays = Math.max(1, product.rentalMinDays ?? 1);
   const rentalDailyPrice = product.rentalDailyPrice ?? 0;
   const productShareData = useMemo(
-    () => buildProductShareData(product, getSiteUrl()),
+    () => buildProductShareData(product, getClientSiteUrl()),
     [product],
   );
   const todayInputValue = useMemo(() => toDateInputValue(new Date()), []);
