@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/providers/AuthContext";
+import { AuthRouteLoading } from "@/components/auth/auth-route-loading";
 import { logoutUser } from "@/services/auth";
 import { updateMyProfile } from "@/services/users";
 import toast from "react-hot-toast";
@@ -28,13 +29,13 @@ const inputClassName =
 
 export default function PerfilPage() {
   const router = useRouter();
-  const { user, updateUser, logout } = useAuth();
+  const { user, loading, updateUser, logout } = useAuth();
 
   useEffect(() => {
-    if (!user) {
+    if (!loading && !user) {
       router.replace("/login");
     }
-  }, [router, user]);
+  }, [loading, router, user]);
 
   const [form, setForm] = useState<ProfileForm>({
     nombre: "",
@@ -130,6 +131,15 @@ export default function PerfilPage() {
       router.push("/login");
     }
   };
+
+  if (loading) {
+    return (
+      <AuthRouteLoading
+        title="Cargando cuenta"
+        description="Preparando tu perfil..."
+      />
+    );
+  }
 
   if (!user) {
     return null;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useState } from "react";
 import {
   CheckCircle2,
   ClipboardCheck,
@@ -21,6 +21,7 @@ import {
   rejectRental,
   returnRental,
   type AdminRentalRequest,
+  type RentalCounts,
   type RentalStatus,
 } from "@/services/admin";
 import { formatCurrencyMx, formatDateEsMx } from "@/lib/formatters";
@@ -28,12 +29,19 @@ import { AdminFilterTabs } from "@/features/admin/components/admin-filter-tabs";
 import { AdminMetricCard } from "@/features/admin/components/admin-metric-card";
 import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
 import { AdminSearchField } from "@/features/admin/components/admin-search-field";
+import { AdminTablePaginationNumbered } from "@/features/admin/components/admin-table-pagination-numbered";
 import { PageHeader } from "@/features/admin/components/page-header";
 import { useAdminDataBootstrap } from "@/features/admin/hooks/use-admin-data-bootstrap";
 import { formatNumberEsMx } from "@/features/admin/lib/admin-list-utils";
 import { Badge } from "@/features/admin/components/ui/badge";
 import { Button } from "@/features/admin/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/features/admin/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/features/admin/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -50,7 +58,8 @@ import {
 } from "@/features/admin/components/ui/table";
 
 type StatusFilter = RentalStatus | "ALL";
-type RentalCounts = Record<RentalStatus, number> & { total: number };
+
+const RENTALS_PAGE_SIZE = 20;
 
 const STATUS_TABS: { id: StatusFilter; label: string }[] = [
   { id: "ALL", label: "Todas" },
@@ -101,54 +110,40 @@ function createEmptyCounts(): RentalCounts {
   };
 }
 
-function isRentalStatus(value: string): value is RentalStatus {
-  return STATUS_TABS.some((tab) => tab.id === value && tab.id !== "ALL");
-}
-
 export default function AdminRentalsPage() {
   const [rentals, setRentals] = useState<AdminRentalRequest[]>([]);
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+  const [counts, setCounts] = useState<RentalCounts>(() => createEmptyCounts());
+  const [pagination, setPagination] = useState({
+    page: 1,
+    pageSize: RENTALS_PAGE_SIZE,
+    total: 0,
+    totalPages: 1,
+    hasPrevious: false,
+    hasNext: false,
+  });
   const [selectedRental, setSelectedRental] = useState<AdminRentalRequest | null>(null);
   const [actionId, setActionId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
 
   const load = useCallback(async () => {
-    const result = await listAdminRentals({ status: "ALL" });
+    const result = await listAdminRentals({
+      status: statusFilter,
+      search,
+      page,
+      pageSize: RENTALS_PAGE_SIZE,
+    });
     setRentals(result.rentals);
-  }, []);
+    setCounts(result.counts);
+    setPagination(result.pagination);
+  }, [page, search, statusFilter]);
 
   const { blockingFullPage } = useAdminDataBootstrap({
     load,
     loadErrorFallback: "No se pudieron cargar las solicitudes de renta.",
   });
-
-  const counts = useMemo(() => {
-    return rentals.reduce((acc, rental) => {
-      acc.total += 1;
-      if (isRentalStatus(rental.status)) {
-        acc[rental.status] += 1;
-      }
-      return acc;
-    }, createEmptyCounts());
-  }, [rentals]);
-
-  const filtered = useMemo(() => {
-    const q = search.trim().toLowerCase();
-    return rentals.filter((rental) => {
-      if (statusFilter !== "ALL" && rental.status !== statusFilter) return false;
-      if (!q) return true;
-      const haystack = [
-        rental.id,
-        rental.user.nombre,
-        rental.user.correo,
-        ...rental.items.map((item) => item.product.nombre),
-      ]
-        .join(" ")
-        .toLowerCase();
-      return haystack.includes(q);
-    });
-  }, [rentals, statusFilter, search]);
 
   const upsertRental = (rental: AdminRentalRequest) => {
     setRentals((current) => current.map((item) => (item.id === rental.id ? rental : item)));
@@ -223,18 +218,24 @@ export default function AdminRentalsPage() {
               count: tab.id === "ALL" ? counts.total : counts[tab.id],
             }))}
             activeId={statusFilter}
-            onChange={setStatusFilter}
+            onChange={(nextStatus) => {
+              setStatusFilter(nextStatus);
+              setPage(1);
+            }}
             formatCount={formatNumberEsMx}
           />
           <AdminSearchField
             value={search}
-            onChange={setSearch}
+            onChange={(nextSearch) => {
+              setSearch(nextSearch);
+              setPage(1);
+            }}
             placeholder="Buscar por cliente, correo, producto o folio..."
             wrapperClassName="w-full max-w-md"
           />
           <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
             <ClipboardCheck className="size-4 opacity-70" aria-hidden />
-            {filtered.length} resultado{filtered.length === 1 ? "" : "s"}
+            {pagination.total} resultado{pagination.total === 1 ? "" : "s"}
           </div>
         </CardHeader>
         <CardContent className="p-0">
@@ -252,7 +253,7 @@ export default function AdminRentalsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filtered.map((rental) => {
+                {rentals.map((rental) => {
                   const busy = actionId === rental.id;
                   return (
                     <TableRow key={rental.id}>
@@ -350,7 +351,7 @@ export default function AdminRentalsPage() {
               </TableBody>
             </Table>
           </div>
-          {filtered.length === 0 ? (
+          {rentals.length === 0 ? (
             <div className="grid min-h-64 place-items-center px-6 py-10 text-center">
               <div>
                 <h2 className="text-xl font-semibold text-[var(--brand-900)]">
@@ -363,6 +364,27 @@ export default function AdminRentalsPage() {
             </div>
           ) : null}
         </CardContent>
+        <CardFooter className="flex-col gap-4 border-t border-[var(--border-soft)] bg-[var(--card)] md:items-stretch lg:flex-row lg:items-center lg:justify-between">
+          <AdminTablePaginationNumbered
+            resultStart={
+              pagination.total === 0
+                ? 0
+                : (pagination.page - 1) * pagination.pageSize + 1
+            }
+            resultEnd={Math.min(
+              pagination.page * pagination.pageSize,
+              pagination.total,
+            )}
+            totalCount={pagination.total}
+            page={pagination.page}
+            totalPages={pagination.totalPages}
+            onPageChange={setPage}
+            onPrev={() => setPage((current) => Math.max(1, current - 1))}
+            onNext={() =>
+              setPage((current) => Math.min(pagination.totalPages, current + 1))
+            }
+          />
+        </CardFooter>
       </Card>
 
       <Dialog

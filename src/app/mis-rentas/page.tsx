@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+import { AuthRouteLoading } from "@/components/auth/auth-route-loading";
 import { useAuth } from "@/providers/AuthContext";
 import {
   cancelMyRental,
@@ -64,12 +65,14 @@ function hasAnyPrescription(rental: RentalRequest) {
 
 export default function MisRentasPage() {
   const router = useRouter();
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [rentals, setRentals] = useState<RentalRequest[]>([]);
   const [loading, setLoading] = useState(true);
   const [cancelingRentalId, setCancelingRentalId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
+
     if (!user) {
       router.replace("/login");
       return;
@@ -78,10 +81,10 @@ export default function MisRentasPage() {
     if (user.rol !== "CLIENT") {
       router.replace("/perfil");
     }
-  }, [router, user]);
+  }, [authLoading, router, user]);
 
   useEffect(() => {
-    if (!user || user.rol !== "CLIENT") return;
+    if (authLoading || !user || user.rol !== "CLIENT") return;
     let cancelled = false;
 
     void (async () => {
@@ -105,7 +108,7 @@ export default function MisRentasPage() {
     return () => {
       cancelled = true;
     };
-  }, [user]);
+  }, [authLoading, user]);
 
   const pendingCount = useMemo(
     () => rentals.filter((rental) => rental.status === "PENDING").length,
@@ -126,6 +129,15 @@ export default function MisRentasPage() {
       setCancelingRentalId(null);
     }
   };
+
+  if (authLoading) {
+    return (
+      <AuthRouteLoading
+        title="Cargando rentas"
+        description="Preparando tus solicitudes..."
+      />
+    );
+  }
 
   if (!user || user.rol !== "CLIENT") {
     return null;

@@ -1,8 +1,20 @@
 import { adminRequest } from "./request";
-import type { AdminUser, CreateUserPayload, UpdateUserPayload } from "./types";
+import type {
+  AdminUser,
+  CreateUserPayload,
+  PaginationMeta,
+  UpdateUserPayload,
+} from "./types";
 
-export function listUsers() {
-  return adminRequest<{ users: AdminUser[] }>("/users", { method: "GET" });
+export function listUsers(params?: { page?: number; pageSize?: number }) {
+  const search = new URLSearchParams();
+  search.set("page", String(params?.page ?? 1));
+  search.set("pageSize", String(params?.pageSize ?? 200));
+
+  return adminRequest<{ users: AdminUser[]; pagination?: PaginationMeta }>(
+    `/users?${search.toString()}`,
+    { method: "GET" },
+  );
 }
 
 export function createUser(payload: CreateUserPayload) {

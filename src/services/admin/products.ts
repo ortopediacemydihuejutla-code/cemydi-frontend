@@ -2,6 +2,7 @@ import { adminRequest } from "./request";
 import type {
   AdminProduct,
   CreateProductPayload,
+  PaginationMeta,
   UpdateProductPayload,
 } from "./types";
 
@@ -46,9 +47,17 @@ function buildProductFormData(
   return formData;
 }
 
-export function listProducts() {
-  return adminRequest<{ products: AdminProduct[] }>(
-    "/products?includeInactive=true",
+export function listProducts(params?: { page?: number; pageSize?: number }) {
+  const search = new URLSearchParams();
+  search.set("includeInactive", "true");
+  search.set("page", String(params?.page ?? 1));
+  search.set("pageSize", String(params?.pageSize ?? 200));
+
+  return adminRequest<{
+    products: AdminProduct[];
+    pagination?: PaginationMeta;
+  }>(
+    `/products?${search.toString()}`,
     { method: "GET" },
   );
 }

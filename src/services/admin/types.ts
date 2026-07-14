@@ -8,6 +8,15 @@ export type RentalStatus =
   | "DELIVERED"
   | "RETURNED";
 
+export type PaginationMeta = {
+  page: number;
+  pageSize: number;
+  total: number;
+  totalPages: number;
+  hasPrevious: boolean;
+  hasNext: boolean;
+};
+
 export type ProductImage = {
   id: number;
   imageUrl: string;

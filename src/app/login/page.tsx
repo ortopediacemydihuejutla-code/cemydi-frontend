@@ -13,9 +13,12 @@ import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
 import { AuthRouteLoading } from "@/components/auth/auth-route-loading";
 import {
   AuthAlertBanner,
+  AuthOrDivider,
   AuthPasswordField,
   AuthTextField,
+  GoogleAuthButton,
 } from "@/components/auth/auth-form-controls";
+import { resolveApiUrl } from "@/lib/api-config";
 
 const authBrandLinkClassName =
   "font-semibold text-[#1e6260] underline decoration-[#1e6260] underline-offset-2 hover:text-[#145150]";
@@ -54,6 +57,7 @@ export default function LoginPage() {
   const [redirecting, setRedirecting] = useState(false);
   const [redirectRole, setRedirectRole] = useState<"ADMIN" | "USER" | null>(null);
   const [resendingVerification, setResendingVerification] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [showResendVerification, setShowResendVerification] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -61,14 +65,21 @@ export default function LoginPage() {
     const currentUrl = new URL(window.location.href);
     const verificationStatus = currentUrl.searchParams.get("verified");
 
-    if (!verificationStatus) {
-      return;
-    }
-
     if (verificationStatus === "success") {
       toast.success("Tu correo ha sido verificado correctamente.");
     } else if (verificationStatus === "error") {
       toast.error("No se pudo verificar el correo o el enlace ya expiró.");
+    }
+
+    const googleError = currentUrl.searchParams.get("googleError");
+    if (googleError) {
+      const message =
+        googleError === "inactive"
+          ? "Tu cuenta esta inactiva. Contacta a CEMYDI para revisarla."
+          : "No se pudo iniciar sesion con Google. Intenta de nuevo.";
+      setSubmitError(message);
+      toast.error(message);
+      currentUrl.searchParams.delete("googleError");
     }
 
     currentUrl.searchParams.delete("verified");
@@ -137,6 +148,12 @@ export default function LoginPage() {
         setLoading(false);
       }
     }
+  };
+
+  const handleGoogleLogin = () => {
+    setSubmitError(null);
+    setGoogleLoading(true);
+    window.location.href = resolveApiUrl("/auth/google");
   };
 
   const handleResendVerification = async () => {
@@ -226,10 +243,22 @@ export default function LoginPage() {
             </Link>
           </div>
 
-          <button type="submit" disabled={loading} className={primaryButtonClassName}>
+          <button
+            type="submit"
+            disabled={loading || googleLoading}
+            className={primaryButtonClassName}
+          >
             {loading ? "Entrando…" : "Entrar"}
           </button>
         </form>
+
+        <AuthOrDivider />
+
+        <GoogleAuthButton
+          onClick={handleGoogleLogin}
+          loading={googleLoading}
+          disabled={loading}
+        />
 
         {showResendVerification ? (
           <div className="grid gap-2.5 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3.5">

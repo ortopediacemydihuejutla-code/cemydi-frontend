@@ -1,10 +1,14 @@
 import { adminRequest } from "./request";
 import { downloadBinaryResponse } from "./request";
-import type { AdminRentalRequest, RentalStatus } from "./types";
+import type { AdminRentalRequest, PaginationMeta, RentalStatus } from "./types";
+
+export type RentalCounts = Record<RentalStatus, number> & { total: number };
 
 export function listAdminRentals(params?: {
   status?: RentalStatus | "ALL";
   search?: string;
+  page?: number;
+  pageSize?: number;
 }) {
   const search = new URLSearchParams();
 
@@ -16,8 +20,15 @@ export function listAdminRentals(params?: {
     search.set("search", params.search.trim());
   }
 
+  search.set("page", String(params?.page ?? 1));
+  search.set("pageSize", String(params?.pageSize ?? 20));
+
   const query = search.toString();
-  return adminRequest<{ rentals: AdminRentalRequest[] }>(
+  return adminRequest<{
+    rentals: AdminRentalRequest[];
+    counts: RentalCounts;
+    pagination: PaginationMeta;
+  }>(
     `/rentals/admin${query ? `?${query}` : ""}`,
     { method: "GET" },
   );

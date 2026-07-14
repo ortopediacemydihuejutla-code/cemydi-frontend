@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect, useRef } from "react";
 
 import { useAuth } from "@/providers/AuthContext";
 import type { ServerSessionUser } from "@/lib/server-session";
@@ -15,7 +15,7 @@ export function AdminSessionHydrator({ user }: { user: ServerSessionUser }) {
     }
   }, [contextUser]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (hydratedForUserIdRef.current === user.id) {
       return;
     }

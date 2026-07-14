@@ -13,11 +13,14 @@ import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
 import { AuthRouteLoading } from "@/components/auth/auth-route-loading";
 import {
   AuthAlertBanner,
+  AuthOrDivider,
   AuthPasswordField,
   AuthPasswordRulesChecklist,
   AuthTextField,
+  GoogleAuthButton,
 } from "@/components/auth/auth-form-controls";
 import { validatePasswordPolicy } from "@/lib/password-validation";
+import { resolveApiUrl } from "@/lib/api-config";
 
 const authBrandLinkClassName =
   "font-semibold text-[#1e6260] underline decoration-[#1e6260] underline-offset-2 hover:text-[#145150]";
@@ -89,6 +92,7 @@ export default function RegisterPage() {
   const [redirectRole, setRedirectRole] = useState<"ADMIN" | "USER" | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [passwordFocused, setPasswordFocused] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   useEffect(() => {
     if (authLoading || !user) {
@@ -182,6 +186,12 @@ export default function RegisterPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    setSubmitError(null);
+    setGoogleLoading(true);
+    window.location.href = resolveApiUrl("/auth/google");
   };
 
   const termsErrorId = "register-terms-error";
@@ -320,10 +330,22 @@ export default function RegisterPage() {
             ) : null}
           </div>
 
-          <button type="submit" disabled={loading} className={primaryButtonClassName}>
+          <button
+            type="submit"
+            disabled={loading || googleLoading}
+            className={primaryButtonClassName}
+          >
             {loading ? "Registrando…" : "Registrarme"}
           </button>
         </form>
+
+        <AuthOrDivider />
+
+        <GoogleAuthButton
+          onClick={handleGoogleLogin}
+          loading={googleLoading}
+          disabled={loading}
+        />
 
         <p className="m-0 pt-0.5 text-center text-sm text-slate-500">
           ¿Ya tienes cuenta?{" "}

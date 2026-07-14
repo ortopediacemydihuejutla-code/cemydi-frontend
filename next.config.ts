@@ -6,6 +6,18 @@ const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const backendInternalUrl =
   process.env.INTERNAL_API_URL?.trim() || "http://localhost:4000";
 const isProduction = process.env.NODE_ENV === "production";
+const apiOrigin = (() => {
+  const publicApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
+  if (!publicApiUrl || publicApiUrl.startsWith("/")) {
+    return "";
+  }
+
+  try {
+    return new URL(publicApiUrl).origin;
+  } catch {
+    return "";
+  }
+})();
 
 const csp = [
   "default-src 'self'",
@@ -13,7 +25,14 @@ const csp = [
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com",
   "font-src 'self' data:",
-  "connect-src 'self' http://localhost:4000 https:",
+  [
+    "connect-src 'self'",
+    "http://localhost:4000",
+    "https://res.cloudinary.com",
+    apiOrigin,
+  ]
+    .filter(Boolean)
+    .join(" "),
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",

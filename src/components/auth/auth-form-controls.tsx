@@ -245,13 +245,22 @@ export function AuthPasswordRulesChecklist({
 }
 
 /* ── Botón de Google ── */
-export function GoogleAuthButton({ disabled }: { disabled?: boolean }) {
+export function GoogleAuthButton({
+  disabled,
+  loading,
+  onClick,
+}: {
+  disabled?: boolean;
+  loading?: boolean;
+  onClick: () => void;
+}) {
   return (
     <button
       type="button"
-      disabled={disabled}
-      className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white text-[13px] font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-60"
-      aria-label="Continuar con Google (próximamente)"
+      disabled={disabled || loading}
+      onClick={onClick}
+      className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white text-[13px] font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e6260]/25 disabled:cursor-not-allowed disabled:opacity-60"
+      aria-label="Continuar con Google"
     >
       <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
         <path
@@ -271,7 +280,7 @@ export function GoogleAuthButton({ disabled }: { disabled?: boolean }) {
           d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.956L3.964 7.288C4.672 5.163 6.656 3.58 9 3.58z"
         />
       </svg>
-      Continuar con Google
+      {loading ? "Conectando con Google..." : "Continuar con Google"}
     </button>
   );
 }

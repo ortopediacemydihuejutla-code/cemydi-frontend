@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import { AlexaSkillPromo } from "@/components/home/alexa-skill-promo";
 import { PromotionsShowcase } from "@/components/home/promotions-showcase";
 import TestimonialsSection from "@/components/ui/testimonial-v2";
 import { ActivePromotion, getActivePromotions } from "@/services/catalog";
@@ -87,6 +88,7 @@ export default async function HomePage() {
         </div>
       </section>
 
+      <AlexaSkillPromo />
       <PromotionsShowcase promotions={promotions} />
       <TestimonialsSection testimonials={testimonials} />
     </>
