@@ -1619,7 +1619,12 @@ export default function UsersPage() {
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={saving} className="rounded-md">
+              <Button
+                type="submit"
+                variant={editingUser ? "update" : "default"}
+                disabled={saving}
+                className="rounded-md"
+              >
                 {saving ? (
                   <>
                     <LoaderCircle className="size-4 animate-spin" />

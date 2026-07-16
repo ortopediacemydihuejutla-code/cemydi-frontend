@@ -7,9 +7,16 @@ import { useAuth } from "@/providers/AuthContext";
 import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
 
 /**
- * No monta el chrome del panel hasta confirmar rol ADMIN; si no aplica, redirige.
+ * Mantiene estable el marco autorizado por el servidor mientras hidrata la sesión
+ * cliente; si la sesión deja de ser válida, redirige fuera del panel.
  */
-export function AdminRouteShell({ children }: { children: ReactNode }) {
+export function AdminRouteShell({
+  children,
+  serverAuthorized = false,
+}: {
+  children: ReactNode;
+  serverAuthorized?: boolean;
+}) {
   const router = useRouter();
   const { user } = useAuth();
 
@@ -23,7 +30,7 @@ export function AdminRouteShell({ children }: { children: ReactNode }) {
     }
   }, [router, user]);
 
-  const showPanel = user?.rol === "ADMIN";
+  const showPanel = user?.rol === "ADMIN" || (user === null && serverAuthorized);
 
   if (!showPanel) {
     return <AdminPageLoading layout="viewport" />;

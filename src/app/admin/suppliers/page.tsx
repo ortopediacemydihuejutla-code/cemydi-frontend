@@ -388,6 +388,7 @@ export default function AdminSuppliersPage() {
             ) : null}
             <Button
               type="button"
+              variant={editingId !== null ? "update" : "default"}
               className="h-11 rounded-md"
               disabled={saving}
               onClick={handleSave}

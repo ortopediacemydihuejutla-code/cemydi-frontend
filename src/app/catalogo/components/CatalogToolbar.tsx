@@ -47,6 +47,7 @@ export default function CatalogToolbar({
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
   const [loadingSuggestions, setLoadingSuggestions] = useState(false);
+  const [isSearchActive, setIsSearchActive] = useState(false);
 
   useEffect(() => {
     setSearchDraft(searchQuery);
@@ -55,7 +56,7 @@ export default function CatalogToolbar({
   const normalizedDraft = useMemo(() => searchDraft.trim(), [searchDraft]);
 
   useEffect(() => {
-    if (normalizedDraft.length < 2) {
+    if (!isSearchActive || normalizedDraft.length < 2) {
       setSuggestions([]);
       setSuggestionsOpen(false);
       return;
@@ -110,7 +111,7 @@ export default function CatalogToolbar({
       controller.abort();
       window.clearTimeout(timeout);
     };
-  }, [normalizedDraft]);
+  }, [isSearchActive, normalizedDraft]);
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -159,19 +160,26 @@ export default function CatalogToolbar({
           <input
             id="catalog-search"
             name="catalog-search"
-            type="search"
+            type="text"
+            role="searchbox"
+            enterKeyHint="search"
             className="h-13 w-full rounded-lg border border-[#d6e0e3] bg-white px-14 pr-28 text-[0.95rem] text-[#18313f] shadow-[0_8px_20px_rgba(18,39,49,0.04)] outline-none transition placeholder:text-[#8ca0a8] focus:border-[#0f6a67] focus:ring-4 focus:ring-[rgba(15,106,103,0.12)]"
             placeholder="Buscar por nombre, marca, modelo o categoría"
             value={searchDraft}
             onChange={(event) => {
               setSearchDraft(event.target.value);
+              setIsSearchActive(true);
               setSuggestionsOpen(true);
             }}
             onFocus={() => {
+              setIsSearchActive(true);
               if (suggestions.length > 0) setSuggestionsOpen(true);
             }}
             onBlur={() => {
-              window.setTimeout(() => setSuggestionsOpen(false), 120);
+              window.setTimeout(() => {
+                setIsSearchActive(false);
+                setSuggestionsOpen(false);
+              }, 120);
             }}
             autoComplete="off"
           />

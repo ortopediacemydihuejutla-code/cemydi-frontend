@@ -3,9 +3,10 @@
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import toast from "react-hot-toast";
-import { Eye, ImageIcon, Save, Upload, X } from "lucide-react";
-import Link from "next/link";
+import { Save } from "lucide-react";
+import { AdminImageUpload } from "@/features/admin/components/admin-image-upload";
 import { PageHeader } from "@/features/admin/components/page-header";
+import { PublicPageLinkButton } from "@/features/admin/components/public-page-link-button";
 import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
 import { Button } from "@/features/admin/components/ui/button";
 import {
@@ -185,12 +186,7 @@ export default function AdminAboutPage() {
         title="Quiénes somos"
         subtitle="Edita la misión, visión, valores e imágenes de la página institucional."
       >
-        <Button asChild variant="outline">
-          <Link href="/quienes-somos" target="_blank">
-            <Eye className="size-4" aria-hidden="true" />
-            Ver página
-          </Link>
-        </Button>
+        <PublicPageLinkButton href="/quienes-somos" pageName="Quiénes somos" />
       </PageHeader>
 
       <form onSubmit={handleSubmit} className="mt-4 grid gap-4 xl:grid-cols-[1fr_360px]">
@@ -223,11 +219,11 @@ export default function AdminAboutPage() {
                   className="min-h-28 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
               </label>
-              <ImageUploadControl
+              <AdminImageUpload
                 id="about-hero-image"
                 label="Imagen principal"
                 description="Esta imagen aparece como fondo superior de la página."
-                currentSrc={heroImagePreview ?? form.heroImageUrl ?? defaultAboutPageContent.heroImageUrl}
+                previewSrc={heroImagePreview ?? form.heroImageUrl ?? defaultAboutPageContent.heroImageUrl}
                 hasLocalFile={Boolean(heroImageFile)}
                 disabled={mutation.isPending}
                 onFileChange={(file) => applyImageFile("hero", file)}
@@ -307,11 +303,11 @@ export default function AdminAboutPage() {
                   className="min-h-40 w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs outline-none transition focus-visible:border-ring focus-visible:ring-[3px] focus-visible:ring-ring/50"
                 />
               </label>
-              <ImageUploadControl
+              <AdminImageUpload
                 id="about-secondary-image"
                 label="Imagen secundaria"
                 description="Se usa en la sección final como apoyo visual."
-                currentSrc={
+                previewSrc={
                   secondaryImagePreview ??
                   form.secondaryImageUrl ??
                   defaultAboutPageContent.secondaryImageUrl
@@ -362,7 +358,12 @@ export default function AdminAboutPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="grid gap-3 px-5 pb-5 sm:px-6 sm:pb-6">
-              <Button type="submit" disabled={mutation.isPending} className="w-full">
+              <Button
+                type="submit"
+                variant="update"
+                disabled={mutation.isPending}
+                className="w-full"
+              >
                 <Save className="size-4" aria-hidden="true" />
                 {mutation.isPending ? "Guardando..." : "Guardar cambios"}
               </Button>
@@ -371,87 +372,5 @@ export default function AdminAboutPage() {
         </aside>
       </form>
     </>
-  );
-}
-
-function ImageUploadControl({
-  id,
-  label,
-  description,
-  currentSrc,
-  hasLocalFile,
-  disabled,
-  onFileChange,
-  onClearLocal,
-}: {
-  id: string;
-  label: string;
-  description: string;
-  currentSrc: string | null;
-  hasLocalFile: boolean;
-  disabled: boolean;
-  onFileChange: (file: File | null) => void;
-  onClearLocal: () => void;
-}) {
-  return (
-    <div className="grid gap-3 text-sm font-semibold">
-      <div>
-        <span>{label}</span>
-        <p className="mt-1 text-xs font-normal leading-relaxed text-muted-foreground">
-          {description}
-        </p>
-      </div>
-
-      <input
-        id={id}
-        type="file"
-        accept="image/*,.webp"
-        className="sr-only"
-        disabled={disabled}
-        onChange={(event) => {
-          onFileChange(event.target.files?.[0] ?? null);
-          event.target.value = "";
-        }}
-      />
-
-      <div className="overflow-hidden rounded-lg border border-[var(--border-soft)] bg-[var(--surface)]">
-        <div className="relative aspect-[16/7] bg-[color-mix(in_srgb,var(--brand-700)_8%,var(--surface))]">
-          {currentSrc ? (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={currentSrc} alt="" className="size-full object-cover" />
-          ) : (
-            <div className="flex size-full items-center justify-center text-[var(--text-muted)]">
-              <ImageIcon className="size-8" aria-hidden="true" />
-            </div>
-          )}
-          <div className="absolute top-3 right-3 flex flex-wrap justify-end gap-2">
-            <Button
-              type="button"
-              variant="secondary"
-              size="sm"
-              disabled={disabled}
-              onClick={() => document.getElementById(id)?.click()}
-              className="rounded-lg bg-white/95 text-[var(--text-main)] hover:bg-white"
-            >
-              <Upload className="size-4" aria-hidden="true" />
-              Cambiar
-            </Button>
-            {hasLocalFile ? (
-              <Button
-                type="button"
-                variant="secondary"
-                size="sm"
-                disabled={disabled}
-                onClick={onClearLocal}
-                className="rounded-lg bg-white/95 text-destructive hover:bg-red-50"
-              >
-                <X className="size-4" aria-hidden="true" />
-                Quitar
-              </Button>
-            ) : null}
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }

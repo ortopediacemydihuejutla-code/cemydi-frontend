@@ -48,6 +48,7 @@ export function useAdminDataBootstrap({
         if (!cancelled) {
           toast.error(
             error instanceof Error ? error.message : loadErrorFallback,
+            { id: `admin-bootstrap-${loadErrorFallback}` },
           );
         }
       } finally {

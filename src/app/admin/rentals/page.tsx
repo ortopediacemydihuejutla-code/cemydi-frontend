@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+import { ConfirmDialog } from "@/components/feedback";
 import {
   approveRental,
   deliverRental,
@@ -58,6 +59,12 @@ import {
 } from "@/features/admin/components/ui/table";
 
 type StatusFilter = RentalStatus | "ALL";
+type RentalActionKind = "approve" | "reject" | "deliver" | "return";
+
+type PendingRentalAction = {
+  rental: AdminRentalRequest;
+  kind: RentalActionKind;
+};
 
 const RENTALS_PAGE_SIZE = 20;
 
@@ -92,7 +99,8 @@ function statusLabel(status: RentalStatus) {
 
 function statusVariant(status: RentalStatus) {
   if (status === "PENDING") return "amber" as const;
-  if (status === "APPROVED" || status === "DELIVERED") return "blue" as const;
+  if (status === "APPROVED") return "emerald" as const;
+  if (status === "DELIVERED") return "blue" as const;
   if (status === "RETURNED") return "emerald" as const;
   if (status === "REJECTED") return "red" as const;
   return "slate" as const;
@@ -127,6 +135,7 @@ export default function AdminRentalsPage() {
   const [selectedRental, setSelectedRental] = useState<AdminRentalRequest | null>(null);
   const [actionId, setActionId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
+  const [pendingAction, setPendingAction] = useState<PendingRentalAction | null>(null);
 
   const load = useCallback(async () => {
     const result = await listAdminRentals({
@@ -150,27 +159,62 @@ export default function AdminRentalsPage() {
     setSelectedRental((current) => (current?.id === rental.id ? rental : current));
   };
 
-  const runAction = async (
-    rental: AdminRentalRequest,
-    action: () => Promise<{ rental: AdminRentalRequest; message: string }>,
-    confirmMessage: string,
-  ) => {
-    if (!window.confirm(confirmMessage)) {
-      return;
-    }
+  const confirmPendingAction = async () => {
+    if (!pendingAction) return;
 
+    const { rental, kind } = pendingAction;
     try {
       setActionId(rental.id);
-      const result = await action();
+      const result =
+        kind === "approve"
+          ? await approveRental(rental.id)
+          : kind === "reject"
+            ? await rejectRental(rental.id, rejectReason)
+            : kind === "deliver"
+              ? await deliverRental(rental.id)
+              : await returnRental(rental.id);
       upsertRental(result.rental);
       await load();
       toast.success(result.message);
+      setPendingAction(null);
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "No se pudo actualizar la renta.");
     } finally {
       setActionId(null);
     }
   };
+
+  const pendingActionCopy = pendingAction
+    ? pendingAction.kind === "approve"
+      ? {
+          title: "Aprobar solicitud",
+          description: "Se descontará el stock disponible y la solicitud quedará aprobada.",
+          confirmLabel: "Sí, aprobar solicitud",
+          tone: "success" as const,
+        }
+      : pendingAction.kind === "reject"
+        ? {
+            title: "Rechazar solicitud",
+            description: rejectReason.trim()
+              ? `La solicitud quedará rechazada con el motivo: «${rejectReason.trim()}».`
+              : "La solicitud quedará rechazada sin un motivo registrado.",
+            confirmLabel: "Sí, rechazar solicitud",
+            tone: "danger" as const,
+          }
+        : pendingAction.kind === "deliver"
+          ? {
+              title: "Marcar como entregada",
+              description: "La solicitud avanzará al estado Entregada.",
+              confirmLabel: "Sí, marcar entregada",
+              tone: "default" as const,
+            }
+          : {
+              title: "Marcar como devuelta",
+              description: "La renta quedará devuelta y el stock se reintegrará automáticamente.",
+              confirmLabel: "Sí, marcar devuelta",
+              tone: "default" as const,
+            }
+    : null;
 
   const openPrescription = async (item: AdminRentalRequest["items"][number]) => {
     if (!item.prescription) return;
@@ -200,7 +244,7 @@ export default function AdminRentalsPage() {
         <AdminMetricCard context="rentals-total" label="Solicitudes" value={formatNumberEsMx(counts.total)} />
         <AdminMetricCard context="rentals-pending" label="Pendientes" value={formatNumberEsMx(counts.PENDING)} />
         <AdminMetricCard context="rentals-approved" label="Aprobadas" value={formatNumberEsMx(counts.APPROVED)} />
-        <AdminMetricCard context="rentals-delivered" label="En entrega" value={formatNumberEsMx(counts.DELIVERED)} />
+        <AdminMetricCard context="rentals-delivered" label="Entregadas" value={formatNumberEsMx(counts.DELIVERED)} />
       </section>
 
       <Card className="rounded-xl border-[var(--border-soft)] shadow-sm">
@@ -290,57 +334,42 @@ export default function AdminRentalsPage() {
                             }}
                           >
                             <Eye className="size-4" />
-                            Ver
+                            Ver detalles
                           </Button>
                           {rental.status === "PENDING" ? (
                             <Button
                               type="button"
                               size="sm"
+                              variant="success"
                               disabled={busy}
-                              onClick={() =>
-                                void runAction(
-                                  rental,
-                                  () => approveRental(rental.id),
-                                  "¿Aprobar esta solicitud y descontar stock?",
-                                )
-                              }
+                              onClick={() => setPendingAction({ rental, kind: "approve" })}
                             >
                               {busy ? <LoaderCircle className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
-                              Aprobar
+                              Aprobar solicitud
                             </Button>
                           ) : null}
                           {rental.status === "APPROVED" ? (
                             <Button
                               type="button"
                               size="sm"
+                              variant="update"
                               disabled={busy}
-                              onClick={() =>
-                                void runAction(
-                                  rental,
-                                  () => deliverRental(rental.id),
-                                  "¿Marcar esta renta como entregada?",
-                                )
-                              }
+                              onClick={() => setPendingAction({ rental, kind: "deliver" })}
                             >
                               <PackageCheck className="size-4" />
-                              Entregar
+                              Marcar entregada
                             </Button>
                           ) : null}
                           {rental.status === "DELIVERED" ? (
                             <Button
                               type="button"
                               size="sm"
+                              variant="update"
                               disabled={busy}
-                              onClick={() =>
-                                void runAction(
-                                  rental,
-                                  () => returnRental(rental.id),
-                                  "¿Marcar esta renta como devuelta y reintegrar stock?",
-                                )
-                              }
+                              onClick={() => setPendingAction({ rental, kind: "return" })}
                             >
                               <RotateCcw className="size-4" />
-                              Devolver
+                              Marcar devuelta
                             </Button>
                           ) : null}
                         </div>
@@ -398,7 +427,7 @@ export default function AdminRentalsPage() {
             <>
               <DialogHeader>
                 <DialogTitle>
-                  Renta {selectedRental.id.slice(-8).toUpperCase()}
+                  Solicitud de renta {selectedRental.id.slice(-8).toUpperCase()}
                 </DialogTitle>
               </DialogHeader>
               <div className="grid gap-5">
@@ -516,25 +545,22 @@ export default function AdminRentalsPage() {
                 {selectedRental.status === "PENDING" ? (
                   <div className="grid gap-3 rounded-xl border border-border p-4">
                     <label className="grid gap-2 text-sm font-medium">
-                      Motivo de rechazo
+                      Motivo de rechazo <span className="font-normal text-muted-foreground">(opcional)</span>
                       <textarea
                         value={rejectReason}
                         onChange={(event) => setRejectReason(event.target.value)}
                         className="min-h-24 rounded-md border border-input bg-transparent px-3 py-2 outline-none"
                         maxLength={500}
-                        placeholder="Opcional"
+                        placeholder="Escribe el motivo del rechazo"
                       />
                     </label>
                     <div className="flex flex-wrap justify-end gap-2">
                       <Button
                         type="button"
-                        variant="outline"
+                        variant="destructive"
                         disabled={actionId === selectedRental.id}
                         onClick={() =>
-                          void runAction(selectedRental, () =>
-                            rejectRental(selectedRental.id, rejectReason),
-                            "¿Rechazar esta solicitud de renta?",
-                          )
+                          setPendingAction({ rental: selectedRental, kind: "reject" })
                         }
                       >
                         <XCircle className="size-4" />
@@ -542,12 +568,10 @@ export default function AdminRentalsPage() {
                       </Button>
                       <Button
                         type="button"
+                        variant="success"
                         disabled={actionId === selectedRental.id}
                         onClick={() =>
-                          void runAction(selectedRental, () =>
-                            approveRental(selectedRental.id),
-                            "¿Aprobar esta solicitud y descontar stock?",
-                          )
+                          setPendingAction({ rental: selectedRental, kind: "approve" })
                         }
                       >
                         <CheckCircle2 className="size-4" />
@@ -560,13 +584,10 @@ export default function AdminRentalsPage() {
                   <div className="flex justify-end rounded-xl border border-border p-4">
                     <Button
                       type="button"
+                      variant="update"
                       disabled={actionId === selectedRental.id}
                       onClick={() =>
-                        void runAction(
-                          selectedRental,
-                          () => deliverRental(selectedRental.id),
-                          "¿Marcar esta renta como entregada?",
-                        )
+                        setPendingAction({ rental: selectedRental, kind: "deliver" })
                       }
                     >
                       <PackageCheck className="size-4" />
@@ -578,13 +599,10 @@ export default function AdminRentalsPage() {
                   <div className="flex justify-end rounded-xl border border-border p-4">
                     <Button
                       type="button"
+                      variant="update"
                       disabled={actionId === selectedRental.id}
                       onClick={() =>
-                        void runAction(
-                          selectedRental,
-                          () => returnRental(selectedRental.id),
-                          "¿Marcar esta renta como devuelta y reintegrar stock?",
-                        )
+                        setPendingAction({ rental: selectedRental, kind: "return" })
                       }
                     >
                       <RotateCcw className="size-4" />
@@ -597,6 +615,17 @@ export default function AdminRentalsPage() {
           ) : null}
         </DialogContent>
       </Dialog>
+
+      <ConfirmDialog
+        open={pendingAction !== null}
+        title={pendingActionCopy?.title ?? "Confirmar acción"}
+        description={pendingActionCopy?.description}
+        confirmLabel={pendingActionCopy?.confirmLabel}
+        tone={pendingActionCopy?.tone}
+        busy={pendingAction !== null && actionId === pendingAction.rental.id}
+        onConfirm={() => void confirmPendingAction()}
+        onCancel={() => setPendingAction(null)}
+      />
     </div>
   );
 }

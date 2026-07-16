@@ -423,6 +423,7 @@ export default function AdminReviewsPage() {
                                 <Button
                                   type="button"
                                   size="sm"
+                                  variant="success"
                                   className="h-8 rounded-md px-3"
                                   disabled={busy}
                                   onClick={() => void approvePending(item.id)}
@@ -464,8 +465,8 @@ export default function AdminReviewsPage() {
                               <Button
                                 type="button"
                                 size="sm"
-                                variant="outline"
-                                className="h-8 rounded-md border-red-200 px-3 text-red-700 hover:bg-red-50 dark:border-red-900/50 dark:text-red-300 dark:hover:bg-red-950/40"
+                                variant="destructive"
+                                className="h-8 rounded-md px-3"
                                 disabled={busy}
                                 onClick={() => setDeleteTarget(item)}
                               >

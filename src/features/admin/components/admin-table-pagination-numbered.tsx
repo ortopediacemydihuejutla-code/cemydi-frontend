@@ -1,5 +1,13 @@
 import { buildPaginationPageItems } from "@/features/admin/lib/admin-list-utils";
-import { Button } from "./ui/button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationEllipsis,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "./ui/pagination";
 
 type AdminTablePaginationNumberedProps = {
   resultStart: number;
@@ -33,56 +41,39 @@ export function AdminTablePaginationNumbered({
       <p className="text-sm text-[var(--text-muted)]" aria-live="polite">
         Mostrando {resultStart}-{resultEnd} de {totalCount} resultados
       </p>
-      <nav
-        className="flex flex-wrap items-center gap-2"
-        aria-label="Paginación del listado"
-      >
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="rounded-md"
-          disabled={page === 1 || navDisabled}
-          onClick={onPrev}
-        >
-          Anterior
-        </Button>
+      <Pagination className="w-auto flex-wrap" aria-label="Paginación del listado">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              disabled={page === 1 || navDisabled}
+              onClick={onPrev}
+            />
+          </PaginationItem>
 
-        {pageItems.map((item, index) =>
-          item === "gap" ? (
-            <span
-              key={`gap-${index}`}
-              className="px-1 text-sm text-[var(--text-muted)]"
-              aria-hidden
-            >
-              …
-            </span>
-          ) : (
-            <Button
-              key={item}
-              type="button"
-              variant={item === page ? "default" : "outline"}
-              size="sm"
-              onClick={() => onPageChange(item)}
-              className="min-w-9 rounded-md"
-              aria-current={item === page ? "page" : undefined}
-            >
-              {item}
-            </Button>
-          ),
-        )}
+          {pageItems.map((item, index) => (
+            <PaginationItem key={item === "gap" ? `gap-${index}` : item}>
+              {item === "gap" ? (
+                <PaginationEllipsis />
+              ) : (
+                <PaginationLink
+                  isActive={item === page}
+                  onClick={() => onPageChange(item)}
+                >
+                  {item}
+                </PaginationLink>
+              )}
+            </PaginationItem>
+          ))}
 
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="rounded-md"
-          disabled={page === totalPages || navDisabled}
-          onClick={onNext}
-        >
-          Siguiente
-        </Button>
-      </nav>
+          <PaginationItem>
+            <PaginationNext
+              disabled={page === totalPages || navDisabled}
+              onClick={onNext}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </>
   );
 }
+

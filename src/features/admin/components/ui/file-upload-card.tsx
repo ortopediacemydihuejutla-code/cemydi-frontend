@@ -334,9 +334,9 @@ export const FileUploadCard = React.forwardRef<HTMLDivElement, FileUploadCardPro
                       ) : null}
                       <Button
                         type="button"
-                        variant="ghost"
+                        variant={file.status === "completed" ? "destructive" : "ghost"}
                         size="icon"
-                        className="size-9 rounded-full text-muted-foreground hover:bg-accent hover:text-accent-foreground"
+                        className="size-9 rounded-full"
                         onClick={(e) => {
                           e.stopPropagation();
                           onFileRemove(file.id);

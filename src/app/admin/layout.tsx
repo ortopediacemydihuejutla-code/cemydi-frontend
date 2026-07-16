@@ -24,20 +24,20 @@ export default async function AdminLayout({ children }: { children: ReactNode })
         zIndex={99999}
       />
       <AdminProviders>
-      <AdminThemeProvider>
-        <AdminRouteShell>
-          <SidebarProvider>
-            <AppSidebar />
-            <SidebarInset className="admin-route min-h-0 flex-1 bg-[var(--card)] text-[var(--text-main)] antialiased">
-              <DashboardHeader />
-              {/* px debe coincidir con dashboard-header para alinear breadcrumb con la barra superior */}
-              <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden px-3 py-3 sm:px-5 sm:py-4 lg:px-8 lg:py-5">
-                {children}
-              </div>
-            </SidebarInset>
-          </SidebarProvider>
-        </AdminRouteShell>
-      </AdminThemeProvider>
+        <AdminThemeProvider>
+          <AdminRouteShell serverAuthorized>
+            <SidebarProvider>
+              <AppSidebar />
+              <SidebarInset className="admin-route min-h-0 flex-1 bg-[var(--card)] text-[var(--text-main)] antialiased">
+                <DashboardHeader />
+                {/* px debe coincidir con dashboard-header para alinear breadcrumb con la barra superior */}
+                <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-4 overflow-y-auto overflow-x-hidden px-3 py-3 sm:px-5 sm:py-4 lg:px-8 lg:py-5">
+                  {children}
+                </div>
+              </SidebarInset>
+            </SidebarProvider>
+          </AdminRouteShell>
+        </AdminThemeProvider>
       </AdminProviders>
     </>
   )

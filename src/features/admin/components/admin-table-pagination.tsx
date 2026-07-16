@@ -1,4 +1,10 @@
-import { Button } from "./ui/button";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationNext,
+  PaginationPrevious,
+} from "./ui/pagination";
 
 type AdminTablePaginationProps = {
   resultStart: number;
@@ -32,36 +38,30 @@ export function AdminTablePagination({
       <p className="text-sm text-[var(--text-muted)]" aria-live="polite">
         Mostrando {resultStart}-{resultEnd} de {totalCount} resultados
       </p>
-      <nav
-        className="flex flex-wrap items-center gap-2"
-        aria-label="Paginación del listado"
-      >
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="rounded-md"
-          disabled={page === 1 || navDisabled}
-          onClick={onPrev}
-        >
-          Anterior
-        </Button>
-        <span className="text-sm text-[var(--text-muted)]">
-          {pageLabel === "long"
-            ? `Página ${page} de ${totalPages}`
-            : `${page} / ${totalPages}`}
-        </span>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="rounded-md"
-          disabled={page === totalPages || navDisabled}
-          onClick={onNext}
-        >
-          Siguiente
-        </Button>
-      </nav>
+      <Pagination className="w-auto flex-wrap" aria-label="Paginación del listado">
+        <PaginationContent>
+          <PaginationItem>
+            <PaginationPrevious
+              disabled={page === 1 || navDisabled}
+              onClick={onPrev}
+            />
+          </PaginationItem>
+          <PaginationItem>
+            <span className="px-2 text-sm text-[var(--text-muted)] select-none">
+              {pageLabel === "long"
+                ? `Página ${page} de ${totalPages}`
+                : `${page} / ${totalPages}`}
+            </span>
+          </PaginationItem>
+          <PaginationItem>
+            <PaginationNext
+              disabled={page === totalPages || navDisabled}
+              onClick={onNext}
+            />
+          </PaginationItem>
+        </PaginationContent>
+      </Pagination>
     </>
   );
 }
+

@@ -4,7 +4,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useParams, useRouter } from "next/navigation";
-import type { LucideIcon } from "lucide-react";
 import {
   BadgeDollarSign,
   Boxes,
@@ -58,15 +57,10 @@ import {
   validateProductForm,
 } from "@/features/admin/lib/product-shared";
 import { ProductFieldLabel } from "../../product-field-label";
+import { ProductSwitchField } from "../../components/ProductSwitchField";
 import { useAdminRouteGate } from "@/features/admin/hooks/use-admin-route-gate";
 
 type ProductDraftState = CreateProductPayload;
-
-const switchBaseClassName =
-  "relative inline-flex h-7 w-12 items-center rounded-full border transition-colors";
-
-const switchThumbClassName =
-  "inline-block size-5 rounded-full bg-background shadow-sm transition-transform";
 
 const initialDraftState: ProductDraftState = {
   ...EMPTY_PRODUCT_FORM,
@@ -75,55 +69,6 @@ const initialDraftState: ProductDraftState = {
 const sectionTitleClassName = "text-base font-semibold text-foreground";
 const sectionBodyClassName =
   "rounded-[24px] border border-border bg-muted/50 p-5 dark:bg-muted/30 sm:p-6";
-
-function SwitchField({
-  label,
-  description,
-  checked,
-  onChange,
-  icon: Icon,
-}: {
-  label: string;
-  description: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  icon?: LucideIcon;
-}) {
-  return (
-    <button
-      type="button"
-      role="switch"
-      aria-checked={checked}
-      onClick={() => onChange(!checked)}
-      className="flex items-center justify-between gap-4 rounded-2xl border border-border bg-card px-4 py-3 text-left"
-    >
-      <span className="flex min-w-0 flex-1 items-start gap-3">
-        {Icon ? (
-          <span className="mt-0.5 grid size-9 shrink-0 place-items-center rounded-full bg-primary/10 text-primary dark:bg-primary/20">
-            <Icon className="size-4" aria-hidden />
-          </span>
-        ) : null}
-        <span className="grid min-w-0 flex-1 gap-1">
-          <span className="text-sm font-semibold text-foreground">{label}</span>
-          <span className="text-xs leading-5 text-muted-foreground">{description}</span>
-        </span>
-      </span>
-      <span
-        className={`${switchBaseClassName} ${
-          checked
-            ? "border-primary bg-primary"
-            : "border-border bg-muted"
-        }`}
-      >
-        <span
-          className={`${switchThumbClassName} ${
-            checked ? "translate-x-6" : "translate-x-1"
-          }`}
-        />
-      </span>
-    </button>
-  );
-}
 
 export default function EditProductPage() {
   const router = useRouter();
@@ -823,7 +768,7 @@ export default function EditProductPage() {
                   </div>
 
                   <div className={`${sectionBodyClassName} grid gap-3`}>
-                    <SwitchField
+                    <ProductSwitchField
                       icon={FileWarning}
                       label="Requiere receta"
                       description="Actívalo si este producto solo debe venderse o rentarse con receta."
@@ -831,7 +776,7 @@ export default function EditProductPage() {
                       onChange={(checked) => updateField("requiereReceta", checked)}
                     />
 
-                    <SwitchField
+                    <ProductSwitchField
                       icon={Power}
                       label="Producto activo"
                       description="Manténlo activo para dejarlo listo en el flujo administrativo."
@@ -955,7 +900,12 @@ export default function EditProductPage() {
               <Button type="button" variant="outline" asChild className="rounded-xl">
                 <Link href="/admin/products">Cancelar</Link>
               </Button>
-              <Button type="submit" disabled={saving} className="min-w-40 rounded-xl">
+              <Button
+                type="submit"
+                variant="update"
+                disabled={saving}
+                className="min-w-40 rounded-xl"
+              >
                 {saving ? (
                   <>
                     <LoaderCircle className="size-4 animate-spin" />

@@ -249,7 +249,7 @@ export function DatabaseBackupsTab({ state }: DatabaseBackupsTabProps) {
               <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="update"
                   size="sm"
                   onClick={() => void loadBackupRecordsData()}
                   disabled={
@@ -260,7 +260,7 @@ export function DatabaseBackupsTab({ state }: DatabaseBackupsTabProps) {
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="update"
                   size="sm"
                   onClick={() => void refreshAllData()}
                   disabled={anyLoading}
@@ -334,7 +334,7 @@ export function DatabaseBackupsTab({ state }: DatabaseBackupsTabProps) {
                   </Button>
                   <Button
                     type="button"
-                    variant="outline"
+                    variant="update"
                     onClick={() => void loadBackupScheduleData()}
                     disabled={loadingBackupSchedule || savingSchedule}
                   >
@@ -342,8 +342,7 @@ export function DatabaseBackupsTab({ state }: DatabaseBackupsTabProps) {
                   </Button>
                   <Button
                     type="button"
-                    variant="outline"
-                    className="border-red-200 text-red-700 hover:bg-red-50"
+                    variant="destructive"
                     onClick={() => setPendingAction({ kind: "delete-schedule" })}
                     disabled={savingSchedule || loadingBackupSchedule}
                   >

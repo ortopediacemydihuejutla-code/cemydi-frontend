@@ -63,12 +63,7 @@ export default function Footer() {
             </p>
           </div>
           
-          <form
-            action="mailto:contacto@cemydi.com"
-            method="post"
-            encType="text/plain"
-            className="relative max-w-[420px] mt-1 z-10"
-          >
+          <div className="relative max-w-[420px] mt-1 z-10">
             <label className="sr-only" htmlFor="footer-email">
               Correo electronico
             </label>
@@ -79,14 +74,14 @@ export default function Footer() {
               placeholder="tu@correo.com"
               className="min-h-12 w-full rounded-lg border border-input bg-background px-4 pr-14 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:bg-white"
             />
-            <button
-              type="submit"
+            <Link
+              href="mailto:contacto@cemydi.com"
               className="absolute top-1 right-1 flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:bg-[#154f4d]"
               aria-label="Enviar correo"
             >
               <Send className="size-4" aria-hidden="true" />
-            </button>
-          </form>
+            </Link>
+          </div>
         </section>
 
         <section className="grid content-start gap-3">
@@ -162,11 +157,11 @@ export default function Footer() {
           © {new Date().getFullYear()} CEMYDI. Todos los derechos reservados.
         </small>
         <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2" aria-label="Legal">
-          <Link href="/contactanos" className="min-h-0 text-muted-foreground no-underline hover:text-primary hover:underline">
-            Politica de privacidad
+          <Link href="/politicas-de-privacidad" className="min-h-0 text-muted-foreground no-underline hover:text-primary hover:underline">
+            Política de privacidad
           </Link>
-          <Link href="/contactanos" className="min-h-0 text-muted-foreground no-underline hover:text-primary hover:underline">
-            Terminos de servicio
+          <Link href="/terminos-y-condiciones" className="min-h-0 text-muted-foreground no-underline hover:text-primary hover:underline">
+            Términos y condiciones
           </Link>
         </nav>
       </div>  

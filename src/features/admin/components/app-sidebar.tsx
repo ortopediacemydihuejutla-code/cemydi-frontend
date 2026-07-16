@@ -106,10 +106,15 @@ const data = {
           url: "/admin/database",
         },
          {
-          icon: FileText,
-          title: "Quiénes somos",
-          url: "/admin/about",
-        }
+           icon: FileText,
+           title: "Quiénes somos",
+           url: "/admin/about",
+         },
+         {
+           icon: ClipboardCheck,
+           title: "Páginas legales",
+           url: "/admin/legal",
+         }
       ],
     },
   ],

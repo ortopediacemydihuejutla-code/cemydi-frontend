@@ -14,10 +14,12 @@ const PUBLIC_ROUTE_PREFIXES = [
   "/login",
   "/mis-rentas",
   "/perfil",
+  "/politicas-de-privacidad",
   "/producto",
   "/quienes-somos",
   "/register",
   "/reset-password",
+  "/terminos-y-condiciones",
   "/verify-email",
 ];
 

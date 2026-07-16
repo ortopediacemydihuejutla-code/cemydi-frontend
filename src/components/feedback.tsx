@@ -2,6 +2,16 @@
 
 import { useEffect } from "react";
 
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/features/admin/components/ui/alert-dialog";
+import { Button } from "@/features/admin/components/ui/button";
+
 export type ToastType = "success" | "error" | "info";
 
 export type ToastItem = {
@@ -16,7 +26,7 @@ export type ConfirmDialogConfig = {
   description?: string;
   confirmLabel?: string;
   cancelLabel?: string;
-  tone?: "default" | "danger";
+  tone?: "default" | "danger" | "success";
   busy?: boolean;
   onConfirm: () => void | Promise<void>;
   onCancel: () => void;
@@ -102,38 +112,40 @@ export function ConfirmDialog(config: ConfirmDialogConfig) {
     onCancel,
   } = config;
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-[130] grid place-items-center bg-[rgba(8,25,31,0.48)] p-[14px]">
-      <div
-        className="grid w-[min(480px,100%)] gap-2.5 rounded-[14px] border border-[#d2e1e4] bg-white p-4"
-        role="alertdialog"
-        aria-modal="true"
-      >
-        <h3 className="m-0 text-[#16353e]">{title}</h3>
-        {description ? <p className="m-0 text-[#3f5a63]">{description}</p> : null}
-        <div className="flex justify-end gap-[9px] max-sm:flex-col">
-          <button
-            type="button"
-            className="cursor-pointer rounded-[10px] bg-[#eef4f5] px-3 py-[9px] font-bold text-[#1f454e] disabled:cursor-not-allowed disabled:opacity-65"
-            onClick={onCancel}
-            disabled={busy}
-          >
+    <AlertDialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!nextOpen && !busy) onCancel();
+      }}
+    >
+      <AlertDialogContent className="w-[min(480px,calc(100vw-2rem))]">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{title}</AlertDialogTitle>
+          {description ? (
+            <AlertDialogDescription>{description}</AlertDialogDescription>
+          ) : null}
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <Button type="button" variant="outline" onClick={onCancel} disabled={busy}>
             {cancelLabel}
-          </button>
-          <button
+          </Button>
+          <Button
             type="button"
-            className={`cursor-pointer rounded-[10px] px-3 py-[9px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-65 ${
-              tone === "danger" ? "bg-[#c73d3d]" : "bg-[#2c9f9b]"
-            }`}
+            variant={
+              tone === "danger"
+                ? "destructive"
+                : tone === "success"
+                  ? "success"
+                  : "default"
+            }
             onClick={() => void onConfirm()}
             disabled={busy}
           >
             {busy ? "Procesando..." : confirmLabel}
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

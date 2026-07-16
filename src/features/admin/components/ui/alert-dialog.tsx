@@ -42,7 +42,7 @@ function AlertDialogOverlay({
     <DialogPrimitive.Overlay
       data-slot="alert-dialog-overlay"
       className={cn(
-        'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-[rgba(3,10,18,0.58)] backdrop-blur-[2px]',
+        'pointer-events-auto data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-[rgba(3,10,18,0.58)] backdrop-blur-[2px]',
         className,
       )}
       {...props}
@@ -67,7 +67,7 @@ function AlertDialogContent({
         data-slot="alert-dialog-content"
         role="alertdialog"
         className={cn(
-          'bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-1/2 left-1/2 z-50 grid w-[min(560px,calc(100vw-2rem))] max-h-[calc(100vh-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-[22px] border border-[var(--border-soft)] bg-[var(--card)] p-6 shadow-[var(--shadow-md)] duration-200',
+          'pointer-events-auto bg-popover text-popover-foreground data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-1/2 left-1/2 z-50 grid w-[min(560px,calc(100vw-2rem))] max-h-[calc(100vh-2rem)] -translate-x-1/2 -translate-y-1/2 gap-4 overflow-y-auto rounded-[22px] border border-[var(--border-soft)] bg-[var(--card)] p-6 shadow-[var(--shadow-md)] duration-200',
           className,
         )}
         {...props}

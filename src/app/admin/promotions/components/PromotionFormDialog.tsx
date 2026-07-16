@@ -2,17 +2,14 @@
 
 import {
   CalendarRange,
-  ImageIcon,
   Layers2,
   LoaderCircle,
   Package,
-  Upload,
-  X,
 } from "lucide-react";
 
 import type { AdminProduct, CreatePromotionPayload } from "@/services/admin";
 
-import { Badge } from "@/features/admin/components/ui/badge";
+import { AdminImageUpload } from "@/features/admin/components/admin-image-upload";
 import { Button } from "@/features/admin/components/ui/button";
 import { CardTitle } from "@/features/admin/components/ui/card";
 import { cn } from "@/features/admin/lib/utils";
@@ -33,10 +30,8 @@ type PromotionFormDialogProps = {
   classificationOptions: string[];
   formImagePreviewSrc: string | null;
   previewIsLocalFile: boolean;
-  imageDropActive: boolean;
   startDateRef: React.RefObject<HTMLInputElement | null>;
   endDateRef: React.RefObject<HTMLInputElement | null>;
-  imageFileInputRef: React.RefObject<HTMLInputElement | null>;
   onSubmit: (e: React.FormEvent) => void;
   onFieldChange: (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>,
@@ -46,7 +41,6 @@ type PromotionFormDialogProps = {
   onOpenDatePicker: (ref: React.RefObject<HTMLInputElement | null>) => void;
   onApplyImageFile: (file: File) => void;
   onClearLocalImage: () => void;
-  onImageDropActiveChange: (active: boolean) => void;
 };
 
 export function PromotionFormDialog({
@@ -59,10 +53,8 @@ export function PromotionFormDialog({
   classificationOptions,
   formImagePreviewSrc,
   previewIsLocalFile,
-  imageDropActive,
   startDateRef,
   endDateRef,
-  imageFileInputRef,
   onSubmit,
   onFieldChange,
   onModeChange,
@@ -70,7 +62,6 @@ export function PromotionFormDialog({
   onOpenDatePicker,
   onApplyImageFile,
   onClearLocalImage,
-  onImageDropActiveChange,
 }: PromotionFormDialogProps) {
   return (
     <>
@@ -229,167 +220,29 @@ export function PromotionFormDialog({
             </div>
           </div>
 
-          <div className="grid gap-3 sm:col-span-2">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div className="min-w-0">
-                <span className="text-sm font-semibold text-[var(--text-main)]">
-                  Imagen de la promoción
-                </span>
-                <p className="mt-1 max-w-xl text-xs leading-relaxed text-[var(--text-muted)]">
-                  JPG, PNG o WebP · máximo 8 MB · arrastra al recuadro o usa el botón. Misma proporción
-                  que verá el cliente en la portada (banner).
-                </p>
-              </div>
-              {formImagePreviewSrc ? (
-                <Badge variant={previewIsLocalFile ? "blue" : "slate"} className="shrink-0">
-                  {previewIsLocalFile ? "Vista previa local" : "Del servidor"}
-                </Badge>
-              ) : null}
-            </div>
-
-            <input
-              ref={imageFileInputRef}
-              type="file"
-              accept="image/*,.webp"
-              className="sr-only"
-              tabIndex={-1}
+          <div className="sm:col-span-2">
+            <AdminImageUpload
+              id="promotion-image"
+              label="Imagen de la promoción"
+              description="JPG, PNG o WebP · máximo 8 MB. Usa la misma proporción que verá el cliente en el banner."
+              previewSrc={formImagePreviewSrc}
+              hasLocalFile={previewIsLocalFile}
               disabled={saving}
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) onApplyImageFile(f);
-                e.target.value = "";
+              aspectClassName="aspect-[16/10]"
+              sourceLabel={
+                formImagePreviewSrc
+                  ? previewIsLocalFile
+                    ? "Vista previa local"
+                    : "Del servidor"
+                  : undefined
+              }
+              previewLabel="Así se verá en la tienda"
+              clearLabel="Quitar imagen"
+              onFileChange={(file) => {
+                if (file) onApplyImageFile(file);
               }}
+              onClearLocal={onClearLocalImage}
             />
-
-            {formImagePreviewSrc ? (
-              <div className="overflow-hidden rounded-2xl border border-[var(--border-soft)] bg-[var(--surface)] shadow-sm">
-                <div className="relative aspect-[16/10] w-full bg-[color-mix(in_srgb,var(--brand-700)_8%,var(--surface))]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={formImagePreviewSrc}
-                    alt=""
-                    className="size-full object-cover"
-                  />
-                  <div
-                    className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/55 via-black/10 to-transparent"
-                    aria-hidden
-                  />
-                  <div className="absolute top-3 right-3 flex flex-wrap justify-end gap-2">
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="secondary"
-                      className="h-9 rounded-lg border border-white/30 bg-white/95 text-[var(--text-main)] shadow-sm hover:bg-white dark:bg-[var(--card)]"
-                      disabled={saving}
-                      onClick={() => imageFileInputRef.current?.click()}
-                    >
-                      <Upload className="mr-1.5 size-3.5" aria-hidden />
-                      Cambiar
-                    </Button>
-                    {previewIsLocalFile ? (
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="secondary"
-                        className="h-9 rounded-lg border border-red-500/25 bg-white/95 text-destructive shadow-sm hover:bg-red-50 dark:bg-[var(--card)]"
-                        disabled={saving}
-                        onClick={onClearLocalImage}
-                      >
-                        <X className="mr-1.5 size-3.5" aria-hidden />
-                        Quitar local
-                      </Button>
-                    ) : null}
-                  </div>
-                  <div className="absolute bottom-3 left-3 flex items-center gap-2 text-white drop-shadow-sm">
-                    <ImageIcon className="size-4 opacity-90" aria-hidden />
-                    <span className="text-xs font-semibold tracking-wide uppercase">
-                      Así se verá en la tienda
-                    </span>
-                  </div>
-                </div>
-              </div>
-            ) : (
-              <div
-                role="button"
-                tabIndex={saving ? -1 : 0}
-                aria-label="Zona para subir imagen de la promoción"
-                className={cn(
-                  "flex min-h-[200px] cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed px-6 py-10 text-center transition",
-                  imageDropActive
-                    ? "border-[color-mix(in_srgb,var(--brand-600)_55%,var(--border-soft))] bg-[color-mix(in_srgb,var(--brand-600)_10%,var(--surface))] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--brand-600)_20%,transparent)]"
-                    : "border-[var(--border-soft)] bg-[color-mix(in_srgb,var(--surface)_88%,var(--card))] hover:border-[color-mix(in_srgb,var(--brand-600)_35%,var(--border-soft))] hover:bg-[color-mix(in_srgb,var(--brand-600)_6%,var(--surface))]",
-                  saving && "pointer-events-none cursor-not-allowed opacity-50",
-                )}
-                onClick={() => !saving && imageFileInputRef.current?.click()}
-                onKeyDown={(e) => {
-                  if (saving) return;
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    imageFileInputRef.current?.click();
-                  }
-                }}
-                onDragEnter={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (!saving) onImageDropActiveChange(true);
-                }}
-                onDragLeave={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                    onImageDropActiveChange(false);
-                  }
-                }}
-                onDragOver={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
-                onDrop={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  onImageDropActiveChange(false);
-                  if (saving) return;
-                  const f = e.dataTransfer.files?.[0];
-                  if (f) onApplyImageFile(f);
-                }}
-              >
-                <div
-                  className={cn(
-                    "flex size-14 items-center justify-center rounded-2xl border border-[var(--border-soft)] bg-[var(--card)] shadow-sm",
-                    imageDropActive && "scale-105 border-[color-mix(in_srgb,var(--brand-600)_40%,var(--border-soft))] text-[var(--brand-800)]",
-                  )}
-                >
-                  <Upload
-                    className={cn(
-                      "size-7 text-[var(--text-muted)]",
-                      imageDropActive && "text-[var(--brand-700)]",
-                    )}
-                    aria-hidden
-                  />
-                </div>
-                <div>
-                  <p className="m-0 text-sm font-semibold text-[var(--text-main)]">
-                    Arrastra una imagen aquí
-                  </p>
-                  <p className="mt-1 text-xs text-[var(--text-muted)]">
-                    o haz clic para elegir desde tu equipo
-                  </p>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="rounded-lg"
-                  disabled={saving}
-                  onClick={(ev) => {
-                    ev.stopPropagation();
-                    imageFileInputRef.current?.click();
-                  }}
-                >
-                  Examinar archivos
-                </Button>
-              </div>
-            )}
           </div>
 
           <label className="grid gap-2 text-sm font-medium text-[var(--text-main)] sm:col-span-2">

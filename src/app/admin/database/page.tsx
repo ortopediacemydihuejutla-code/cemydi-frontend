@@ -96,7 +96,7 @@ export default function DatabaseMonitoringPage() {
           <div className="flex items-center gap-2">
             <Button
               type="button"
-              variant="outline"
+              variant="update"
               onClick={() =>
                 void Promise.all([
                   loadAuthSecurityOverviewData(),

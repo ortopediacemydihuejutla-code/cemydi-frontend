@@ -28,11 +28,8 @@ export default function AdminPromotionsPage() {
     classificationOptions,
     formImagePreviewSrc,
     previewIsLocalFile,
-    imageDropActive,
-    setImageDropActive,
     startDateRef,
     endDateRef,
-    imageFileInputRef,
     statusFilter,
     setStatusFilter,
     filterCounts,
@@ -97,10 +94,8 @@ export default function AdminPromotionsPage() {
             classificationOptions={classificationOptions}
             formImagePreviewSrc={formImagePreviewSrc}
             previewIsLocalFile={previewIsLocalFile}
-            imageDropActive={imageDropActive}
             startDateRef={startDateRef}
             endDateRef={endDateRef}
-            imageFileInputRef={imageFileInputRef}
             onSubmit={handleSubmit}
             onFieldChange={onFieldChange}
             onModeChange={setMode}
@@ -108,7 +103,6 @@ export default function AdminPromotionsPage() {
             onOpenDatePicker={openDatePicker}
             onApplyImageFile={applyPromotionImageFile}
             onClearLocalImage={clearLocalPromotionImage}
-            onImageDropActiveChange={setImageDropActive}
           />
 
           <PromotionFilters

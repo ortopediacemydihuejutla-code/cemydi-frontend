@@ -21,9 +21,9 @@ export function AdminPageLoading({
       aria-live="polite"
       aria-busy="true"
     >
-      <div className="relative grid size-14 place-items-center">
+      <div className="relative grid size-14 shrink-0 place-items-center [contain:layout_paint]">
         <div className="absolute inset-0 rounded-full border-4 border-[color-mix(in_srgb,var(--brand-600)_18%,transparent)]" />
-        <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-[var(--brand-700)] border-r-[var(--brand-600)]" />
+        <div className="absolute inset-0 origin-center animate-spin rounded-full border-4 border-transparent border-t-[var(--brand-700)] border-r-[var(--brand-600)] will-change-transform motion-reduce:animate-none" />
         <div className="size-5 rounded-full bg-[var(--brand-700)] shadow-[0_0_0_6px_color-mix(in_srgb,var(--brand-600)_14%,transparent)]" />
       </div>
       <div className="grid gap-1">

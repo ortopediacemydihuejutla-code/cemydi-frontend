@@ -316,10 +316,14 @@ export default function RegisterPage() {
                 aria-describedby={errors.terms ? termsErrorId : undefined}
               />
               <span>
-                Acepto los{" "}
-                <span className={authBrandLinkClassName}>términos y condiciones</span>{" "}
+                He leído y acepto los{" "}
+                <Link href="/terminos-y-condiciones" className={authBrandLinkClassName}>
+                  términos y condiciones
+                </Link>{" "}
                 y la{" "}
-                <span className={authBrandLinkClassName}>política de privacidad</span>{" "}
+                <Link href="/politicas-de-privacidad" className={authBrandLinkClassName}>
+                  política de privacidad
+                </Link>{" "}
                 del servicio.
               </span>
             </label>

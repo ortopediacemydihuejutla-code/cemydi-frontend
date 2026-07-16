@@ -31,6 +31,7 @@ const ADMIN_BREADCRUMB_CONFIG: Record<
   "/admin/suppliers": { label: "Proveedores", parent: "/admin" },
   "/admin/promotions": { label: "Promociones", parent: "/admin" },
   "/admin/about": { label: "Quiénes somos", parent: "/admin" },
+  "/admin/legal": { label: "Páginas legales", parent: "/admin" },
   "/admin/analytics": { label: "Analytics", parent: "/admin" },
   "/admin/database": { label: "Monitoreo BD", parent: "/admin" },
   "/admin/users": { label: "Usuarios", parent: "/admin" },

@@ -193,6 +193,7 @@ export default function LoginPage() {
       heroBadge="CEMYDI"
       heroTitle="Bienvenido de vuelta"
       heroDescription="Gestiona tus compras, rentas y perfil en un solo lugar, con el respaldo de nuestro equipo."
+      showBrandLogo={false}
     >
       <header className="mb-6 text-center">
         {/* Ícono decorativo */}
@@ -259,6 +260,18 @@ export default function LoginPage() {
           loading={googleLoading}
           disabled={loading}
         />
+
+        <p className="m-0 px-2 text-center text-[11px] leading-5 text-slate-400">
+          Al continuar, confirmas que has leído y aceptas los{" "}
+          <Link href="/terminos-y-condiciones" className={authBrandLinkClassName}>
+            términos y condiciones
+          </Link>{" "}
+          y la{" "}
+          <Link href="/politicas-de-privacidad" className={authBrandLinkClassName}>
+            política de privacidad
+          </Link>
+          .
+        </p>
 
         {showResendVerification ? (
           <div className="grid gap-2.5 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3.5">

@@ -73,12 +73,10 @@ export function usePromotions() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [localImageObjectUrl, setLocalImageObjectUrl] = useState<string | null>(null);
-  const [imageDropActive, setImageDropActive] = useState(false);
   const localImageUrlRef = useRef<string | null>(null);
 
   const startDateRef = useRef<HTMLInputElement>(null);
   const endDateRef = useRef<HTMLInputElement>(null);
-  const imageFileInputRef = useRef<HTMLInputElement>(null);
 
   const replaceLocalImagePreview = useCallback((file: File | null) => {
     if (localImageUrlRef.current) {
@@ -115,9 +113,7 @@ export function usePromotions() {
   );
 
   const clearLocalPromotionImage = useCallback(() => {
-    setImageDropActive(false);
     replaceLocalImagePreview(null);
-    if (imageFileInputRef.current) imageFileInputRef.current.value = "";
   }, [replaceLocalImagePreview]);
 
   useEffect(() => {
@@ -295,11 +291,8 @@ export function usePromotions() {
     setSearch,
     statusFilter,
     setStatusFilter,
-    imageDropActive,
-    setImageDropActive,
     startDateRef,
     endDateRef,
-    imageFileInputRef,
     blockingFullPage,
     classificationOptions,
     sortedProducts,
