@@ -87,3 +87,13 @@ export async function clearMyCart() {
     cartMutationResponseSchema,
   );
 }
+
+export async function clearMyRentalItems() {
+  const res = await apiFetch("/cart/rentals", { method: "DELETE" });
+
+  return parseApiResponse(
+    res,
+    "No se pudieron eliminar las rentas del carrito",
+    cartMutationResponseSchema,
+  );
+}

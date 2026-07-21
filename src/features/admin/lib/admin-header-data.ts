@@ -1,3 +1,5 @@
+import { ENABLE_RECOMMENDATION_DEMO } from "@/lib/feature-flags";
+
 export type AdminSearchDestination = {
   title: string;
   description: string;
@@ -17,6 +19,22 @@ export const ADMIN_SEARCH_DESTINATIONS: AdminSearchDestination[] = [
   { title: "Promociones", description: "Descuentos y campañas", href: "/admin/promotions", keywords: ["promocion", "descuento", "oferta"] },
   { title: "Reseñas", description: "Moderación de opiniones", href: "/admin/reviews", keywords: ["resena", "comentario", "opinion", "aprobar"] },
   { title: "Analytics", description: "Métricas operativas", href: "/admin/analytics", keywords: ["analiticas", "metrica", "reporte"] },
+  ...(ENABLE_RECOMMENDATION_DEMO
+    ? [
+        {
+          title: "Segmentación de productos",
+          description: "Grupos comerciales y prioridades de inventario",
+          href: "/admin/analytics/product-segmentation",
+          keywords: ["segmentacion", "cluster", "ventas", "rentas", "stock"],
+        },
+        {
+          title: "Predicción de demanda",
+          description: "Estimación mensual y reposición de inventario",
+          href: "/admin/analytics/demand-forecast",
+          keywords: ["prediccion", "demanda", "pronostico", "reposicion", "stock"],
+        },
+      ]
+    : []),
   { title: "Monitoreo de BD", description: "Respaldos y mantenimiento", href: "/admin/database", keywords: ["base de datos", "respaldo", "backup", "mantenimiento"] },
   { title: "Quiénes somos", description: "Contenido de la página pública", href: "/admin/about", keywords: ["nosotros", "contenido"] },
   { title: "Páginas legales", description: "Privacidad y términos", href: "/admin/legal", keywords: ["legal", "privacidad", "terminos"] },
@@ -106,4 +124,35 @@ export function buildAdminNotifications(
   }
 
   return items;
+}
+
+export function formatNotificationTime(
+  value: string,
+  now = Date.now(),
+): string {
+  const date = new Date(value);
+  const timestamp = date.getTime();
+
+  if (!Number.isFinite(timestamp)) return "Ahora";
+
+  const elapsedSeconds = Math.max(0, Math.floor((now - timestamp) / 1_000));
+  if (elapsedSeconds < 60) return "Ahora";
+
+  const elapsedMinutes = Math.floor(elapsedSeconds / 60);
+  if (elapsedMinutes < 60) return `Hace ${elapsedMinutes} min`;
+
+  const elapsedHours = Math.floor(elapsedMinutes / 60);
+  if (elapsedHours < 24) {
+    return `Hace ${elapsedHours} ${elapsedHours === 1 ? "hora" : "horas"}`;
+  }
+
+  const elapsedDays = Math.floor(elapsedHours / 24);
+  if (elapsedDays < 7) {
+    return `Hace ${elapsedDays} ${elapsedDays === 1 ? "día" : "días"}`;
+  }
+
+  return new Intl.DateTimeFormat("es-MX", {
+    day: "numeric",
+    month: "short",
+  }).format(date);
 }

@@ -3,31 +3,16 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { AlertCircle, ArrowLeft, ArrowRight, Mail } from "lucide-react";
 import toast from "react-hot-toast";
+import {
+  AccountActionLayout,
+  accountInputClassName,
+  accountLabelClassName,
+  accountPrimaryButtonClassName,
+  accountTextLinkClassName,
+} from "@/components/auth/account-action-layout";
 import { requestPasswordReset } from "@/services/auth";
-
-const authShellClassName =
-  "min-h-[calc(100vh-120px)] bg-[linear-gradient(180deg,#eef7f6_0%,#f8fbfb_100%)] px-4 py-10";
-const containerClassName =
-  "mx-auto grid max-w-[1120px] overflow-hidden rounded-[28px] border border-[var(--border-soft)] bg-white shadow-[var(--shadow-md)] min-[900px]:grid-cols-2";
-const sideClassName =
-  "relative hidden min-h-[560px] bg-[linear-gradient(180deg,#1e6260_0%,#0f3d3b_100%)] min-[900px]:block";
-const overlayClassName =
-  "absolute inset-0 bg-[linear-gradient(to_top,rgba(15,61,59,0.95),rgba(30,98,96,0.35),transparent)]";
-const brandClassName =
-  "absolute right-[30px] bottom-[30px] left-[30px] z-[2] text-white";
-const rightClassName =
-  "flex items-center justify-center bg-white px-7 py-7 min-[900px]:px-[46px] min-[900px]:py-[42px]";
-const cardClassName = "w-full max-w-[460px]";
-const inputClassName =
-  "h-11 rounded-[14px] border border-[#d6e5e5] px-3 outline-none focus:border-[#2ba2a1] focus:shadow-[0_0_0_3px_rgba(43,162,161,0.2)]";
-const inputErrorClassName = "border-[#ef4444] bg-[#fff7f7]";
-const errorTextClassName = "mt-[-4px] text-xs text-[#dc2626]";
-const descriptionClassName = "text-sm leading-[1.65] text-gray-600";
-const forgotLinkClassName =
-  "inline-flex text-[13px] font-semibold text-[#1e6260] no-underline hover:underline";
-const primaryButtonClassName =
-  "mt-2 h-[46px] rounded-[14px] border-0 bg-[#1e6260] font-bold text-white transition hover:bg-[#18514f] disabled:cursor-not-allowed disabled:opacity-60";
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -37,101 +22,137 @@ export default function ForgotPasswordPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const emailError = useMemo(() => {
-    if (!correo.trim()) return "El correo es obligatorio";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return "Correo inválido";
+    if (!correo.trim()) return "Ingresa tu correo electrónico";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
+      return "Revisa el formato del correo";
+    }
     return "";
   }, [correo]);
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setSubmitAttempted(true);
     setSubmitError(null);
 
-    if (emailError) {
-      return;
-    }
+    if (emailError) return;
 
     try {
       setLoading(true);
-      const normalizedEmail = correo.trim();
+      const normalizedEmail = correo.trim().toLowerCase();
       const result = await requestPasswordReset(normalizedEmail);
       sessionStorage.setItem("recovery_email", normalizedEmail);
       toast.success(result.message);
-      router.push(`/reset-password?correo=${encodeURIComponent(normalizedEmail)}`);
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "No se pudo procesar la solicitud.";
-      setSubmitError(message);
+      router.push(
+        `/reset-password?correo=${encodeURIComponent(normalizedEmail)}`,
+      );
+    } catch (error: unknown) {
+      setSubmitError(
+        error instanceof Error
+          ? error.message
+          : "No pudimos procesar la solicitud. Intenta de nuevo.",
+      );
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <section className={authShellClassName}>
-      <div className={containerClassName}>
-        <div className={sideClassName}>
-          <div className="absolute inset-0 bg-[url('/fondowan.png')] bg-cover bg-center opacity-[0.85] mix-blend-overlay" />
-          <div className={overlayClassName} />
-          <div className={brandClassName}>
-            <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[#dcfce7]">CEMYDI</p>
-            <h2 className="mb-2 text-[2rem]">Recupera tu contraseña</h2>
-            <span className="text-sm text-[#dcfce7]">
-              Ingresa tu correo y te enviaremos un código para continuar con el
-              restablecimiento.
-            </span>
-          </div>
-        </div>
-
-        <div className={rightClassName}>
-          <div className={cardClassName}>
-            <h2 className="mb-2 text-[2rem] text-[#0f3d3b]">¿Olvidaste tu contraseña?</h2>
-            <p className={`${descriptionClassName} mb-[18px]`}>
-              Por seguridad, siempre mostraremos el mismo mensaje. Si el correo
-              pertenece a una cuenta válida, recibirás un código de verificación.
-            </p>
-
-            <form onSubmit={handleSubmit} noValidate className="grid gap-2.5">
-              {submitError ? (
-                <p className="m-0 rounded-[14px] border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
-                  {submitError}
-                </p>
-              ) : null}
-
-              <label htmlFor="correo" className="text-sm font-semibold text-[#1f2937]">
-                Correo electrónico
-              </label>
-              <input
-                id="correo"
-                type="email"
-                value={correo}
-                onChange={(e) => {
-                  setCorreo(e.target.value);
-                  setSubmitError(null);
-                }}
-                placeholder="nombre@correo.com"
-                className={`${inputClassName} ${submitAttempted && emailError ? inputErrorClassName : ""}`}
-              />
-              {submitAttempted && emailError ? (
-                <span className={errorTextClassName}>{emailError}</span>
-              ) : null}
-
-              <button type="submit" disabled={loading} className={primaryButtonClassName}>
-                {loading ? "Enviando..." : "Continuar"}
-              </button>
-            </form>
-
-            <p className={`${descriptionClassName} mt-4`}>
-              Te llevaremos al siguiente paso para ingresar el código OTP y, una
-              vez validado, podrás crear tu nueva contraseña.
-            </p>
-
-            <Link href="/login" className={`${forgotLinkClassName} mt-4`}>
-              Volver al inicio de sesión
-            </Link>
-          </div>
-        </div>
+    <AccountActionLayout
+      eyebrow="Recuperación de acceso"
+      asideTitle="Vuelve a tu cuenta con tranquilidad."
+      asideDescription="Te guiaremos en dos pasos breves para confirmar tu identidad y crear una contraseña nueva."
+      asideItems={[
+        "Código temporal enviado por correo",
+        "Respuesta privada para proteger tu cuenta",
+        "Cierre automático de sesiones anteriores",
+      ]}
+    >
+      <div>
+        <p className="m-0 text-[11px] font-bold uppercase tracking-[0.18em] text-[#20636d]">
+          Paso 1 de 2
+        </p>
+        <h1 className="mt-3 text-[2rem] font-semibold leading-tight tracking-[-0.03em] text-slate-950 sm:text-[2.25rem]">
+          Recupera tu contraseña
+        </h1>
+        <p className="mt-3 max-w-[430px] text-[15px] leading-7 text-slate-600">
+          Escribe el correo asociado a tu cuenta. Si está registrado, recibirás
+          un código para continuar.
+        </p>
       </div>
-    </section>
+
+      <form onSubmit={handleSubmit} noValidate className="mt-8">
+        {submitError ? (
+          <div
+            role="alert"
+            className="mb-5 flex items-start gap-2.5 border-l-2 border-red-400 bg-red-50 px-3.5 py-3 text-sm text-red-700"
+          >
+            <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+            <p className="m-0 leading-6">{submitError}</p>
+          </div>
+        ) : null}
+
+        <label htmlFor="correo" className={accountLabelClassName}>
+          Correo electrónico
+        </label>
+        <div className="relative">
+          <Mail
+            className="pointer-events-none absolute top-1/2 left-3.5 size-[17px] -translate-y-1/2 text-slate-400"
+            aria-hidden
+          />
+          <input
+            id="correo"
+            name="correo"
+            type="email"
+            autoComplete="email"
+            value={correo}
+            onChange={(event) => {
+              setCorreo(event.target.value);
+              setSubmitError(null);
+            }}
+            placeholder="nombre@correo.com"
+            disabled={loading}
+            aria-invalid={Boolean(submitAttempted && emailError)}
+            aria-describedby={
+              submitAttempted && emailError ? "correo-error" : undefined
+            }
+            className={`${accountInputClassName} pl-10 ${
+              submitAttempted && emailError
+                ? "border-red-400 bg-red-50/40 focus:border-red-500"
+                : ""
+            }`}
+          />
+        </div>
+        {submitAttempted && emailError ? (
+          <p
+            id="correo-error"
+            role="alert"
+            className="mt-2 text-xs font-medium text-red-600"
+          >
+            {emailError}
+          </p>
+        ) : null}
+
+        <button
+          type="submit"
+          disabled={loading}
+          className={`${accountPrimaryButtonClassName} mt-6`}
+        >
+          {loading ? "Enviando instrucciones..." : "Enviar código"}
+          {!loading ? <ArrowRight className="size-4" aria-hidden /> : null}
+        </button>
+      </form>
+
+      <p className="mt-5 text-[13px] leading-6 text-slate-500">
+        Mostramos la misma respuesta para todos los correos, así nadie puede
+        saber qué cuentas existen.
+      </p>
+
+      <div className="mt-7 border-t border-slate-200 pt-5">
+        <Link href="/login" className={accountTextLinkClassName}>
+          <ArrowLeft className="size-4" aria-hidden />
+          Volver a iniciar sesión
+        </Link>
+      </div>
+    </AccountActionLayout>
   );
 }

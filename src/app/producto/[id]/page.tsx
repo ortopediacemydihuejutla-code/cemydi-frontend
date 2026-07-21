@@ -1,12 +1,18 @@
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { cache } from "react";
-import { getCatalogProductById } from "@/services/catalog";
+import {
+  getCatalogProductById,
+  getCatalogProductBySlug,
+  getCatalogProducts,
+} from "@/services/catalog";
 import { getSiteUrl } from "@/lib/site-config";
 import {
   buildProductShareDescription,
   getProductShareImageUrl,
+  getProductSlug,
   getProductUrl,
+  slugifyProductName,
   truncateShareDescription,
 } from "@/lib/product-share";
 import ProductDetailClient from "./ProductDetailClient";
@@ -17,7 +23,7 @@ type ProductDetailPageProps = {
   }>;
 };
 
-const loadProductOrThrowNotFound = cache(async (productId: number) => {
+const loadProductByIdOrThrowNotFound = cache(async (productId: number) => {
   try {
     const result = await getCatalogProductById(productId);
     return result.product;
@@ -31,20 +37,43 @@ const loadProductOrThrowNotFound = cache(async (productId: number) => {
   }
 });
 
+const loadProductBySlugOrThrowNotFound = cache(async (slug: string) => {
+  try {
+    const result = await getCatalogProductBySlug(slug);
+    return result.product;
+  } catch {
+    // Compatibilidad temporal con backends que aún no exponen /products/slug/:slug.
+  }
+
+  const search = slug.replace(/-\d+$/, "").replace(/-/g, " ");
+  const result = await getCatalogProducts({ search, page: 1, pageSize: 60 });
+  const product = result.products.find(
+    (item) =>
+      getProductSlug(item) === slug || slugifyProductName(item.nombre) === slug,
+  );
+
+  if (!product) {
+    notFound();
+  }
+
+  return product;
+});
+
+function getLegacyProductId(value: string) {
+  const productId = Number(value);
+  return Number.isInteger(productId) && productId > 0 ? productId : null;
+}
+
 export async function generateMetadata({
   params,
 }: ProductDetailPageProps): Promise<Metadata> {
-  const { id } = await params;
-  const productId = Number(id);
-
-  if (!Number.isInteger(productId) || productId <= 0) {
-    return {
-      title: "Producto no encontrado",
-    };
-  }
+  const { id: productPath } = await params;
+  const legacyProductId = getLegacyProductId(productPath);
 
   try {
-    const product = await loadProductOrThrowNotFound(productId);
+    const product = legacyProductId
+      ? await loadProductByIdOrThrowNotFound(legacyProductId)
+      : await loadProductBySlugOrThrowNotFound(productPath);
     const siteUrl = getSiteUrl();
     const productUrl = getProductUrl(product, siteUrl);
     const title = `${product.nombre} | CEMYDI`;
@@ -91,14 +120,15 @@ export async function generateMetadata({
 export default async function ProductDetailPage({
   params,
 }: ProductDetailPageProps) {
-  const { id } = await params;
-  const productId = Number(id);
+  const { id: productPath } = await params;
+  const legacyProductId = getLegacyProductId(productPath);
+  const product = legacyProductId
+    ? await loadProductByIdOrThrowNotFound(legacyProductId)
+    : await loadProductBySlugOrThrowNotFound(productPath);
 
-  if (!Number.isInteger(productId) || productId <= 0) {
-    notFound();
+  if (legacyProductId) {
+    redirect(`/producto/${encodeURIComponent(getProductSlug(product))}`);
   }
 
-  const product = await loadProductOrThrowNotFound(productId);
-
-  return <ProductDetailClient product={product} productId={productId} />;
+  return <ProductDetailClient product={product} productId={product.id} />;
 }

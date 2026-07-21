@@ -7,6 +7,7 @@ import {
 
 export type CatalogProduct = {
   id: number;
+  slug?: string;
   nombre: string;
   marca: string;
   modelo: string;
@@ -47,6 +48,7 @@ export type ActivePromotion = {
   createdAt: string;
   product: {
     id: number;
+    slug?: string;
     nombre: string;
     clasificacion: string;
     precio: number;
@@ -114,6 +116,12 @@ export async function getCatalogProducts(params: {
 
 export async function getCatalogProductById(id: number) {
   const res = await publicFetch(`/products/${id}`);
+
+  return parseApiResponse(res, "No se pudo cargar el producto", catalogProductDetailSchema);
+}
+
+export async function getCatalogProductBySlug(slug: string) {
+  const res = await publicFetch(`/products/slug/${encodeURIComponent(slug)}`);
 
   return parseApiResponse(res, "No se pudo cargar el producto", catalogProductDetailSchema);
 }

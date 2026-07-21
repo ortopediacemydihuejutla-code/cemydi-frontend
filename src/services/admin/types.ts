@@ -1,12 +1,7 @@
 export type UserRole = "ADMIN" | "CLIENT";
 export type ProductMode = "VENTA" | "RENTA" | "MIXTO";
 export type RentalStatus =
-  | "PENDING"
-  | "APPROVED"
-  | "REJECTED"
-  | "CANCELLED"
-  | "DELIVERED"
-  | "RETURNED";
+  "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED" | "DELIVERED" | "RETURNED";
 
 export type PaginationMeta = {
   page: number;
@@ -180,11 +175,30 @@ export type AdminReview = {
 
 export type AdminRentalRequest = {
   id: string;
+  folio: string | null;
   status: RentalStatus;
   subtotal: number;
   depositTotal: number;
+  depositStatus: "PENDING" | "RETURNED" | "RETAINED" | "PARTIALLY_RETAINED";
+  depositReturnedAmount: number;
+  depositRetainedAmount: number;
+  depositNotes: string | null;
+  depositResolvedAt: string | null;
   total: number;
   notes: string | null;
+  applicantName: string | null;
+  applicantEmail: string | null;
+  applicantPhone: string | null;
+  isForAnotherPerson: boolean;
+  patientName: string | null;
+  patientRelationship: string | null;
+  deliveryMethod: "PICKUP" | "HOME_DELIVERY" | null;
+  deliveryAddress: string | null;
+  deliveryNeighborhood: string | null;
+  deliveryPostalCode: string | null;
+  deliveryMunicipality: string | null;
+  deliveryReferences: string | null;
+  preferredSchedule: string | null;
   rejectedReason: string | null;
   approvedAt: string | null;
   rejectedAt: string | null;
@@ -211,6 +225,23 @@ export type AdminRentalRequest = {
     nombre: string;
     correo: string;
   } | null;
+  depositResolvedBy: {
+    id: number;
+    nombre: string;
+    correo: string;
+  } | null;
+  statusHistory: Array<{
+    id: number;
+    fromStatus: RentalStatus | null;
+    toStatus: RentalStatus;
+    note: string | null;
+    createdAt: string;
+    actor: {
+      id: number;
+      nombre: string;
+      correo: string;
+    } | null;
+  }>;
   items: Array<{
     id: number;
     productId: number;
@@ -225,9 +256,20 @@ export type AdminRentalRequest = {
     lineTotal: number;
     notes: string | null;
     prescription: {
+      id: string;
       fileName: string;
       mimeType: string | null;
       sizeBytes: number | null;
+      status: "PENDIENTE" | "EN_REVISION" | "APROBADO" | "RECHAZADO";
+      uploadedAt: string;
+      associatedAt: string | null;
+      reviewedAt: string | null;
+      rejectionReason: string | null;
+      reviewedBy: {
+        id: number;
+        nombre: string;
+        correo: string;
+      } | null;
     } | null;
     product: {
       id: number;
@@ -417,16 +459,27 @@ export type UpdatePromotionPayload = {
 };
 
 export type AdminActivityCategory =
-  | "product"
-  | "user"
-  | "review"
-  | "promotion"
-  | "supplier";
+  "product" | "user" | "review" | "promotion" | "supplier";
 
 export type AdminActivityItem = {
   id: string;
   category: AdminActivityCategory;
   title: string;
+  occurredAt: string;
+  href: string;
+};
+
+export type AdminNotificationCategory =
+  | "rental"
+  | "review"
+  | "inventory"
+  | "sale";
+
+export type AdminNotificationItem = {
+  id: string;
+  category: AdminNotificationCategory;
+  title: string;
+  description: string;
   occurredAt: string;
   href: string;
 };

@@ -12,6 +12,7 @@ import { useAuth } from "@/providers/AuthContext";
 import {
   addCartItem,
   clearMyCart,
+  clearMyRentalItems,
   getMyCart,
   removeCartItem,
   type ShoppingCart,
@@ -21,6 +22,7 @@ import {
 type CartContextType = {
   cart: ShoppingCart;
   loading: boolean;
+  error: string | null;
   refreshCart: () => Promise<ShoppingCart>;
   addItem: (payload: {
     productId: number;
@@ -51,6 +53,10 @@ type CartContextType = {
     cart: ShoppingCart;
     message: string;
   }>;
+  clearRentals: () => Promise<{
+    cart: ShoppingCart;
+    message: string;
+  }>;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -72,6 +78,7 @@ function createEmptyCart(): ShoppingCart {
       saleItems: 0,
       rentalItems: 0,
       hasUnavailableItems: false,
+      hasUnconfiguredRentalItems: false,
     },
   };
 }
@@ -85,8 +92,8 @@ function preserveCartItemOrder(
   }
 
   const nextItemsById = new Map(nextCart.items.map((item) => [item.id, item]));
-  const nextItemsByProductId = new Map(
-    nextCart.items.map((item) => [item.product.id, item]),
+  const nextItemsByProductAndMode = new Map(
+    nextCart.items.map((item) => [`${item.product.id}:${item.mode}`, item]),
   );
   const orderedItems: ShoppingCart["items"] = [];
   const usedNextItemIds = new Set<number>();
@@ -94,7 +101,9 @@ function preserveCartItemOrder(
   for (const previousItem of previousCart.items) {
     const nextItem =
       nextItemsById.get(previousItem.id) ??
-      nextItemsByProductId.get(previousItem.product.id);
+      nextItemsByProductAndMode.get(
+        `${previousItem.product.id}:${previousItem.mode}`,
+      );
 
     if (!nextItem || usedNextItemIds.has(nextItem.id)) {
       continue;
@@ -125,6 +134,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     ownerUserId: null,
     cart: createEmptyCart(),
   }));
+  const [error, setError] = useState<string | null>(null);
   const clientUserId = user?.rol === "CLIENT" ? user.id : null;
   const loading = authLoading || state.ownerUserId !== clientUserId;
   const cart = state.cart;
@@ -139,12 +149,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       return emptyCart;
     }
 
-    const result = await getMyCart();
-    setState((previous) => ({
-      ownerUserId: clientUserId,
-      cart: preserveCartItemOrder(previous.cart, result.cart),
-    }));
-    return result.cart;
+    setError(null);
+    try {
+      const result = await getMyCart();
+      setState((previous) => ({
+        ownerUserId: clientUserId,
+        cart: preserveCartItemOrder(previous.cart, result.cart),
+      }));
+      return result.cart;
+    } catch (loadError) {
+      setError(
+        loadError instanceof Error
+          ? loadError.message
+          : "No se pudo cargar el carrito.",
+      );
+      throw loadError;
+    }
   }, [clientUserId]);
 
   useEffect(() => {
@@ -179,16 +199,22 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
           return;
         }
 
+        setError(null);
         setState((previous) => ({
           ownerUserId: clientUserId,
           cart: preserveCartItemOrder(previous.cart, result.cart),
         }));
       })
-      .catch(() => {
+      .catch((loadError: unknown) => {
         if (cancelled) {
           return;
         }
 
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "No se pudo cargar el carrito.",
+        );
         setState({
           ownerUserId: clientUserId,
           cart: createEmptyCart(),
@@ -277,17 +303,39 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return result;
   }, [assertClientSession, clientUserId]);
 
+  const clearRentals = useCallback(async () => {
+    assertClientSession();
+    const result = await clearMyRentalItems();
+    setState((previous) => ({
+      ownerUserId: clientUserId,
+      cart: preserveCartItemOrder(previous.cart, result.cart),
+    }));
+    return result;
+  }, [assertClientSession, clientUserId]);
+
   const value = useMemo(
     () => ({
       cart,
       loading,
+      error,
       refreshCart,
       addItem,
       updateItemQuantity,
       removeItem,
       clearCart,
+      clearRentals,
     }),
-    [addItem, cart, clearCart, loading, refreshCart, removeItem, updateItemQuantity],
+    [
+      addItem,
+      cart,
+      clearCart,
+      clearRentals,
+      error,
+      loading,
+      refreshCart,
+      removeItem,
+      updateItemQuantity,
+    ],
   );
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

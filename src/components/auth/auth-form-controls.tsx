@@ -7,16 +7,16 @@ import { getPasswordRulesStatus } from "@/lib/password-validation";
 
 /* ── Estilos base de los campos ── */
 const inputShell =
-  "flex h-11 w-full items-center gap-2.5 rounded-xl border bg-slate-50 px-3 outline-none transition-all duration-150 focus-within:bg-white focus-within:border-[#1e6260] focus-within:shadow-[0_0_0_3px_rgba(30,98,96,0.12)] focus-within:ring-0";
+  "flex h-12 w-full items-center gap-3 rounded-[14px] border bg-white px-3.5 outline-none transition-[border-color,box-shadow,background-color] duration-150 focus-within:border-[#1e6260] focus-within:shadow-[0_0_0_3px_rgba(30,98,96,0.1)] focus-within:ring-0";
 const inputShellError =
-  "border-red-400 bg-red-50/40 focus-within:border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.12)]";
-const inputShellOk = "border-slate-200 hover:border-slate-300";
+  "border-red-400 bg-red-50/30 focus-within:border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]";
+const inputShellOk = "border-slate-200/90 hover:border-slate-300";
 const fieldClass =
-  "w-full min-w-0 border-0 bg-transparent py-1 text-[14px] text-slate-800 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed";
+  "w-full min-w-0 border-0 bg-transparent py-1 text-[14px] text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:text-slate-400";
 const labelClass =
-  "mb-1.5 block text-[13px] font-semibold text-slate-700";
+  "mb-2 block text-[13px] font-semibold text-slate-700";
 const errorClass =
-  "mt-1.5 flex items-center gap-1.5 text-[12px] font-medium text-red-600";
+  "mt-1.5 flex items-start gap-1.5 text-[12px] font-medium leading-5 text-red-600";
 
 /* ── Campo de texto ── */
 type TextFieldProps = {
@@ -32,6 +32,7 @@ type TextFieldProps = {
   placeholder?: string;
   icon: LucideIcon;
   disabled?: boolean;
+  required?: boolean;
 };
 
 export function AuthTextField({
@@ -47,6 +48,7 @@ export function AuthTextField({
   placeholder,
   icon: Icon,
   disabled,
+  required = true,
 }: TextFieldProps) {
   const genId = useId();
   const fieldId = id ?? `${name}-${genId}`;
@@ -73,6 +75,7 @@ export function AuthTextField({
           onBlur={onBlur}
           placeholder={placeholder}
           disabled={disabled}
+          required={required}
           aria-invalid={hasError}
           aria-describedby={hasError ? errorId : undefined}
           className={fieldClass}
@@ -103,6 +106,7 @@ type PasswordFieldProps = {
   autoComplete?: string;
   disabled?: boolean;
   auxiliaryDescribedBy?: string;
+  required?: boolean;
 };
 
 export function AuthPasswordField({
@@ -119,6 +123,7 @@ export function AuthPasswordField({
   autoComplete,
   disabled,
   auxiliaryDescribedBy,
+  required = true,
 }: PasswordFieldProps) {
   const genId = useId();
   const fieldId = id ?? `${name}-${genId}`;
@@ -150,16 +155,16 @@ export function AuthPasswordField({
           onBlur={onBlur}
           placeholder={placeholder}
           disabled={disabled}
+          required={required}
           aria-invalid={hasError}
           aria-describedby={describedBy || undefined}
           className={`${fieldClass} pr-1`}
         />
         <button
           type="button"
-          className="flex size-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+          className="flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
-          tabIndex={-1}
         >
           {visible
             ? <EyeOff className="size-[15px]" />
@@ -198,7 +203,7 @@ export function AuthPasswordRulesChecklist({
   return (
     <div
       id={id}
-      className={`rounded-xl border border-slate-200 bg-slate-50 ${compact ? "px-3 py-2.5" : "px-3.5 py-3"}`}
+      className={`border-l-2 border-slate-200 ${compact ? "py-1 pl-3" : "py-1.5 pl-3.5"}`}
       role="region"
       aria-label="Requisitos de la contraseña"
     >
@@ -220,8 +225,8 @@ export function AuthPasswordRulesChecklist({
             <span
               className={`flex shrink-0 items-center justify-center rounded-full transition-all ${compact ? "size-4" : "size-[18px]"} ${
                 item.met
-                  ? "bg-[#1e6260] shadow-[0_0_0_2px_rgba(30,98,96,0.2)]"
-                  : "border-2 border-slate-200 bg-white"
+                  ? "bg-[#1e6260]"
+                  : "border-2 border-slate-300 bg-transparent"
               }`}
               aria-hidden
             >
@@ -259,7 +264,7 @@ export function GoogleAuthButton({
       type="button"
       disabled={disabled || loading}
       onClick={onClick}
-      className="flex h-11 w-full items-center justify-center gap-2.5 rounded-xl border border-slate-200 bg-white text-[13px] font-semibold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e6260]/25 disabled:cursor-not-allowed disabled:opacity-60"
+      className="flex h-12 w-full items-center justify-center gap-2.5 rounded-[14px] border border-slate-200 bg-white text-[13px] font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e6260]/20 disabled:cursor-not-allowed disabled:opacity-60"
       aria-label="Continuar con Google"
     >
       <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
@@ -288,7 +293,7 @@ export function GoogleAuthButton({
 /* ── Divisor "o" ── */
 export function AuthOrDivider() {
   return (
-    <div className="relative py-0.5">
+    <div className="relative py-1">
       <div className="absolute inset-0 flex items-center" aria-hidden>
         <span className="w-full border-t border-slate-200" />
       </div>
@@ -306,7 +311,7 @@ export function AuthAlertBanner({ message }: { message: string }) {
   return (
     <div
       role="alert"
-      className="flex items-start gap-2.5 rounded-xl border border-red-200 bg-red-50 px-3.5 py-3 text-sm text-red-700"
+      className="flex items-start gap-2.5 rounded-[14px] border border-red-200 bg-red-50/80 px-3.5 py-3 text-sm text-red-700"
     >
       <AlertCircle className="mt-0.5 size-4 shrink-0 text-red-500" aria-hidden />
       <p className="m-0 leading-snug">{message}</p>

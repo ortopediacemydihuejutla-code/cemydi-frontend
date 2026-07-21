@@ -1,0 +1,82 @@
+- generic [active] [ref=f7e1]:
+  - generic [ref=f7e2]:
+    - banner [ref=f7e3]:
+      - link [ref=f7e5] [cursor=pointer]:
+        - /url: /
+        - img "CEMYDI" [ref=f7e6]
+      - navigation [ref=f7e9]:
+        - link "Catálogo" [ref=f7e10] [cursor=pointer]:
+          - /url: /catalogo
+        - link "Quiénes somos" [ref=f7e11] [cursor=pointer]:
+          - /url: /quienes-somos
+        - link "Contáctanos" [ref=f7e12] [cursor=pointer]:
+          - /url: /contactanos
+    - main [ref=f7e15]:
+      - status [ref=f7e17]:
+        - generic [ref=f7e21]:
+          - paragraph [ref=f7e22]: Cargando cuenta
+          - paragraph [ref=f7e23]: Preparando tu perfil...
+        - generic [ref=f7e24]: Cargando cuenta
+    - contentinfo [ref=f7e25]:
+      - generic [ref=f7e26]:
+        - generic [ref=f7e27]:
+          - link [ref=f7e29] [cursor=pointer]:
+            - /url: /
+            - img "CEMYDI" [ref=f7e30]
+          - generic [ref=f7e31]:
+            - heading "Mantente conectado" [level=2] [ref=f7e32]
+            - paragraph [ref=f7e33]: Recibe orientacion, disponibilidad de equipos y novedades para movilidad, rehabilitacion y cuidado en casa.
+          - generic [ref=f7e34]:
+            - generic [ref=f7e35]: Correo electronico
+            - textbox "Correo electronico" [ref=f7e36]:
+              - /placeholder: tu@correo.com
+            - link "Enviar correo" [ref=f7e37] [cursor=pointer]:
+              - /url: mailto:contacto@cemydi.com
+        - generic [ref=f7e41]:
+          - heading "Enlaces rapidos" [level=3] [ref=f7e42]
+          - navigation "Enlaces del footer" [ref=f7e43]:
+            - link "Inicio" [ref=f7e44] [cursor=pointer]:
+              - /url: /
+            - link "Catalogo" [ref=f7e45] [cursor=pointer]:
+              - /url: /catalogo
+            - link "Quienes somos" [ref=f7e46] [cursor=pointer]:
+              - /url: /quienes-somos
+            - link "Contactanos" [ref=f7e47] [cursor=pointer]:
+              - /url: /contactanos
+            - link "Iniciar sesion" [ref=f7e48] [cursor=pointer]:
+              - /url: /login
+            - link "Crear cuenta" [ref=f7e49] [cursor=pointer]:
+              - /url: /register
+        - generic [ref=f7e50]:
+          - heading "Contacto" [level=3] [ref=f7e51]
+          - generic [ref=f7e52]:
+            - link "789 688 0251" [ref=f7e53] [cursor=pointer]:
+              - /url: tel:7896880251
+            - link "contacto@cemydi.com" [ref=f7e57] [cursor=pointer]:
+              - /url: mailto:contacto@cemydi.com
+            - generic [ref=f7e66]:
+              - paragraph [ref=f7e67]: "Av. General Corona del Rosal #50, Col. 5 de Mayo, Huejutla de Reyes, Hgo."
+              - paragraph [ref=f7e68]: "Av. Javier Rojo Gomez #26, Col. 5 de Mayo, Huejutla de Reyes, Hgo."
+        - generic [ref=f7e69]:
+          - heading "Siguenos" [level=3] [ref=f7e70]
+          - generic [ref=f7e71]:
+            - link "Facebook" [ref=f7e72] [cursor=pointer]:
+              - /url: /contactanos
+            - link "Twitter" [ref=f7e77] [cursor=pointer]:
+              - /url: /contactanos
+            - link "Instagram" [ref=f7e80] [cursor=pointer]:
+              - /url: /contactanos
+            - link "LinkedIn" [ref=f7e84] [cursor=pointer]:
+              - /url: /contactanos
+          - generic [ref=f7e91]:
+            - paragraph [ref=f7e92]: Horario de atencion
+            - paragraph [ref=f7e93]: Lunes a sabado
+            - paragraph [ref=f7e94]: 9:00 am - 7:00 pm
+      - generic [ref=f7e95]:
+        - generic [ref=f7e96]: © 2026 CEMYDI. Todos los derechos reservados.
+        - navigation "Legal" [ref=f7e97]:
+          - link "Política de privacidad" [ref=f7e98] [cursor=pointer]:
+            - /url: /politicas-de-privacidad
+          - link "Términos y condiciones" [ref=f7e99] [cursor=pointer]:
+            - /url: /terminos-y-condiciones
+  - button "Open Next.js Dev Tools" [ref=f7e105] [cursor=pointer]

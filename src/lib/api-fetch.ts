@@ -5,7 +5,7 @@ const CSRF_HEADER_NAME = "X-CSRF-Token";
 
 let refreshInFlight: Promise<boolean> | null = null;
 
-function readCsrfTokenFromDocument(): string | null {
+export function readCsrfTokenFromDocument(): string | null {
   if (typeof document === "undefined") {
     return null;
   }

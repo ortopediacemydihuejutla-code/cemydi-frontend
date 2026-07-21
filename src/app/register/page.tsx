@@ -23,11 +23,11 @@ import { validatePasswordPolicy } from "@/lib/password-validation";
 import { resolveApiUrl } from "@/lib/api-config";
 
 const authBrandLinkClassName =
-  "font-semibold text-[#1e6260] underline decoration-[#1e6260] underline-offset-2 hover:text-[#145150]";
+  "font-semibold text-[#1e6260] underline decoration-[#1e6260]/35 underline-offset-4 transition-colors hover:text-[#144d4b] hover:decoration-[#144d4b]";
 const primaryButtonClassName =
-  "h-11 w-full rounded-xl border-0 bg-[#1e6260] text-[14px] font-bold text-white shadow-[0_4px_14px_rgba(30,98,96,0.35)] transition-all hover:bg-[#175452] hover:shadow-[0_6px_18px_rgba(30,98,96,0.4)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60";
+  "flex h-12 w-full items-center justify-center gap-2 rounded-[14px] border-0 bg-[#1e6260] px-4 text-[14px] font-bold text-white shadow-[0_10px_22px_-12px_rgba(30,98,96,0.75)] transition-[background-color,transform,box-shadow] hover:bg-[#185452] hover:shadow-[0_14px_26px_-12px_rgba(30,98,96,0.75)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60";
 const checkboxRowClassName =
-  "flex cursor-pointer items-start gap-3 text-sm leading-snug text-slate-600 select-none";
+  "flex items-start gap-3 text-sm leading-snug text-slate-600";
 
 type FormState = {
   nombre: string;
@@ -48,8 +48,8 @@ function validateNombre(value: string) {
   const t = value.trim();
   if (!t) return "Ingresa tu nombre completo";
   if (t.length < 3) return "El nombre debe tener al menos 3 caracteres";
-  if (!/^[A-Za-zÁÉÍÓÚáéíóúñÑ ]+$/.test(t)) {
-    return "Solo se permiten letras y espacios";
+  if (!/^[\p{L}\p{M}]+(?:[ '\-][\p{L}\p{M}]+)*$/u.test(t)) {
+    return "Revisa que tu nombre no contenga números ni símbolos especiales";
   }
   return "";
 }
@@ -84,6 +84,12 @@ export default function RegisterPage() {
     password: "",
     confirmPassword: "",
     terms: "",
+  });
+  const [touched, setTouched] = useState<Record<keyof FormState, boolean>>({
+    nombre: false,
+    correo: false,
+    password: false,
+    confirmPassword: false,
   });
 
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -127,10 +133,17 @@ export default function RegisterPage() {
       const next = { ...prev, [name]: value } as FormState;
 
       setErrors((er) => {
-        const patch: Partial<ErrorsState> = {
-          [name]: validateField(name as keyof FormState, value, next),
-        };
-        if (name === "password" && next.confirmPassword) {
+        const key = name as keyof FormState;
+        const patch: Partial<ErrorsState> = {};
+
+        if (touched[key] || er[key]) {
+          patch[key] = validateField(key, value, next);
+        }
+        if (
+          name === "password" &&
+          next.confirmPassword &&
+          (touched.confirmPassword || er.confirmPassword)
+        ) {
           patch.confirmPassword = validateConfirmPassword(value, next.confirmPassword);
         }
         return { ...er, ...patch };
@@ -138,6 +151,17 @@ export default function RegisterPage() {
 
       return next;
     });
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const key = e.target.name as keyof FormState;
+    const nextForm = { ...form, [key]: e.target.value };
+
+    setTouched((prev) => ({ ...prev, [key]: true }));
+    setErrors((prev) => ({
+      ...prev,
+      [key]: validateField(key, e.target.value, nextForm),
+    }));
   };
 
   const validateAll = (f: FormState, termsOk: boolean): ErrorsState => {
@@ -153,7 +177,15 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading || googleLoading) return;
+
     setSubmitError(null);
+    setTouched({
+      nombre: true,
+      correo: true,
+      password: true,
+      confirmPassword: true,
+    });
 
     const nextErrors = validateAll(form, acceptedTerms);
     setErrors(nextErrors);
@@ -166,6 +198,11 @@ export default function RegisterPage() {
       nextErrors.terms;
 
     if (hasFieldErrors) {
+      window.requestAnimationFrame(() => {
+        document
+          .querySelector<HTMLInputElement>("input[aria-invalid='true']")
+          ?.focus();
+      });
       return;
     }
 
@@ -177,8 +214,7 @@ export default function RegisterPage() {
         correo: form.correo.trim(),
         password: form.password,
       });
-      toast.success(result.message);
-      await new Promise((resolve) => setTimeout(resolve, 900));
+      toast.success(result.message, { id: "auth-register-success" });
       router.push(`/verify-email?correo=${encodeURIComponent(form.correo.trim())}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "No se pudo registrar la cuenta.";
@@ -189,6 +225,7 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = () => {
+    if (loading || googleLoading) return;
     setSubmitError(null);
     setGoogleLoading(true);
     window.location.href = resolveApiUrl("/auth/google");
@@ -213,25 +250,27 @@ export default function RegisterPage() {
     <AuthSplitLayout
       heroBadge="Crea tu cuenta"
       heroTitle="Comienza hoy con CEMYDI"
-      heroDescription="Productos ortopédicos con seguimiento y asesoría."
+      heroDescription="Encuentra productos ortopédicos con seguimiento claro y asesoría cercana."
     >
-      <header className="mb-6 text-center">
-        {/* Ícono decorativo */}
-        <div className="mb-4 flex justify-center">
-          <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-[#1e6260]/10 text-[#1e6260]">
-            <UserPlus className="size-6" strokeWidth={2} />
-          </div>
-        </div>
-        <h1 className="m-0 text-center text-2xl font-bold tracking-tight text-slate-900 sm:text-[1.6rem]">
+      <header className="mb-7">
+        <p className="m-0 text-[11px] font-bold uppercase tracking-[0.19em] text-slate-500">
+          Nueva cuenta
+        </p>
+        <h1 className="mt-3 text-3xl font-bold tracking-[-0.035em] text-slate-950 sm:text-[2.15rem]">
           Crear cuenta
         </h1>
-        <p className="mt-1.5 text-center text-sm leading-snug text-slate-500">
-          Completa los datos para registrarte
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          Regístrate para administrar tus compras y rentas con facilidad.
         </p>
       </header>
 
-      <div className="grid gap-3.5">
-        <form onSubmit={handleSubmit} noValidate className="grid gap-3.5">
+      <div className="grid gap-4">
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="grid gap-4"
+          aria-busy={loading}
+        >
           {submitError ? <AuthAlertBanner message={submitError} /> : null}
 
           <AuthTextField
@@ -241,6 +280,7 @@ export default function RegisterPage() {
             autoComplete="name"
             value={form.nombre}
             onChange={handleChange}
+            onBlur={handleBlur}
             error={errors.nombre}
             placeholder="Ej. María García"
             icon={User}
@@ -254,6 +294,7 @@ export default function RegisterPage() {
             autoComplete="email"
             value={form.correo}
             onChange={handleChange}
+            onBlur={handleBlur}
             error={errors.correo}
             placeholder="tu@correo.com"
             icon={Mail}
@@ -268,7 +309,10 @@ export default function RegisterPage() {
               value={form.password}
               onChange={handleChange}
               onFocus={() => setPasswordFocused(true)}
-              onBlur={() => setPasswordFocused(false)}
+              onBlur={(event) => {
+                setPasswordFocused(false);
+                handleBlur(event);
+              }}
               error={errors.password}
               icon={Lock}
               disabled={loading}
@@ -283,7 +327,11 @@ export default function RegisterPage() {
               }`}
             >
               <div className="overflow-hidden">
-                <AuthPasswordRulesChecklist id="register-password-rules" password={form.password} />
+                <AuthPasswordRulesChecklist
+                  id="register-password-rules"
+                  password={form.password}
+                  size="compact"
+                />
               </div>
             </div>
           </div>
@@ -294,14 +342,16 @@ export default function RegisterPage() {
             autoComplete="new-password"
             value={form.confirmPassword}
             onChange={handleChange}
+            onBlur={handleBlur}
             error={errors.confirmPassword}
             icon={Lock}
             disabled={loading}
           />
 
           <div className="grid gap-1.5">
-            <label className={`${checkboxRowClassName} text-[13px] leading-snug sm:text-sm`}>
+            <div className={`${checkboxRowClassName} text-[13px] leading-snug sm:text-sm`}>
               <input
+                id="register-terms"
                 type="checkbox"
                 checked={acceptedTerms}
                 onChange={(e) => {
@@ -316,7 +366,9 @@ export default function RegisterPage() {
                 aria-describedby={errors.terms ? termsErrorId : undefined}
               />
               <span>
-                He leído y acepto los{" "}
+                <label htmlFor="register-terms" className="cursor-pointer select-none">
+                  He leído y acepto los{" "}
+                </label>
                 <Link href="/terminos-y-condiciones" className={authBrandLinkClassName}>
                   términos y condiciones
                 </Link>{" "}
@@ -326,7 +378,7 @@ export default function RegisterPage() {
                 </Link>{" "}
                 del servicio.
               </span>
-            </label>
+            </div>
             {errors.terms ? (
               <p id={termsErrorId} role="alert" className="text-xs font-medium text-red-600">
                 {errors.terms}
@@ -339,7 +391,14 @@ export default function RegisterPage() {
             disabled={loading || googleLoading}
             className={primaryButtonClassName}
           >
-            {loading ? "Registrando…" : "Registrarme"}
+            {loading ? (
+              "Creando cuenta…"
+            ) : (
+              <>
+                Crear mi cuenta
+                <UserPlus className="size-4" aria-hidden />
+              </>
+            )}
           </button>
         </form>
 
@@ -351,7 +410,7 @@ export default function RegisterPage() {
           disabled={loading}
         />
 
-        <p className="m-0 pt-0.5 text-center text-sm text-slate-500">
+        <p className="m-0 pt-1 text-center text-sm text-slate-500">
           ¿Ya tienes cuenta?{" "}
           <Link href="/login" className={authBrandLinkClassName}>
             Iniciar sesión

@@ -73,7 +73,7 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" href={`/apple-icon.png?v=${iconVersion}`} sizes="180x180" />
         <link rel="manifest" href="/manifest.webmanifest" />
       </head>
-      <body>
+      <body suppressHydrationWarning>
         <AuthProvider>
           <CartProvider>
             <ToasterClient />

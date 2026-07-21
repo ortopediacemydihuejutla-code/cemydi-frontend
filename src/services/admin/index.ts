@@ -8,4 +8,5 @@ export * from "./reviews";
 export * from "./rentals";
 export * from "./analytics";
 export * from "./activity";
+export * from "./notifications";
 export * from "./database";

@@ -96,6 +96,18 @@ export function NavMain({
   )
 }
 
+function isActiveSubItem(
+  pathname: string,
+  url: string,
+  subItems: { url: string }[],
+) {
+  const bestMatch = subItems
+    .filter((subItem) => matchSidebarPath(pathname, subItem.url))
+    .sort((left, right) => right.url.length - left.url.length)[0]
+
+  return bestMatch?.url === url
+}
+
 function CollapsibleNavSection({
   item,
   subItems,
@@ -148,7 +160,7 @@ function CollapsibleNavSection({
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             {subItems.map((subItem) => {
-              const subActive = matchSidebarPath(pathname, subItem.url)
+              const subActive = isActiveSubItem(pathname, subItem.url, subItems)
               return (
                 <DropdownMenuItem key={subItem.url} asChild>
                   <Link
@@ -199,7 +211,7 @@ function CollapsibleNavSection({
               <SidebarMenuSubItem key={subItem.title}>
                 <SidebarMenuSubButton
                   asChild
-                  isActive={matchSidebarPath(pathname, subItem.url)}
+                  isActive={isActiveSubItem(pathname, subItem.url, subItems)}
                 >
                   <Link href={subItem.url}>
                     {subItem.icon && (

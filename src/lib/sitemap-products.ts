@@ -1,7 +1,7 @@
 import { getInternalApiUrl } from "@/lib/api-config";
 
 type SitemapProductPage = {
-  products: Array<{ id: number; createdAt?: string }>;
+  products: Array<{ nombre: string; slug?: string; createdAt?: string }>;
   pagination?: {
     hasNext: boolean;
     page: number;
@@ -10,7 +10,11 @@ type SitemapProductPage = {
 
 export async function fetchActiveProductIdsForSitemap() {
   const baseUrl = getInternalApiUrl();
-  const entries: Array<{ id: number; lastModified?: Date }> = [];
+  const entries: Array<{
+    nombre: string;
+    slug?: string;
+    lastModified?: Date;
+  }> = [];
   let page = 1;
   let hasNext = true;
 
@@ -27,7 +31,8 @@ export async function fetchActiveProductIdsForSitemap() {
     const data = (await response.json()) as SitemapProductPage;
     for (const product of data.products ?? []) {
       entries.push({
-        id: product.id,
+        nombre: product.nombre,
+        slug: product.slug,
         lastModified: product.createdAt ? new Date(product.createdAt) : undefined,
       });
     }

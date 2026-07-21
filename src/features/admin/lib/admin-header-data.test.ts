@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   buildAdminNotifications,
+  formatNotificationTime,
   searchAdminDestinations,
 } from "./admin-header-data";
 
@@ -43,5 +44,20 @@ describe("buildAdminNotifications", () => {
     ).toEqual([
       expect.objectContaining({ id: "all-clear", actionable: false }),
     ]);
+  });
+});
+
+describe("formatNotificationTime", () => {
+  const now = new Date("2026-07-20T18:00:00.000Z").getTime();
+
+  it("formatea tiempos recientes de forma compacta", () => {
+    expect(formatNotificationTime("2026-07-20T17:59:40.000Z", now)).toBe("Ahora");
+    expect(formatNotificationTime("2026-07-20T17:48:00.000Z", now)).toBe("Hace 12 min");
+    expect(formatNotificationTime("2026-07-20T16:00:00.000Z", now)).toBe("Hace 2 horas");
+    expect(formatNotificationTime("2026-07-19T18:00:00.000Z", now)).toBe("Hace 1 día");
+  });
+
+  it("tolera fechas inválidas", () => {
+    expect(formatNotificationTime("fecha-inválida", now)).toBe("Ahora");
   });
 });

@@ -2,6 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { getSiteUrl } from "@/lib/site-config";
 import { fetchActiveProductIdsForSitemap } from "@/lib/sitemap-products";
+import { getProductSlug } from "@/lib/product-share";
 
 export const revalidate = 3600;
 
@@ -59,7 +60,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   try {
     const products = await fetchActiveProductIdsForSitemap();
     productRoutes = products.map((product) => ({
-      url: `${siteUrl}/producto/${product.id}`,
+      url: `${siteUrl}/producto/${encodeURIComponent(getProductSlug(product))}`,
       lastModified: product.lastModified ?? now,
       changeFrequency: "weekly" as const,
       priority: 0.7,

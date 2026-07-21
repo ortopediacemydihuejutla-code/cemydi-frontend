@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatCurrencyMx,
   formatDateEsMx,
+  formatDateOnlyEsMx,
   formatNumberEsMx,
   formatOfferEnd,
 } from "@/lib/formatters";
@@ -21,6 +22,12 @@ describe("formatters", () => {
     const formatted = formatDateEsMx("2024-06-15T12:00:00.000Z", { style: "short" });
     expect(formatted).not.toBe("Sin fecha");
     expect(formatted).toMatch(/2024/);
+  });
+
+  it("conserva el día de una fecha calendario guardada a medianoche UTC", () => {
+    expect(
+      formatDateOnlyEsMx("2026-07-20T00:00:00.000Z", { style: "short" }),
+    ).toMatch(/20.*jul.*2026/i);
   });
 
   it("formatea fin de oferta", () => {

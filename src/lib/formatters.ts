@@ -61,6 +61,28 @@ export function formatDateEsMx(
   }).format(date);
 }
 
+export function formatDateOnlyEsMx(
+  value?: string | Date | null,
+  options: { style?: Exclude<DateStyle, "datetime"> } = {},
+): string {
+  if (!value) return "Sin fecha";
+
+  const isoValue = value instanceof Date ? value.toISOString() : value;
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(isoValue);
+  if (!match) return String(value);
+
+  const date = new Date(
+    Date.UTC(Number(match[1]), Number(match[2]) - 1, Number(match[3])),
+  );
+
+  return new Intl.DateTimeFormat("es-MX", {
+    timeZone: "UTC",
+    day: options.style === "long" ? "numeric" : "2-digit",
+    month: options.style === "long" ? "long" : "short",
+    year: "numeric",
+  }).format(date);
+}
+
 export function formatOfferEnd(value?: string | Date | null): string {
   if (!value) {
     return "";

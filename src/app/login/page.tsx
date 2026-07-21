@@ -21,11 +21,13 @@ import {
 import { resolveApiUrl } from "@/lib/api-config";
 
 const authBrandLinkClassName =
-  "font-semibold text-[#1e6260] underline decoration-[#1e6260] underline-offset-2 hover:text-[#145150]";
+  "font-semibold text-[#1e6260] underline decoration-[#1e6260]/35 underline-offset-4 transition-colors hover:text-[#144d4b] hover:decoration-[#144d4b]";
 const primaryButtonClassName =
-  "mt-1 h-11 w-full rounded-xl border-0 bg-[#1e6260] text-[14px] font-bold text-white shadow-[0_4px_14px_rgba(30,98,96,0.35)] transition-all hover:bg-[#175452] hover:shadow-[0_6px_18px_rgba(30,98,96,0.4)] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-60";
+  "mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-[14px] border-0 bg-[#1e6260] px-4 text-[14px] font-bold text-white shadow-[0_10px_22px_-12px_rgba(30,98,96,0.75)] transition-[background-color,transform,box-shadow] hover:bg-[#185452] hover:shadow-[0_14px_26px_-12px_rgba(30,98,96,0.75)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60";
 const secondaryButtonClassName =
-  "inline-flex min-h-10 w-full items-center justify-center rounded-xl border border-[#1e6260] bg-white px-3.5 text-[13px] font-bold text-[#1e6260] transition hover:bg-[#f0fafa] disabled:cursor-not-allowed disabled:opacity-60";
+  "inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-3.5 text-[13px] font-bold text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60";
+
+type LoginField = "correo" | "password";
 
 function validateLoginCorreo(value: string) {
   const t = value.trim();
@@ -52,6 +54,10 @@ export default function LoginPage() {
     correo: "",
     password: "",
   });
+  const [touched, setTouched] = useState<Record<LoginField, boolean>>({
+    correo: false,
+    password: false,
+  });
 
   const [loading, setLoading] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
@@ -66,19 +72,20 @@ export default function LoginPage() {
     const verificationStatus = currentUrl.searchParams.get("verified");
 
     if (verificationStatus === "success") {
-      toast.success("Tu correo ha sido verificado correctamente.");
+      toast.success("Correo verificado. Ya puedes iniciar sesión.", {
+        id: "auth-email-verified",
+      });
     } else if (verificationStatus === "error") {
-      toast.error("No se pudo verificar el correo o el enlace ya expiró.");
+      setSubmitError("No se pudo verificar el correo o el enlace ya expiró.");
     }
 
     const googleError = currentUrl.searchParams.get("googleError");
     if (googleError) {
       const message =
         googleError === "inactive"
-          ? "Tu cuenta esta inactiva. Contacta a CEMYDI para revisarla."
-          : "No se pudo iniciar sesion con Google. Intenta de nuevo.";
+          ? "Tu cuenta está inactiva. Contacta a CEMYDI para revisarla."
+          : "No se pudo iniciar sesión con Google. Intenta de nuevo.";
       setSubmitError(message);
-      toast.error(message);
       currentUrl.searchParams.delete("googleError");
     }
 
@@ -96,7 +103,7 @@ export default function LoginPage() {
     router.replace(user.rol === "ADMIN" ? "/admin" : "/perfil");
   }, [authLoading, router, user]);
 
-  const runFieldValidation = (name: keyof typeof form, value: string) => {
+  const runFieldValidation = (name: LoginField, value: string) => {
     if (name === "correo") return validateLoginCorreo(value);
     return validateLoginPassword(value);
   };
@@ -104,14 +111,30 @@ export default function LoginPage() {
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setSubmitError(null);
+    setShowResendVerification(false);
     setForm((prev) => ({ ...prev, [name]: value }));
-    const key = name as keyof typeof form;
-    setErrors((prev) => ({ ...prev, [key]: runFieldValidation(key, value) }));
+    const key = name as LoginField;
+    if (touched[key] || errors[key]) {
+      setErrors((prev) => ({ ...prev, [key]: runFieldValidation(key, value) }));
+    }
+  };
+
+  const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+    const key = e.target.name as LoginField;
+    setTouched((prev) => ({ ...prev, [key]: true }));
+    setErrors((prev) => ({
+      ...prev,
+      [key]: runFieldValidation(key, e.target.value),
+    }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (loading || googleLoading) return;
+
     setSubmitError(null);
+    setShowResendVerification(false);
+    setTouched({ correo: true, password: true });
 
     const nextErrors = {
       correo: validateLoginCorreo(form.correo),
@@ -119,6 +142,9 @@ export default function LoginPage() {
     };
     setErrors(nextErrors);
     if (nextErrors.correo || nextErrors.password) {
+      window.requestAnimationFrame(() => {
+        document.querySelector<HTMLInputElement>("input[aria-invalid='true']")?.focus();
+      });
       return;
     }
 
@@ -128,7 +154,10 @@ export default function LoginPage() {
       setLoading(true);
       setShowResendVerification(false);
 
-      const result = await loginUser(form);
+      const result = await loginUser({
+        correo: form.correo.trim(),
+        password: form.password,
+      });
       const nextRole = result.user?.rol === "ADMIN" ? "ADMIN" : "USER";
 
       shouldKeepRedirectLoader = true;
@@ -136,7 +165,7 @@ export default function LoginPage() {
       setRedirecting(true);
       login({ user: result.user });
 
-      toast.success("Bienvenido");
+      toast.success("Sesión iniciada correctamente.", { id: "auth-login-success" });
       router.replace(nextRole === "ADMIN" ? "/admin" : "/perfil");
     } catch (err: unknown) {
       const message =
@@ -151,25 +180,32 @@ export default function LoginPage() {
   };
 
   const handleGoogleLogin = () => {
+    if (loading || googleLoading) return;
     setSubmitError(null);
     setGoogleLoading(true);
     window.location.href = resolveApiUrl("/auth/google");
   };
 
   const handleResendVerification = async () => {
-    if (!form.correo.trim()) {
-      toast.error("Ingresa tu correo para reenviar el enlace.");
+    if (resendingVerification) return;
+
+    const correoError = validateLoginCorreo(form.correo);
+    if (correoError) {
+      setTouched((prev) => ({ ...prev, correo: true }));
+      setErrors((prev) => ({ ...prev, correo: correoError }));
+      document.querySelector<HTMLInputElement>("input[name='correo']")?.focus();
       return;
     }
 
     try {
       setResendingVerification(true);
-      const result = await resendVerificationEmail(form.correo);
-      toast.success(result.message);
+      const result = await resendVerificationEmail(form.correo.trim());
+      setSubmitError(null);
+      toast.success(result.message, { id: "auth-verification-resent" });
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "No se pudo reenviar el enlace de verificación.";
-      toast.error(message);
+      setSubmitError(message);
     } finally {
       setResendingVerification(false);
     }
@@ -193,25 +229,26 @@ export default function LoginPage() {
       heroBadge="CEMYDI"
       heroTitle="Bienvenido de vuelta"
       heroDescription="Gestiona tus compras, rentas y perfil en un solo lugar, con el respaldo de nuestro equipo."
-      showBrandLogo={false}
     >
-      <header className="mb-6 text-center">
-        {/* Ícono decorativo */}
-        <div className="mb-4 flex justify-center">
-          <div className="inline-flex size-12 items-center justify-center rounded-2xl bg-[#1e6260]/10 text-[#1e6260]">
-            <LogIn className="size-6" strokeWidth={2} />
-          </div>
-        </div>
-        <h1 className="m-0 text-center text-2xl font-bold tracking-tight text-slate-900 sm:text-[1.6rem]">
+      <header className="mb-7">
+        <p className="m-0 text-[11px] font-bold uppercase tracking-[0.19em] text-slate-500">
+          Tu espacio personal
+        </p>
+        <h1 className="mt-3 text-3xl font-bold tracking-[-0.035em] text-slate-950 sm:text-[2.15rem]">
           Iniciar sesión
         </h1>
-        <p className="mt-1.5 text-center text-sm leading-snug text-slate-500">
-          Introduce tus datos para continuar
+        <p className="mt-2 text-sm leading-6 text-slate-500">
+          Ingresa tus datos para consultar tus pedidos, rentas y perfil.
         </p>
       </header>
 
-      <div className="grid gap-3.5">
-        <form onSubmit={handleSubmit} noValidate className="grid gap-3.5">
+      <div className="grid gap-4">
+        <form
+          onSubmit={handleSubmit}
+          noValidate
+          className="grid gap-4"
+          aria-busy={loading}
+        >
           {submitError ? <AuthAlertBanner message={submitError} /> : null}
 
           <AuthTextField
@@ -221,6 +258,7 @@ export default function LoginPage() {
             autoComplete="email"
             value={form.correo}
             onChange={handleChange}
+            onBlur={handleBlur}
             error={errors.correo}
             placeholder="tu@correo.com"
             icon={Mail}
@@ -233,12 +271,13 @@ export default function LoginPage() {
             autoComplete="current-password"
             value={form.password}
             onChange={handleChange}
+            onBlur={handleBlur}
             error={errors.password}
             icon={Lock}
             disabled={loading}
           />
 
-          <div className="flex justify-end">
+          <div className="-mt-1 flex justify-end">
             <Link href="/forgot-password" className={authBrandLinkClassName}>
               ¿Olvidaste tu contraseña?
             </Link>
@@ -249,7 +288,14 @@ export default function LoginPage() {
             disabled={loading || googleLoading}
             className={primaryButtonClassName}
           >
-            {loading ? "Entrando…" : "Entrar"}
+            {loading ? (
+              "Iniciando sesión…"
+            ) : (
+              <>
+                Iniciar sesión
+                <LogIn className="size-4" aria-hidden />
+              </>
+            )}
           </button>
         </form>
 
@@ -261,7 +307,7 @@ export default function LoginPage() {
           disabled={loading}
         />
 
-        <p className="m-0 px-2 text-center text-[11px] leading-5 text-slate-400">
+        <p className="m-0 px-2 text-center text-[11px] leading-5 text-slate-500">
           Al continuar, confirmas que has leído y aceptas los{" "}
           <Link href="/terminos-y-condiciones" className={authBrandLinkClassName}>
             términos y condiciones
@@ -274,7 +320,7 @@ export default function LoginPage() {
         </p>
 
         {showResendVerification ? (
-          <div className="grid gap-2.5 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3.5">
+          <div className="grid gap-2.5 border-l-2 border-[#c7a76b] py-1 pl-4">
             <p className="m-0 text-sm text-slate-700">
               Tu cuenta aún no está verificada. ¿Necesitas un nuevo enlace?
             </p>
@@ -289,7 +335,7 @@ export default function LoginPage() {
           </div>
         ) : null}
 
-        <p className="m-0 pt-0.5 text-center text-sm text-slate-500">
+        <p className="m-0 pt-1 text-center text-sm text-slate-500">
           ¿No tienes cuenta?{" "}
           <Link href="/register" className={authBrandLinkClassName}>
             Crear cuenta

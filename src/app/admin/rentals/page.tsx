@@ -3,12 +3,16 @@
 import { useCallback, useState } from "react";
 import {
   CheckCircle2,
+  Ban,
   ClipboardCheck,
   FileText,
   Eye,
   LoaderCircle,
   PackageCheck,
   RotateCcw,
+  ShieldCheck,
+  ShieldX,
+  WalletCards,
   XCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -16,16 +20,23 @@ import toast from "react-hot-toast";
 import { ConfirmDialog } from "@/components/feedback";
 import {
   approveRental,
+  cancelApprovedRental,
   deliverRental,
-  downloadRentalPrescriptionItem,
+  downloadRentalDocument,
   listAdminRentals,
   rejectRental,
+  reviewRentalDocument,
   returnRental,
+  updateRentalDeposit,
   type AdminRentalRequest,
   type RentalCounts,
   type RentalStatus,
 } from "@/services/admin";
-import { formatCurrencyMx, formatDateEsMx } from "@/lib/formatters";
+import {
+  formatCurrencyMx,
+  formatDateEsMx,
+  formatDateOnlyEsMx,
+} from "@/lib/formatters";
 import { AdminFilterTabs } from "@/features/admin/components/admin-filter-tabs";
 import { AdminMetricCard } from "@/features/admin/components/admin-metric-card";
 import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
@@ -59,7 +70,8 @@ import {
 } from "@/features/admin/components/ui/table";
 
 type StatusFilter = RentalStatus | "ALL";
-type RentalActionKind = "approve" | "reject" | "deliver" | "return";
+type RentalActionKind =
+  "approve" | "reject" | "deliver" | "return" | "cancelApproved";
 
 type PendingRentalAction = {
   rental: AdminRentalRequest;
@@ -89,12 +101,37 @@ function statusLabel(status: RentalStatus) {
     case "CANCELLED":
       return "Cancelada";
     case "DELIVERED":
-      return "Entregada";
+      return "Entregada / activa";
     case "RETURNED":
       return "Devuelta";
     default:
       return status;
   }
+}
+
+function documentStatusLabel(
+  status: NonNullable<
+    AdminRentalRequest["items"][number]["prescription"]
+  >["status"],
+) {
+  if (status === "APROBADO") return "Aprobada";
+  if (status === "RECHAZADO") return "Rechazada";
+  if (status === "EN_REVISION") return "En revisión";
+  return "Pendiente";
+}
+
+function depositStatusLabel(status: AdminRentalRequest["depositStatus"]) {
+  if (status === "RETURNED") return "Devuelto";
+  if (status === "RETAINED") return "Retenido";
+  if (status === "PARTIALLY_RETAINED") return "Retención parcial";
+  return "Pendiente de resolución";
+}
+
+function canApproveRental(rental: AdminRentalRequest) {
+  return rental.items.every(
+    (item) =>
+      !item.product.requiereReceta || item.prescription?.status === "APROBADO",
+  );
 }
 
 function statusVariant(status: RentalStatus) {
@@ -132,10 +169,23 @@ export default function AdminRentalsPage() {
     hasPrevious: false,
     hasNext: false,
   });
-  const [selectedRental, setSelectedRental] = useState<AdminRentalRequest | null>(null);
+  const [selectedRental, setSelectedRental] =
+    useState<AdminRentalRequest | null>(null);
   const [actionId, setActionId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState("");
-  const [pendingAction, setPendingAction] = useState<PendingRentalAction | null>(null);
+  const [pendingAction, setPendingAction] =
+    useState<PendingRentalAction | null>(null);
+  const [documentRejectReasons, setDocumentRejectReasons] = useState<
+    Record<string, string>
+  >({});
+  const [documentActionId, setDocumentActionId] = useState<string | null>(null);
+  const [depositStatus, setDepositStatus] = useState<
+    "RETURNED" | "RETAINED" | "PARTIALLY_RETAINED"
+  >("RETURNED");
+  const [depositReturnedAmount, setDepositReturnedAmount] = useState(0);
+  const [depositRetainedAmount, setDepositRetainedAmount] = useState(0);
+  const [depositNotes, setDepositNotes] = useState("");
+  const [depositBusy, setDepositBusy] = useState(false);
 
   const load = useCallback(async () => {
     const result = await listAdminRentals({
@@ -155,8 +205,27 @@ export default function AdminRentalsPage() {
   });
 
   const upsertRental = (rental: AdminRentalRequest) => {
-    setRentals((current) => current.map((item) => (item.id === rental.id ? rental : item)));
-    setSelectedRental((current) => (current?.id === rental.id ? rental : current));
+    setRentals((current) =>
+      current.map((item) => (item.id === rental.id ? rental : item)),
+    );
+    setSelectedRental((current) =>
+      current?.id === rental.id ? rental : current,
+    );
+  };
+
+  const openRental = (rental: AdminRentalRequest) => {
+    setSelectedRental(rental);
+    setRejectReason("");
+    setDepositStatus(
+      rental.depositStatus === "PENDING" ? "RETURNED" : rental.depositStatus,
+    );
+    setDepositReturnedAmount(
+      rental.depositStatus === "PENDING"
+        ? rental.depositTotal
+        : rental.depositReturnedAmount,
+    );
+    setDepositRetainedAmount(rental.depositRetainedAmount);
+    setDepositNotes(rental.depositNotes ?? "");
   };
 
   const confirmPendingAction = async () => {
@@ -172,13 +241,17 @@ export default function AdminRentalsPage() {
             ? await rejectRental(rental.id, rejectReason)
             : kind === "deliver"
               ? await deliverRental(rental.id)
-              : await returnRental(rental.id);
+              : kind === "return"
+                ? await returnRental(rental.id)
+                : await cancelApprovedRental(rental.id);
       upsertRental(result.rental);
       await load();
       toast.success(result.message);
       setPendingAction(null);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo actualizar la renta.");
+      toast.error(
+        err instanceof Error ? err.message : "No se pudo actualizar la renta.",
+      );
     } finally {
       setActionId(null);
     }
@@ -188,7 +261,8 @@ export default function AdminRentalsPage() {
     ? pendingAction.kind === "approve"
       ? {
           title: "Aprobar solicitud",
-          description: "Se descontará el stock disponible y la solicitud quedará aprobada.",
+          description:
+            "Se descontará el stock disponible y la solicitud quedará aprobada.",
           confirmLabel: "Sí, aprobar solicitud",
           tone: "success" as const,
         }
@@ -209,23 +283,103 @@ export default function AdminRentalsPage() {
               tone: "default" as const,
             }
           : {
-              title: "Marcar como devuelta",
-              description: "La renta quedará devuelta y el stock se reintegrará automáticamente.",
-              confirmLabel: "Sí, marcar devuelta",
-              tone: "default" as const,
+              title:
+                pendingAction.kind === "return"
+                  ? "Marcar como devuelta"
+                  : "Cancelar solicitud aprobada",
+              description:
+                pendingAction.kind === "return"
+                  ? "La renta quedará devuelta y el stock se reintegrará automáticamente una sola vez."
+                  : "La solicitud quedará cancelada y la reserva de stock se restaurará una sola vez.",
+              confirmLabel:
+                pendingAction.kind === "return"
+                  ? "Sí, marcar devuelta"
+                  : "Sí, cancelar y restaurar",
+              tone:
+                pendingAction.kind === "return"
+                  ? ("default" as const)
+                  : ("danger" as const),
             }
     : null;
 
-  const openPrescription = async (item: AdminRentalRequest["items"][number]) => {
+  const openPrescription = async (
+    item: AdminRentalRequest["items"][number],
+  ) => {
     if (!item.prescription) return;
 
     try {
-      const result = await downloadRentalPrescriptionItem(item.id, item.prescription.fileName);
+      const result = await downloadRentalDocument(
+        item.prescription.id,
+        item.prescription.fileName,
+      );
       const url = URL.createObjectURL(result.blob);
       window.open(url, "_blank", "noopener,noreferrer");
       window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "No se pudo abrir la receta.");
+      toast.error(
+        err instanceof Error ? err.message : "No se pudo abrir la receta.",
+      );
+    }
+  };
+
+  const handleDocumentReview = async (
+    item: AdminRentalRequest["items"][number],
+    status: "APROBADO" | "RECHAZADO",
+  ) => {
+    if (!item.prescription || !selectedRental) return;
+    const reason = documentRejectReasons[item.prescription.id]?.trim();
+    if (status === "RECHAZADO" && !reason) {
+      toast.error("Escribe el motivo del rechazo de la receta.");
+      return;
+    }
+    try {
+      setDocumentActionId(item.prescription.id);
+      const result = await reviewRentalDocument(
+        item.prescription.id,
+        status,
+        reason,
+      );
+      const nextRental = {
+        ...selectedRental,
+        items: selectedRental.items.map((current) =>
+          current.id === item.id
+            ? { ...current, prescription: result.document }
+            : current,
+        ),
+      };
+      upsertRental(nextRental);
+      toast.success(result.message);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No se pudo revisar la receta.",
+      );
+    } finally {
+      setDocumentActionId(null);
+    }
+  };
+
+  const handleDeposit = async () => {
+    if (!selectedRental) return;
+    try {
+      setDepositBusy(true);
+      const result = await updateRentalDeposit(selectedRental.id, {
+        status: depositStatus,
+        returnedAmount: depositReturnedAmount,
+        retainedAmount: depositRetainedAmount,
+        notes: depositNotes,
+      });
+      upsertRental(result.rental);
+      toast.success(result.message);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No se pudo actualizar el depósito.",
+      );
+    } finally {
+      setDepositBusy(false);
     }
   };
 
@@ -241,10 +395,26 @@ export default function AdminRentalsPage() {
       />
 
       <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <AdminMetricCard context="rentals-total" label="Solicitudes" value={formatNumberEsMx(counts.total)} />
-        <AdminMetricCard context="rentals-pending" label="Pendientes" value={formatNumberEsMx(counts.PENDING)} />
-        <AdminMetricCard context="rentals-approved" label="Aprobadas" value={formatNumberEsMx(counts.APPROVED)} />
-        <AdminMetricCard context="rentals-delivered" label="Entregadas" value={formatNumberEsMx(counts.DELIVERED)} />
+        <AdminMetricCard
+          context="rentals-total"
+          label="Solicitudes"
+          value={formatNumberEsMx(counts.total)}
+        />
+        <AdminMetricCard
+          context="rentals-pending"
+          label="Pendientes"
+          value={formatNumberEsMx(counts.PENDING)}
+        />
+        <AdminMetricCard
+          context="rentals-approved"
+          label="Aprobadas"
+          value={formatNumberEsMx(counts.APPROVED)}
+        />
+        <AdminMetricCard
+          context="rentals-delivered"
+          label="Entregadas"
+          value={formatNumberEsMx(counts.DELIVERED)}
+        />
       </section>
 
       <Card className="rounded-xl border-[var(--border-soft)] shadow-sm">
@@ -252,7 +422,8 @@ export default function AdminRentalsPage() {
           <div>
             <CardTitle>Solicitudes de renta</CardTitle>
             <p className="mt-2 text-sm text-[var(--text-muted)]">
-              La aprobación descuenta stock. La devolución lo reintegra automáticamente.
+              La aprobación descuenta stock. La devolución lo reintegra
+              automáticamente.
             </p>
           </div>
           <AdminFilterTabs
@@ -302,18 +473,25 @@ export default function AdminRentalsPage() {
                   return (
                     <TableRow key={rental.id}>
                       <TableCell className="font-mono text-xs">
-                        {rental.id.slice(-8).toUpperCase()}
+                        {rental.folio ?? rental.id.slice(-8).toUpperCase()}
                       </TableCell>
                       <TableCell>
                         <div className="grid gap-0.5">
-                          <span className="font-medium">{rental.user.nombre}</span>
-                          <span className="text-xs text-[var(--text-muted)]">{rental.user.correo}</span>
+                          <span className="font-medium">
+                            {rental.user.nombre}
+                          </span>
+                          <span className="text-xs text-[var(--text-muted)]">
+                            {rental.user.correo}
+                          </span>
                         </div>
                       </TableCell>
                       <TableCell>
-                        {rental.items.length} producto{rental.items.length === 1 ? "" : "s"}
+                        {rental.items.length} producto
+                        {rental.items.length === 1 ? "" : "s"}
                       </TableCell>
-                      <TableCell>{formatDateEsMx(rental.createdAt, { style: "short" })}</TableCell>
+                      <TableCell>
+                        {formatDateEsMx(rental.createdAt, { style: "short" })}
+                      </TableCell>
                       <TableCell className="font-semibold">
                         {formatCurrencyMx(rental.total, { fractionDigits: 0 })}
                       </TableCell>
@@ -328,10 +506,7 @@ export default function AdminRentalsPage() {
                             type="button"
                             size="sm"
                             variant="outline"
-                            onClick={() => {
-                              setSelectedRental(rental);
-                              setRejectReason("");
-                            }}
+                            onClick={() => openRental(rental)}
                           >
                             <Eye className="size-4" />
                             Ver detalles
@@ -341,24 +516,49 @@ export default function AdminRentalsPage() {
                               type="button"
                               size="sm"
                               variant="success"
-                              disabled={busy}
-                              onClick={() => setPendingAction({ rental, kind: "approve" })}
+                              disabled={busy || !canApproveRental(rental)}
+                              onClick={() =>
+                                setPendingAction({ rental, kind: "approve" })
+                              }
                             >
-                              {busy ? <LoaderCircle className="size-4 animate-spin" /> : <CheckCircle2 className="size-4" />}
+                              {busy ? (
+                                <LoaderCircle className="size-4 animate-spin" />
+                              ) : (
+                                <CheckCircle2 className="size-4" />
+                              )}
                               Aprobar solicitud
                             </Button>
                           ) : null}
                           {rental.status === "APPROVED" ? (
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="update"
-                              disabled={busy}
-                              onClick={() => setPendingAction({ rental, kind: "deliver" })}
-                            >
-                              <PackageCheck className="size-4" />
-                              Marcar entregada
-                            </Button>
+                            <>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="update"
+                                disabled={busy}
+                                onClick={() =>
+                                  setPendingAction({ rental, kind: "deliver" })
+                                }
+                              >
+                                <PackageCheck className="size-4" />
+                                Marcar entregada
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="destructive"
+                                disabled={busy}
+                                onClick={() =>
+                                  setPendingAction({
+                                    rental,
+                                    kind: "cancelApproved",
+                                  })
+                                }
+                              >
+                                <Ban className="size-4" />
+                                Cancelar
+                              </Button>
+                            </>
                           ) : null}
                           {rental.status === "DELIVERED" ? (
                             <Button
@@ -366,7 +566,9 @@ export default function AdminRentalsPage() {
                               size="sm"
                               variant="update"
                               disabled={busy}
-                              onClick={() => setPendingAction({ rental, kind: "return" })}
+                              onClick={() =>
+                                setPendingAction({ rental, kind: "return" })
+                              }
                             >
                               <RotateCcw className="size-4" />
                               Marcar devuelta
@@ -427,34 +629,80 @@ export default function AdminRentalsPage() {
             <>
               <DialogHeader>
                 <DialogTitle>
-                  Solicitud de renta {selectedRental.id.slice(-8).toUpperCase()}
+                  Solicitud de renta{" "}
+                  {selectedRental.folio ??
+                    selectedRental.id.slice(-8).toUpperCase()}
                 </DialogTitle>
               </DialogHeader>
               <div className="grid gap-5">
-                <div className="grid gap-3 rounded-xl border border-border p-4 sm:grid-cols-2">
+                <section className="grid gap-4 border-t border-border pt-4 sm:grid-cols-2">
                   <div>
-                    <p className="text-sm text-muted-foreground">Cliente</p>
-                    <strong>{selectedRental.user.nombre}</strong>
-                    <p className="text-sm text-muted-foreground">{selectedRental.user.correo}</p>
+                    <p className="text-sm text-muted-foreground">Solicitante</p>
+                    <strong>
+                      {selectedRental.applicantName ??
+                        selectedRental.user.nombre}
+                    </strong>
                     <p className="text-sm text-muted-foreground">
-                      {selectedRental.user.telefono || "Sin teléfono"}
+                      {selectedRental.applicantEmail ??
+                        selectedRental.user.correo}
                     </p>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedRental.applicantPhone ??
+                        selectedRental.user.telefono ??
+                        "Sin teléfono"}
+                    </p>
+                    {selectedRental.isForAnotherPerson ? (
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        Paciente:{" "}
+                        {selectedRental.patientName ?? "No especificado"}
+                        {selectedRental.patientRelationship
+                          ? ` · ${selectedRental.patientRelationship}`
+                          : ""}
+                      </p>
+                    ) : null}
                   </div>
                   <div>
-                    <p className="text-sm text-muted-foreground">Dirección</p>
-                    <p className="text-sm">{selectedRental.user.direccion || "Sin dirección registrada"}</p>
+                    <p className="text-sm text-muted-foreground">Entrega</p>
+                    <strong>
+                      {selectedRental.deliveryMethod === "HOME_DELIVERY"
+                        ? "Entrega a domicilio"
+                        : "Recolección en sucursal"}
+                    </strong>
+                    {selectedRental.deliveryMethod === "HOME_DELIVERY" ? (
+                      <p className="text-sm text-muted-foreground">
+                        {[
+                          selectedRental.deliveryAddress,
+                          selectedRental.deliveryNeighborhood,
+                          selectedRental.deliveryPostalCode,
+                          selectedRental.deliveryMunicipality,
+                        ]
+                          .filter(Boolean)
+                          .join(", ") || "Sin dirección registrada"}
+                      </p>
+                    ) : null}
+                    {selectedRental.preferredSchedule ? (
+                      <p className="text-sm text-muted-foreground">
+                        Horario: {selectedRental.preferredSchedule}
+                      </p>
+                    ) : null}
                   </div>
-                </div>
+                </section>
 
-                <div className="grid gap-3">
+                <section className="border-t border-border pt-2">
                   {selectedRental.items.map((item) => (
-                    <div key={item.id} className="rounded-xl border border-border p-4">
+                    <div
+                      key={item.id}
+                      className="border-b border-border py-4 last:border-b-0"
+                    >
                       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                         <div>
-                          <strong>{item.quantity} x {item.product.nombre}</strong>
+                          <strong>
+                            {item.quantity} x {item.product.nombre}
+                          </strong>
                           <p className="mt-1 text-sm text-muted-foreground">
-                            {formatDateEsMx(item.startDate, { style: "short" })} -{" "}
-                            {formatDateEsMx(item.endDate, { style: "short" })} · {item.days} día(s)
+                            {formatDateOnlyEsMx(item.startDate, { style: "short" })}{" "}
+                            - {formatDateOnlyEsMx(item.endDate, { style: "short" })}{" "}
+                            · {item.days} día(s)
                           </p>
                           <p className="text-sm text-muted-foreground">
                             Stock actual: {item.product.stock}
@@ -467,9 +715,16 @@ export default function AdminRentalsPage() {
                           ) : null}
                         </div>
                         <div className="text-left sm:text-right">
-                          <strong>{formatCurrencyMx(item.lineTotal, { fractionDigits: 0 })}</strong>
+                          <strong>
+                            {formatCurrencyMx(item.lineTotal, {
+                              fractionDigits: 0,
+                            })}
+                          </strong>
                           <p className="text-sm text-muted-foreground">
-                            {formatCurrencyMx(item.dailyPrice, { fractionDigits: 0 })}/día
+                            {formatCurrencyMx(item.dailyPrice, {
+                              fractionDigits: 0,
+                            })}
+                            /día
                           </p>
                         </div>
                       </div>
@@ -479,76 +734,256 @@ export default function AdminRentalsPage() {
                         </p>
                       ) : null}
                       {item.prescription ? (
-                        <div className="mt-3 flex flex-col gap-3 rounded-lg border border-border bg-muted/40 px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
-                          <div className="flex min-w-0 items-center gap-2">
-                            <FileText className="size-4 shrink-0 text-[var(--brand-700)]" />
-                            <span className="truncate text-sm font-medium">
-                              {item.prescription.fileName}
-                            </span>
+                        <div className="mt-4 grid gap-3 border-t border-border pt-3">
+                          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                            <div className="flex min-w-0 items-center gap-2">
+                              <FileText className="size-4 shrink-0 text-[var(--brand-700)]" />
+                              <span className="truncate text-sm font-medium">
+                                {item.prescription.fileName}
+                              </span>
+                              <Badge
+                                variant={
+                                  item.prescription.status === "APROBADO"
+                                    ? "emerald"
+                                    : item.prescription.status === "RECHAZADO"
+                                      ? "red"
+                                      : "amber"
+                                }
+                              >
+                                {documentStatusLabel(item.prescription.status)}
+                              </Badge>
+                            </div>
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              onClick={() => void openPrescription(item)}
+                            >
+                              <Eye className="size-4" />
+                              Abrir receta
+                            </Button>
                           </div>
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => void openPrescription(item)}
-                          >
-                            <Eye className="size-4" />
-                            Abrir receta
-                          </Button>
+                          {item.prescription.rejectionReason ? (
+                            <p className="text-sm text-red-700">
+                              Motivo: {item.prescription.rejectionReason}
+                            </p>
+                          ) : null}
+                          {selectedRental.status === "PENDING" ? (
+                            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                              <label className="grid gap-1 text-sm font-medium">
+                                Motivo si se rechaza
+                                <input
+                                  value={
+                                    documentRejectReasons[
+                                      item.prescription.id
+                                    ] ?? ""
+                                  }
+                                  onChange={(event) =>
+                                    setDocumentRejectReasons((current) => ({
+                                      ...current,
+                                      [item.prescription!.id]:
+                                        event.target.value,
+                                    }))
+                                  }
+                                  maxLength={500}
+                                  className="h-9 rounded-md border border-input bg-transparent px-3 text-sm outline-none"
+                                  placeholder="Documento ilegible, datos incompletos..."
+                                />
+                              </label>
+                              <div className="flex flex-wrap gap-2">
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="destructive"
+                                  disabled={
+                                    documentActionId === item.prescription.id
+                                  }
+                                  onClick={() =>
+                                    void handleDocumentReview(item, "RECHAZADO")
+                                  }
+                                >
+                                  <ShieldX className="size-4" /> Rechazar receta
+                                </Button>
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="success"
+                                  disabled={
+                                    documentActionId === item.prescription.id
+                                  }
+                                  onClick={() =>
+                                    void handleDocumentReview(item, "APROBADO")
+                                  }
+                                >
+                                  <ShieldCheck className="size-4" /> Aprobar
+                                  receta
+                                </Button>
+                              </div>
+                            </div>
+                          ) : null}
                         </div>
                       ) : item.product.requiereReceta ? (
                         <p className="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-sm font-medium text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-200">
-                          Este producto requiere receta y no tiene archivo adjunto.
+                          Este producto requiere receta y no tiene archivo
+                          adjunto.
                         </p>
                       ) : null}
                     </div>
                   ))}
-                </div>
+                </section>
 
-                <div className="grid gap-2 rounded-xl border border-border p-4">
+                <section className="grid gap-2 border-t border-border pt-4">
                   <div className="flex justify-between text-sm">
                     <span>Subtotal renta</span>
-                    <strong>{formatCurrencyMx(selectedRental.subtotal, { fractionDigits: 0 })}</strong>
+                    <strong>
+                      {formatCurrencyMx(selectedRental.subtotal, {
+                        fractionDigits: 0,
+                      })}
+                    </strong>
                   </div>
                   <div className="flex justify-between text-sm">
                     <span>Depósitos</span>
-                    <strong>{formatCurrencyMx(selectedRental.depositTotal, { fractionDigits: 0 })}</strong>
+                    <strong>
+                      {formatCurrencyMx(selectedRental.depositTotal, {
+                        fractionDigits: 0,
+                      })}
+                    </strong>
                   </div>
                   <div className="flex justify-between border-t border-border pt-2 text-base">
                     <span>Total estimado</span>
-                    <strong>{formatCurrencyMx(selectedRental.total, { fractionDigits: 0 })}</strong>
+                    <strong>
+                      {formatCurrencyMx(selectedRental.total, {
+                        fractionDigits: 0,
+                      })}
+                    </strong>
                   </div>
-                </div>
+                  <div className="mt-2 flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3 text-sm">
+                    <span className="flex items-center gap-2">
+                      <WalletCards className="size-4" /> Estado del depósito
+                    </span>
+                    <Badge
+                      variant={
+                        selectedRental.depositStatus === "PENDING"
+                          ? "amber"
+                          : selectedRental.depositRetainedAmount > 0
+                            ? "red"
+                            : "emerald"
+                      }
+                    >
+                      {depositStatusLabel(selectedRental.depositStatus)}
+                    </Badge>
+                  </div>
+                  {selectedRental.depositResolvedAt ? (
+                    <p className="text-sm text-muted-foreground">
+                      Devuelto:{" "}
+                      {formatCurrencyMx(selectedRental.depositReturnedAmount)} ·
+                      Retenido:{" "}
+                      {formatCurrencyMx(selectedRental.depositRetainedAmount)}
+                    </p>
+                  ) : null}
+                </section>
 
-                <div className="grid gap-2 rounded-xl border border-border p-4 text-sm text-muted-foreground sm:grid-cols-2">
-                  <span>Estado actualizado: {formatDateEsMx(selectedRental.statusUpdatedAt, { style: "short" })}</span>
+                <section className="grid gap-2 border-t border-border pt-4 text-sm text-muted-foreground sm:grid-cols-2">
+                  <span>
+                    Estado actualizado:{" "}
+                    {formatDateEsMx(selectedRental.statusUpdatedAt, {
+                      style: "short",
+                    })}
+                  </span>
                   {selectedRental.statusUpdatedBy ? (
                     <span>Por: {selectedRental.statusUpdatedBy.nombre}</span>
                   ) : null}
                   {selectedRental.approvedAt ? (
-                    <span>Aprobada: {formatDateEsMx(selectedRental.approvedAt, { style: "short" })}</span>
+                    <span>
+                      Aprobada:{" "}
+                      {formatDateEsMx(selectedRental.approvedAt, {
+                        style: "short",
+                      })}
+                    </span>
                   ) : null}
                   {selectedRental.rejectedAt ? (
-                    <span>Rechazada: {formatDateEsMx(selectedRental.rejectedAt, { style: "short" })}</span>
+                    <span>
+                      Rechazada:{" "}
+                      {formatDateEsMx(selectedRental.rejectedAt, {
+                        style: "short",
+                      })}
+                    </span>
                   ) : null}
                   {selectedRental.cancelledAt ? (
-                    <span>Cancelada: {formatDateEsMx(selectedRental.cancelledAt, { style: "short" })}</span>
+                    <span>
+                      Cancelada:{" "}
+                      {formatDateEsMx(selectedRental.cancelledAt, {
+                        style: "short",
+                      })}
+                    </span>
                   ) : null}
                   {selectedRental.deliveredAt ? (
-                    <span>Entregada: {formatDateEsMx(selectedRental.deliveredAt, { style: "short" })}</span>
+                    <span>
+                      Entregada:{" "}
+                      {formatDateEsMx(selectedRental.deliveredAt, {
+                        style: "short",
+                      })}
+                    </span>
                   ) : null}
                   {selectedRental.returnedAt ? (
-                    <span>Devuelta: {formatDateEsMx(selectedRental.returnedAt, { style: "short" })}</span>
+                    <span>
+                      Devuelta:{" "}
+                      {formatDateEsMx(selectedRental.returnedAt, {
+                        style: "short",
+                      })}
+                    </span>
                   ) : null}
-                </div>
+                </section>
+
+                <section className="border-t border-border pt-4">
+                  <h3 className="font-semibold">Historial de estados</h3>
+                  {selectedRental.statusHistory.length > 0 ? (
+                    <ol className="mt-3 grid gap-3">
+                      {selectedRental.statusHistory.map((entry) => (
+                        <li
+                          key={entry.id}
+                          className="grid gap-0.5 border-l-2 border-[var(--brand-600)] pl-3 text-sm"
+                        >
+                          <strong>
+                            {entry.fromStatus
+                              ? `${statusLabel(entry.fromStatus)} → `
+                              : ""}
+                            {statusLabel(entry.toStatus)}
+                          </strong>
+                          <span className="text-muted-foreground">
+                            {formatDateEsMx(entry.createdAt, {
+                              style: "short",
+                            })}
+                            {entry.actor ? ` · ${entry.actor.nombre}` : ""}
+                          </span>
+                          {entry.note ? (
+                            <span className="text-muted-foreground">
+                              {entry.note}
+                            </span>
+                          ) : null}
+                        </li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Sin eventos históricos previos. El historial comienza con
+                      las transiciones de Fase 4.
+                    </p>
+                  )}
+                </section>
 
                 {selectedRental.status === "PENDING" ? (
-                  <div className="grid gap-3 rounded-xl border border-border p-4">
+                  <section className="grid gap-3 border-t border-border pt-4">
                     <label className="grid gap-2 text-sm font-medium">
-                      Motivo de rechazo <span className="font-normal text-muted-foreground">(opcional)</span>
+                      Motivo de rechazo{" "}
+                      <span className="font-normal text-muted-foreground">
+                        (opcional)
+                      </span>
                       <textarea
                         value={rejectReason}
-                        onChange={(event) => setRejectReason(event.target.value)}
+                        onChange={(event) =>
+                          setRejectReason(event.target.value)
+                        }
                         className="min-h-24 rounded-md border border-input bg-transparent px-3 py-2 outline-none"
                         maxLength={500}
                         placeholder="Escribe el motivo del rechazo"
@@ -560,7 +995,10 @@ export default function AdminRentalsPage() {
                         variant="destructive"
                         disabled={actionId === selectedRental.id}
                         onClick={() =>
-                          setPendingAction({ rental: selectedRental, kind: "reject" })
+                          setPendingAction({
+                            rental: selectedRental,
+                            kind: "reject",
+                          })
                         }
                       >
                         <XCircle className="size-4" />
@@ -569,46 +1007,177 @@ export default function AdminRentalsPage() {
                       <Button
                         type="button"
                         variant="success"
-                        disabled={actionId === selectedRental.id}
+                        disabled={
+                          actionId === selectedRental.id ||
+                          !canApproveRental(selectedRental)
+                        }
                         onClick={() =>
-                          setPendingAction({ rental: selectedRental, kind: "approve" })
+                          setPendingAction({
+                            rental: selectedRental,
+                            kind: "approve",
+                          })
                         }
                       >
                         <CheckCircle2 className="size-4" />
                         Aprobar solicitud
                       </Button>
                     </div>
-                  </div>
+                    {!canApproveRental(selectedRental) ? (
+                      <p className="text-sm font-medium text-amber-700">
+                        Aprueba todas las recetas obligatorias antes de aprobar
+                        la solicitud.
+                      </p>
+                    ) : null}
+                  </section>
                 ) : null}
                 {selectedRental.status === "APPROVED" ? (
-                  <div className="flex justify-end rounded-xl border border-border p-4">
+                  <section className="flex flex-wrap justify-end gap-2 border-t border-border pt-4">
+                    <Button
+                      type="button"
+                      variant="destructive"
+                      disabled={actionId === selectedRental.id}
+                      onClick={() =>
+                        setPendingAction({
+                          rental: selectedRental,
+                          kind: "cancelApproved",
+                        })
+                      }
+                    >
+                      <Ban className="size-4" />
+                      Cancelar y restaurar stock
+                    </Button>
                     <Button
                       type="button"
                       variant="update"
                       disabled={actionId === selectedRental.id}
                       onClick={() =>
-                        setPendingAction({ rental: selectedRental, kind: "deliver" })
+                        setPendingAction({
+                          rental: selectedRental,
+                          kind: "deliver",
+                        })
                       }
                     >
                       <PackageCheck className="size-4" />
                       Marcar entregada
                     </Button>
-                  </div>
+                  </section>
                 ) : null}
                 {selectedRental.status === "DELIVERED" ? (
-                  <div className="flex justify-end rounded-xl border border-border p-4">
+                  <section className="flex justify-end border-t border-border pt-4">
                     <Button
                       type="button"
                       variant="update"
                       disabled={actionId === selectedRental.id}
                       onClick={() =>
-                        setPendingAction({ rental: selectedRental, kind: "return" })
+                        setPendingAction({
+                          rental: selectedRental,
+                          kind: "return",
+                        })
                       }
                     >
                       <RotateCcw className="size-4" />
                       Marcar devuelta
                     </Button>
-                  </div>
+                  </section>
+                ) : null}
+                {selectedRental.status === "RETURNED" ? (
+                  <section className="grid gap-3 border-t border-border pt-4">
+                    <div>
+                      <h3 className="font-semibold">Resolución del depósito</h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        Registra la devolución o retención administrativa. Este
+                        paso no procesa pagos.
+                      </p>
+                    </div>
+                    <label className="grid gap-1 text-sm font-medium">
+                      Resultado
+                      <select
+                        value={depositStatus}
+                        onChange={(event) => {
+                          const next = event.target
+                            .value as typeof depositStatus;
+                          setDepositStatus(next);
+                          if (next === "RETURNED") {
+                            setDepositReturnedAmount(
+                              selectedRental.depositTotal,
+                            );
+                            setDepositRetainedAmount(0);
+                          } else if (next === "RETAINED") {
+                            setDepositReturnedAmount(0);
+                            setDepositRetainedAmount(
+                              selectedRental.depositTotal,
+                            );
+                          }
+                        }}
+                        className="h-9 rounded-md border border-input bg-transparent px-3 text-sm outline-none"
+                      >
+                        <option value="RETURNED">Devuelto completo</option>
+                        <option value="RETAINED">Retenido completo</option>
+                        <option value="PARTIALLY_RETAINED">
+                          Retención parcial
+                        </option>
+                      </select>
+                    </label>
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      <label className="grid gap-1 text-sm font-medium">
+                        Monto devuelto
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={depositReturnedAmount}
+                          onChange={(event) =>
+                            setDepositReturnedAmount(Number(event.target.value))
+                          }
+                          className="h-9 rounded-md border border-input bg-transparent px-3 text-sm outline-none"
+                        />
+                      </label>
+                      <label className="grid gap-1 text-sm font-medium">
+                        Monto retenido
+                        <input
+                          type="number"
+                          min={0}
+                          step="0.01"
+                          value={depositRetainedAmount}
+                          onChange={(event) =>
+                            setDepositRetainedAmount(Number(event.target.value))
+                          }
+                          className="h-9 rounded-md border border-input bg-transparent px-3 text-sm outline-none"
+                        />
+                      </label>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      Los montos deben sumar{" "}
+                      {formatCurrencyMx(selectedRental.depositTotal)}.
+                    </p>
+                    <label className="grid gap-1 text-sm font-medium">
+                      Notas administrativas
+                      <textarea
+                        value={depositNotes}
+                        onChange={(event) =>
+                          setDepositNotes(event.target.value)
+                        }
+                        maxLength={500}
+                        className="min-h-20 rounded-md border border-input bg-transparent px-3 py-2 text-sm outline-none"
+                        placeholder="Condición del equipo o motivo de retención"
+                      />
+                    </label>
+                    <div className="flex justify-end">
+                      <Button
+                        type="button"
+                        variant="update"
+                        disabled={depositBusy}
+                        onClick={() => void handleDeposit()}
+                      >
+                        {depositBusy ? (
+                          <LoaderCircle className="size-4 animate-spin" />
+                        ) : (
+                          <WalletCards className="size-4" />
+                        )}
+                        Guardar resolución
+                      </Button>
+                    </div>
+                  </section>
                 ) : null}
               </div>
             </>

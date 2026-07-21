@@ -12,6 +12,7 @@ import {
 
 const baseProduct: CatalogProduct = {
   id: 42,
+  slug: "tanque-oxigeno-2549l",
   nombre: "Tanque oxigeno 2549L",
   marca: "INFRA",
   modelo: "TO220210C",
@@ -38,10 +39,10 @@ describe("product-share", () => {
     const shareData = buildProductShareData(baseProduct, "https://cemydi.mx/");
 
     expect(shareData.title).toBe("Tanque oxigeno 2549L | CEMYDI");
-    expect(shareData.url).toBe("https://cemydi.mx/producto/42");
+    expect(shareData.url).toBe("https://cemydi.mx/producto/tanque-oxigeno-2549l");
     expect(shareData.text).toContain("Renta Tanque oxigeno 2549L en CEMYDI");
     expect(shareData.text).toContain("$500");
-    expect(shareData.text).toContain("Ver producto: https://cemydi.mx/producto/42");
+    expect(shareData.text).toContain("Ver producto: https://cemydi.mx/producto/tanque-oxigeno-2549l");
   });
 
   it("agrega nota medica cuando requiere receta", () => {
@@ -89,7 +90,7 @@ describe("product-share", () => {
     });
 
     await expect(copyProductShareLink(shareData)).resolves.toBe("copied");
-    expect(writeText).toHaveBeenCalledWith("https://cemydi.mx/producto/42");
+    expect(writeText).toHaveBeenCalledWith("https://cemydi.mx/producto/tanque-oxigeno-2549l");
 
     Object.defineProperty(navigator, "clipboard", {
       configurable: true,

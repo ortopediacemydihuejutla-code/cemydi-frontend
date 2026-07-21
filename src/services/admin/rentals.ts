@@ -28,10 +28,7 @@ export function listAdminRentals(params?: {
     rentals: AdminRentalRequest[];
     counts: RentalCounts;
     pagination: PaginationMeta;
-  }>(
-    `/rentals/admin${query ? `?${query}` : ""}`,
-    { method: "GET" },
-  );
+  }>(`/rentals/admin${query ? `?${query}` : ""}`, { method: "GET" });
 }
 
 export function approveRental(id: string) {
@@ -65,7 +62,57 @@ export function returnRental(id: string) {
   );
 }
 
-export function downloadRentalPrescriptionItem(itemId: number, fallbackName = "receta") {
+export function cancelApprovedRental(id: string) {
+  return adminRequest<{ rental: AdminRentalRequest; message: string }>(
+    `/rentals/${id}/cancel-approved`,
+    { method: "PATCH" },
+  );
+}
+
+export function reviewRentalDocument(
+  documentId: string,
+  status: "APROBADO" | "RECHAZADO",
+  rejectionReason?: string,
+) {
+  return adminRequest<{
+    document: NonNullable<AdminRentalRequest["items"][number]["prescription"]>;
+    message: string;
+  }>(`/rentals/documents/${encodeURIComponent(documentId)}/review`, {
+    method: "PATCH",
+    body: JSON.stringify({ status, rejectionReason }),
+  });
+}
+
+export function updateRentalDeposit(
+  id: string,
+  data: {
+    status: "RETURNED" | "RETAINED" | "PARTIALLY_RETAINED";
+    returnedAmount: number;
+    retainedAmount: number;
+    notes?: string;
+  },
+) {
+  return adminRequest<{ rental: AdminRentalRequest; message: string }>(
+    `/rentals/${id}/deposit`,
+    { method: "PATCH", body: JSON.stringify(data) },
+  );
+}
+
+export function downloadRentalDocument(
+  documentId: string,
+  fallbackName = "receta",
+) {
+  return downloadBinaryResponse(
+    `/rentals/documents/${encodeURIComponent(documentId)}/content?disposition=inline`,
+    fallbackName,
+    "No se pudo descargar la receta",
+  );
+}
+
+export function downloadRentalPrescriptionItem(
+  itemId: number,
+  fallbackName = "receta",
+) {
   return downloadBinaryResponse(
     `/rentals/items/${itemId}/prescription`,
     fallbackName,

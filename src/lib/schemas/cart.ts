@@ -2,6 +2,7 @@ import { z } from "zod";
 
 const cartProductSchema = z.object({
   id: z.number(),
+  slug: z.string().optional(),
   nombre: z.string(),
   marca: z.string(),
   modelo: z.string(),
@@ -26,28 +27,40 @@ const cartAvailabilitySchema = z.object({
   reason: z.string().nullable(),
 });
 
+const rentalDocumentSchema = z.object({
+  id: z.string(),
+  originalFilename: z.string(),
+  mimeType: z.string(),
+  bytes: z.number(),
+  status: z.enum(["PENDIENTE", "EN_REVISION", "APROBADO", "RECHAZADO"]),
+  uploadedAt: z.string(),
+  associatedAt: z.string().nullable(),
+});
+
 const cartItemSchema = z.object({
   id: z.number(),
   mode: z.enum(["VENTA", "RENTA"]).default("VENTA"),
+  configurationStatus: z.enum(["PENDING", "COMPLETE"]).default("COMPLETE"),
   quantity: z.number(),
   rentalStartDate: z.string().nullable().optional(),
   rentalEndDate: z.string().nullable().optional(),
-  rentalDays: z.number().optional(),
+  rentalDays: z.number().nullable().optional(),
   rentalNotes: z.string().nullable().optional(),
   createdAt: z.string(),
   updatedAt: z.string(),
-  lineTotal: z.number(),
+  lineTotal: z.number().nullable(),
   rentalSummary: z
     .object({
       dailyPrice: z.number(),
       minDays: z.number(),
       deposit: z.number(),
-      subtotal: z.number(),
+      subtotal: z.number().nullable(),
       depositTotal: z.number(),
-      total: z.number(),
+      total: z.number().nullable(),
     })
     .nullable()
     .optional(),
+  document: rentalDocumentSchema.nullable().optional(),
   originalLineTotal: z.number().optional(),
   discountAmount: z.number().optional(),
   finalLineTotal: z.number().optional(),
@@ -80,6 +93,7 @@ const shoppingCartSchema = z.object({
     rentalItems: z.number().optional(),
     discountTotal: z.number().optional(),
     hasUnavailableItems: z.boolean(),
+    hasUnconfiguredRentalItems: z.boolean().default(false),
   }),
 });
 

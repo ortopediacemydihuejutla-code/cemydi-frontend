@@ -3,6 +3,7 @@ import { cartResponseSchema } from "@/lib/schemas/cart";
 
 const baseProduct = {
   id: 1,
+  slug: "silla-de-ruedas",
   nombre: "Silla de ruedas",
   marca: "Drive",
   modelo: "RX",
@@ -87,5 +88,65 @@ describe("cartResponseSchema rentals", () => {
 
     expect(result.cart.items.map((item) => item.mode)).toEqual(["VENTA", "RENTA"]);
     expect(result.cart.summary.rentalDepositTotal).toBe(600);
+  });
+
+  it("accepts an unconfigured rental with nullable totals and a safe document summary", () => {
+    const result = cartResponseSchema.parse({
+      cart: {
+        id: "cart_1",
+        createdAt: "2026-07-18T00:00:00.000Z",
+        updatedAt: "2026-07-18T00:00:00.000Z",
+        items: [
+          {
+            id: 2,
+            mode: "RENTA",
+            configurationStatus: "PENDING",
+            quantity: 1,
+            rentalStartDate: null,
+            rentalEndDate: null,
+            rentalDays: null,
+            createdAt: "2026-07-18T00:00:00.000Z",
+            updatedAt: "2026-07-18T00:00:00.000Z",
+            lineTotal: null,
+            rentalSummary: {
+              dailyPrice: 120,
+              minDays: 2,
+              deposit: 300,
+              subtotal: null,
+              depositTotal: 300,
+              total: null,
+            },
+            document: {
+              id: "document-1",
+              originalFilename: "receta.pdf",
+              mimeType: "application/pdf",
+              bytes: 500,
+              status: "PENDIENTE",
+              uploadedAt: "2026-07-18T00:00:00.000Z",
+              associatedAt: null,
+            },
+            availability: { isAvailable: true, maxQuantity: 3, reason: null },
+            product: { ...baseProduct, requiereReceta: true },
+          },
+        ],
+        summary: {
+          distinctItems: 1,
+          totalQuantity: 1,
+          subtotal: 0,
+          saleSubtotal: 0,
+          rentalSubtotal: 0,
+          rentalDepositTotal: 0,
+          total: 0,
+          saleItems: 0,
+          rentalItems: 1,
+          hasUnavailableItems: false,
+          hasUnconfiguredRentalItems: true,
+        },
+      },
+    });
+
+    expect(result.cart.items[0].lineTotal).toBeNull();
+    expect(result.cart.items[0].document).not.toHaveProperty("publicId");
+    expect(result.cart.items[0].document).not.toHaveProperty("assetId");
   });
 });

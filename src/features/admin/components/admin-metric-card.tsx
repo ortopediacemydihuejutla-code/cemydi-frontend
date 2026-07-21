@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import {
+  BarChart3,
   BadgePercent,
   Boxes,
   CheckCircle2,
@@ -14,10 +15,12 @@ import {
   Link2,
   Megaphone,
   PackageCheck,
+  PackageSearch,
   Percent,
   Receipt,
   ShieldAlert,
   Star,
+  TrendingUp,
   Warehouse,
   type LucideIcon,
 } from "lucide-react";
@@ -48,7 +51,11 @@ type AdminMetricContext =
   | "analytics-sessions"
   | "analytics-conversion"
   | "analytics-revenue"
-  | "analytics-avg-order";
+  | "analytics-avg-order"
+  | "demand-products"
+  | "demand-total"
+  | "demand-shortage"
+  | "demand-high";
 
 type MetricTone = {
   icon: LucideIcon;
@@ -241,6 +248,38 @@ const METRIC_TONES: Record<AdminMetricContext, MetricTone> = {
     iconClassName: "text-sky-700 dark:text-sky-300",
     accentClassName:
       "bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.10),transparent_56%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.10),transparent_56%)]",
+  },
+  "demand-products": {
+    icon: PackageCheck,
+    iconWrapperClassName:
+      "bg-sky-500/12 dark:bg-sky-400/14",
+    iconClassName: "text-sky-700 dark:text-sky-300",
+    accentClassName:
+      "bg-[radial-gradient(circle_at_top_right,rgba(14,165,233,0.10),transparent_56%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(56,189,248,0.10),transparent_56%)]",
+  },
+  "demand-total": {
+    icon: BarChart3,
+    iconWrapperClassName:
+      "bg-teal-500/12 dark:bg-teal-400/14",
+    iconClassName: "text-teal-700 dark:text-teal-300",
+    accentClassName:
+      "bg-[radial-gradient(circle_at_top_right,rgba(20,184,166,0.10),transparent_56%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(45,212,191,0.10),transparent_56%)]",
+  },
+  "demand-shortage": {
+    icon: PackageSearch,
+    iconWrapperClassName:
+      "bg-amber-500/12 dark:bg-amber-400/14",
+    iconClassName: "text-amber-700 dark:text-amber-300",
+    accentClassName:
+      "bg-[radial-gradient(circle_at_top_right,rgba(245,158,11,0.10),transparent_56%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(251,191,36,0.10),transparent_56%)]",
+  },
+  "demand-high": {
+    icon: TrendingUp,
+    iconWrapperClassName:
+      "bg-rose-500/12 dark:bg-rose-400/14",
+    iconClassName: "text-rose-700 dark:text-rose-300",
+    accentClassName:
+      "bg-[radial-gradient(circle_at_top_right,rgba(244,63,94,0.10),transparent_56%)] dark:bg-[radial-gradient(circle_at_top_right,rgba(251,113,133,0.10),transparent_56%)]",
   },
 };
 

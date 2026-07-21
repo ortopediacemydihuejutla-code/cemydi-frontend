@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { isOptimizableImageUrl } from "@/lib/cloudinary-image";
 import type { ActivePromotion } from "@/services/catalog";
+import { getProductSlug } from "@/lib/product-share";
 
 function getProductMonogram(nombre: string) {
   const clean = nombre.trim().toUpperCase();
@@ -88,7 +89,7 @@ export function PromotionsShowcase({ promotions }: Props) {
               return (
                 <Link
                   key={promotion.id}
-                  href={`/producto/${promotion.productId}`}
+                  href={`/producto/${encodeURIComponent(getProductSlug(promotion.product))}`}
                   className="group flex min-w-[min(100%,320px)] max-w-[100%] shrink-0 snap-center flex-col overflow-hidden rounded-3xl border border-[#d4e4e7] bg-white no-underline shadow-[0_4px_20px_rgba(19,78,74,0.06)] transition duration-300 hover:-translate-y-1 hover:border-[#9cc9c8] hover:shadow-[0_20px_48px_rgba(19,78,74,0.12)] md:min-w-0 md:max-w-none"
                 >
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-[#165a5e] via-[#1f7a78] to-[#3dbfb8]">

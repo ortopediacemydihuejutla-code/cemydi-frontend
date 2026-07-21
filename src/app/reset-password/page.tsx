@@ -3,8 +3,30 @@
 import Link from "next/link";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  Eye,
+  EyeOff,
+  KeyRound,
+  LockKeyhole,
+  Mail,
+  RotateCcw,
+} from "lucide-react";
 import toast from "react-hot-toast";
-import { validatePasswordPolicy } from "@/lib/password-validation";
+import {
+  AccountActionLayout,
+  accountInputClassName,
+  accountLabelClassName,
+  accountPrimaryButtonClassName,
+  accountTextLinkClassName,
+} from "@/components/auth/account-action-layout";
+import {
+  getPasswordRulesStatus,
+  validatePasswordPolicy,
+} from "@/lib/password-validation";
 import {
   confirmPasswordReset,
   requestPasswordReset,
@@ -14,37 +36,12 @@ import {
 const OTP_LENGTH = 8;
 const RESEND_COOLDOWN_SECONDS = 60;
 
-const authShellClassName =
-  "min-h-[calc(100vh-120px)] bg-[linear-gradient(180deg,#eef7f6_0%,#f8fbfb_100%)] px-3 py-5 min-[521px]:px-4 min-[521px]:py-10";
-const containerClassName =
-  "mx-auto grid max-w-[1140px] overflow-hidden rounded-[28px] border border-[var(--border-soft)] bg-white shadow-[var(--shadow-md)] min-[900px]:grid-cols-[1.02fr_1fr]";
-const sideClassName =
-  "relative hidden min-h-[600px] bg-[linear-gradient(180deg,#1e6260_0%,#0f3d3b_100%)] min-[900px]:block";
-const overlayClassName =
-  "absolute inset-0 bg-[linear-gradient(to_top,rgba(15,61,59,0.96),rgba(30,98,96,0.42),transparent)]";
-const brandClassName =
-  "absolute right-[34px] bottom-[34px] left-[34px] z-[2] text-white";
-const rightClassName =
-  "flex items-center justify-center bg-white px-3 py-4 min-[521px]:px-6 min-[521px]:py-7 min-[900px]:px-[50px] min-[900px]:py-[46px]";
-const cardClassName = "w-full max-w-[480px]";
-const inputClassName =
-  "h-11 rounded-[14px] border border-[#d6e5e5] bg-white px-3 text-[0.98rem] text-[#0f3d3b] outline-none focus:border-[#2ba2a1] focus:shadow-[0_0_0_3px_rgba(43,162,161,0.2)] min-[521px]:h-12 min-[521px]:px-3.5 min-[521px]:text-base";
-const inputErrorClassName = "border-[#ef4444] bg-[#fff7f7]";
-const errorTextClassName = "mt-[-4px] text-xs text-[#dc2626]";
-const primaryButtonClassName =
-  "mt-2 h-[46px] rounded-[14px] border-0 bg-[#1e6260] font-bold text-white transition hover:bg-[#18514f] disabled:cursor-not-allowed disabled:opacity-60 min-[521px]:h-[48px]";
-const inlineButtonClassName =
-  "inline-flex min-h-0 items-center justify-center rounded-[10px] border border-[#1e6260] bg-transparent px-[10px] py-1 text-[0.78rem] font-bold text-[#1e6260] disabled:cursor-not-allowed disabled:opacity-60";
-
 function ResetPasswordContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const initialEmail =
-    searchParams.get("correo") ||
-    (typeof window !== "undefined" ? sessionStorage.getItem("recovery_email") : "") ||
-    "";
+  const emailFromUrl = searchParams.get("correo")?.trim() ?? "";
 
-  const [correo, setCorreo] = useState(initialEmail);
+  const [correo, setCorreo] = useState(emailFromUrl);
   const [otpValues, setOtpValues] = useState<string[]>(
     Array.from({ length: OTP_LENGTH }, () => ""),
   );
@@ -52,6 +49,7 @@ function ResetPasswordContent() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [verifying, setVerifying] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [resending, setResending] = useState(false);
   const [codeVerified, setCodeVerified] = useState(false);
   const [showPasswords, setShowPasswords] = useState({
     password: false,
@@ -64,31 +62,42 @@ function ResetPasswordContent() {
   const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
 
   const codigo = otpValues.join("");
+  const passwordRules = getPasswordRulesStatus(newPassword);
+
+  useEffect(() => {
+    if (emailFromUrl) return;
+    const storedEmail = sessionStorage.getItem("recovery_email");
+    if (storedEmail) setCorreo(storedEmail);
+  }, [emailFromUrl]);
 
   useEffect(() => {
     if (cooldown <= 0) return;
-    const timer = window.setTimeout(() => {
-      setCooldown((current) => Math.max(0, current - 1));
-    }, 1000);
+    const timer = window.setTimeout(
+      () => setCooldown((current) => Math.max(0, current - 1)),
+      1_000,
+    );
     return () => window.clearTimeout(timer);
   }, [cooldown]);
 
   const emailError = useMemo(() => {
-    if (!correo.trim()) return "El correo es obligatorio";
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) return "Correo inválido";
+    if (!correo.trim()) return "Ingresa tu correo electrónico";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo.trim())) {
+      return "Revisa el formato del correo";
+    }
     return "";
   }, [correo]);
 
   const codeError = useMemo(() => {
-    if (!codigo.trim()) return "Ingresa el código completo";
-    if (codigo.trim().length !== OTP_LENGTH) return "El código debe tener 8 dígitos";
+    if (codigo.length !== OTP_LENGTH)
+      return "Completa los 8 dígitos del código";
     return "";
   }, [codigo]);
 
   const passwordError = useMemo(() => {
-    if (!newPassword) return "La nueva contraseña es obligatoria";
+    if (!newPassword) return "Ingresa una contraseña nueva";
     const policyError = validatePasswordPolicy(newPassword);
     if (policyError) return policyError;
+    if (!confirmPassword) return "Confirma la contraseña nueva";
     if (newPassword !== confirmPassword) return "Las contraseñas no coinciden";
     return "";
   }, [newPassword, confirmPassword]);
@@ -99,6 +108,7 @@ function ResetPasswordContent() {
     nextValues[index] = digit;
     setOtpValues(nextValues);
     setCodeVerified(false);
+    setFormError(null);
 
     if (digit && index < OTP_LENGTH - 1) {
       inputRefs.current[index + 1]?.focus();
@@ -107,298 +117,430 @@ function ResetPasswordContent() {
 
   const handleOtpKeyDown = (
     index: number,
-    e: React.KeyboardEvent<HTMLInputElement>,
+    event: React.KeyboardEvent<HTMLInputElement>,
   ) => {
-    if (e.key === "Backspace" && !otpValues[index] && index > 0) {
+    if (event.key === "Backspace" && !otpValues[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   };
 
-  const handleVerifyCode = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleOtpPaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    const digits = event.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, OTP_LENGTH);
+    if (!digits) return;
+    event.preventDefault();
+    const nextValues = Array.from(
+      { length: OTP_LENGTH },
+      (_, index) => digits[index] ?? "",
+    );
+    setOtpValues(nextValues);
+    setCodeVerified(false);
+    setFormError(null);
+    inputRefs.current[Math.min(digits.length, OTP_LENGTH) - 1]?.focus();
+  };
+
+  const handleVerifyCode = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
     setVerifyAttempted(true);
     setFormError(null);
-
-    if (emailError || codeError) {
-      return;
-    }
+    if (emailError || codeError) return;
 
     try {
       setVerifying(true);
       await verifyPasswordResetCode({
-        correo,
+        correo: correo.trim().toLowerCase(),
         codigo,
       });
       setCodeVerified(true);
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "No se pudo verificar el código.";
+    } catch {
       setCodeVerified(false);
-      setFormError(message);
+      setFormError("El código es incorrecto, venció o ya fue utilizado.");
     } finally {
       setVerifying(false);
     }
   };
 
-  const handleSavePassword = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+  const handleSavePassword = async (
+    event: React.FormEvent<HTMLFormElement>,
+  ) => {
+    event.preventDefault();
     setSaveAttempted(true);
     setFormError(null);
-
     if (!codeVerified) {
-      setFormError("Primero confirma el código.");
+      setFormError("Primero confirma el código que recibiste.");
       return;
     }
-
-    if (passwordError) {
-      return;
-    }
+    if (passwordError) return;
 
     try {
       setSaving(true);
       const result = await confirmPasswordReset({
-        correo,
+        correo: correo.trim().toLowerCase(),
         codigo,
         newPassword,
       });
       sessionStorage.removeItem("recovery_email");
       toast.success(result.message);
       router.push("/login");
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "No se pudo actualizar la contraseña.";
-      setFormError(message);
+    } catch {
+      setFormError(
+        "No pudimos actualizar la contraseña. Solicita un código nuevo.",
+      );
     } finally {
       setSaving(false);
     }
   };
 
   const handleResendCode = async () => {
-    if (cooldown > 0) return;
-
     setVerifyAttempted(true);
     setFormError(null);
-
-    if (emailError) {
-      return;
-    }
+    if (emailError || cooldown > 0) return;
 
     try {
-      setSaving(true);
-      const result = await requestPasswordReset(correo);
+      setResending(true);
+      const result = await requestPasswordReset(correo.trim().toLowerCase());
       setOtpValues(Array.from({ length: OTP_LENGTH }, () => ""));
       setCodeVerified(false);
       setCooldown(RESEND_COOLDOWN_SECONDS);
       inputRefs.current[0]?.focus();
       toast.success(result.message);
-    } catch (err: unknown) {
-      const message =
-        err instanceof Error ? err.message : "No se pudo reenviar el código.";
-      setFormError(message);
+    } catch {
+      setFormError("No pudimos procesar el reenvío. Intenta más tarde.");
     } finally {
-      setSaving(false);
+      setResending(false);
     }
   };
 
+  const rules = [
+    {
+      met: passwordRules.minLength && passwordRules.maxLength,
+      label: "10 a 72 caracteres",
+    },
+    { met: passwordRules.hasUpper, label: "Una mayúscula" },
+    { met: passwordRules.hasDigit, label: "Un número" },
+    { met: passwordRules.hasSymbol, label: "Un símbolo" },
+  ];
+
   return (
-    <section className={authShellClassName}>
-      <div className={containerClassName}>
-        <div className={sideClassName}>
-          <div className="absolute inset-0 bg-[url('/fondowan.png')] bg-cover bg-center opacity-[0.85] mix-blend-overlay" />
-          <div className={overlayClassName} />
-          <div className={brandClassName}>
-            <p className="mb-2 text-xs uppercase tracking-[0.2em] text-[#dcfce7]">CEMYDI</p>
-            <h2 className="mb-2 text-[2rem]">Restablece tu contraseña</h2>
-            <span className="text-sm text-[#dcfce7]">
-              Primero confirma el código OTP y después define una nueva contraseña.
-            </span>
-          </div>
+    <AccountActionLayout
+      eyebrow="Recuperación de acceso"
+      asideTitle="Crea una contraseña nueva y segura."
+      asideDescription="El código temporal confirma que tienes acceso al correo de la cuenta antes de permitir el cambio."
+      asideItems={[
+        "Código válido por tiempo limitado",
+        "Máximo de intentos controlado",
+        "Sesiones anteriores revocadas",
+      ]}
+    >
+      <div>
+        <div className="flex items-center justify-between gap-4">
+          <p className="m-0 text-[11px] font-bold uppercase tracking-[0.18em] text-[#20636d]">
+            Paso 2 de 2
+          </p>
+          <p className="m-0 text-xs font-medium text-slate-400">
+            {codeVerified ? "Nueva contraseña" : "Confirmar código"}
+          </p>
+        </div>
+        <div className="mt-3 grid grid-cols-2 gap-2" aria-hidden>
+          <span className="h-1 rounded-full bg-[#20636d]" />
+          <span
+            className={`h-1 rounded-full ${codeVerified ? "bg-[#20636d]" : "bg-slate-200"}`}
+          />
         </div>
 
-        <div className={rightClassName}>
-          <div className={cardClassName}>
-            <div className="mb-4 inline-flex size-[66px] items-center justify-center rounded-[20px] bg-[linear-gradient(180deg,rgba(43,162,161,0.14),rgba(30,98,96,0.08))] text-[#1e6260]">
-              <svg viewBox="0 0 24 24" className="size-8" fill="none" stroke="currentColor" strokeWidth="1.8">
-                <path d="M7 10V7a5 5 0 0 1 10 0v3" />
-                <rect x="5" y="10" width="14" height="10" rx="2" />
-              </svg>
-            </div>
-            <h2 className="mb-2 text-[2rem] text-[#0f3d3b]">
-              {codeVerified ? "Nueva contraseña" : "Ingresa el OTP"}
-            </h2>
-            <p className="mb-4 text-sm leading-[1.65] text-gray-600">
-              {codeVerified
-                ? "El código fue validado correctamente. Ahora crea tu nueva contraseña."
-                : "Escribe el código que enviamos a tu correo para continuar."}
-            </p>
-            <span className="mb-[18px] inline-flex items-center rounded-full bg-[#eef7f6] px-3 py-2 text-xs font-bold text-[#1e6260]">
-              Proceso seguro de recuperación
-            </span>
-
-            {!codeVerified ? (
-              <form onSubmit={handleVerifyCode} noValidate className="grid gap-2.5">
-                {formError ? (
-                  <p className="m-0 rounded-[14px] border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
-                    {formError}
-                  </p>
-                ) : null}
-
-                <label htmlFor="correo" className="text-sm font-semibold text-gray-800">
-                  Correo electrónico
-                </label>
-                <input
-                  id="correo"
-                  type="email"
-                  value={correo}
-                  onChange={(e) => {
-                    setCorreo(e.target.value);
-                    setCodeVerified(false);
-                    setFormError(null);
-                  }}
-                  autoComplete="email"
-                  className={`${inputClassName} ${verifyAttempted && emailError ? inputErrorClassName : ""}`}
-                />
-                {verifyAttempted && emailError ? (
-                  <span className={errorTextClassName}>{emailError}</span>
-                ) : null}
-
-                <label className="text-sm font-semibold text-gray-800">Código OTP</label>
-                <div className="grid w-full grid-cols-8 gap-2 min-[521px]:gap-2.5">
-                  {otpValues.map((value, index) => (
-                    <input
-                      key={index}
-                      ref={(node) => {
-                        inputRefs.current[index] = node;
-                      }}
-                      type="text"
-                      inputMode="numeric"
-                      maxLength={1}
-                      value={value}
-                      onChange={(e) => {
-                        handleOtpChange(index, e.target.value);
-                        setFormError(null);
-                      }}
-                      onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                      aria-label={`Dígito ${index + 1} del código OTP`}
-                      className="h-[46px] min-w-0 rounded-[14px] border border-[#d6e5e5] bg-white text-center text-[19px] font-bold text-[#0f3d3b] outline-none focus:border-[#2ba2a1] focus:shadow-[0_0_0_3px_rgba(43,162,161,0.2)] min-[521px]:h-[52px] min-[521px]:text-[22px]"
-                    />
-                  ))}
-                </div>
-                {verifyAttempted && codeError ? (
-                  <span className={errorTextClassName}>{codeError}</span>
-                ) : null}
-
-                <button type="submit" disabled={verifying} className={primaryButtonClassName}>
-                  {verifying ? "Verificando..." : "Continuar"}
-                </button>
-
-                <p className="mt-3 text-center text-sm leading-[1.6] text-gray-600">
-                  ¿No recibiste el código?{" "}
-                  <button
-                    type="button"
-                    onClick={handleResendCode}
-                    disabled={saving || cooldown > 0}
-                    className={inlineButtonClassName}
-                  >
-                    {cooldown > 0 ? `Reenviar en ${cooldown}s` : "Reenviar código"}
-                  </button>
-                </p>
-              </form>
-            ) : (
-              <form onSubmit={handleSavePassword} noValidate className="grid gap-2.5">
-                {formError ? (
-                  <p className="m-0 rounded-[14px] border border-red-200 bg-red-50 px-3 py-2.5 text-sm text-red-700">
-                    {formError}
-                  </p>
-                ) : null}
-
-                <label htmlFor="newPassword" className="text-sm font-semibold text-gray-800">
-                  Nueva contraseña
-                </label>
-                <div className="relative w-full">
-                  <input
-                    id="newPassword"
-                    type={showPasswords.password ? "text" : "password"}
-                    value={newPassword}
-                    onChange={(e) => {
-                      setNewPassword(e.target.value);
-                      setFormError(null);
-                    }}
-                    autoComplete="new-password"
-                    className={`${inputClassName} w-full pr-[68px] ${
-                      saveAttempted && passwordError ? inputErrorClassName : ""
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShowPasswords((current) => ({
-                        ...current,
-                        password: !current.password,
-                      }))
-                    }
-                    className="absolute top-1/2 right-3 min-h-0 min-w-0 -translate-y-1/2 border-0 bg-transparent p-0 text-[0.82rem] font-bold text-gray-500"
-                  >
-                    {showPasswords.password ? "Ocultar" : "Ver"}
-                  </button>
-                </div>
-
-                <label htmlFor="confirmPassword" className="text-sm font-semibold text-gray-800">
-                  Confirmar contraseña
-                </label>
-                <div className="relative w-full">
-                  <input
-                    id="confirmPassword"
-                    type={showPasswords.confirm ? "text" : "password"}
-                    value={confirmPassword}
-                    onChange={(e) => {
-                      setConfirmPassword(e.target.value);
-                      setFormError(null);
-                    }}
-                    autoComplete="new-password"
-                    className={`${inputClassName} w-full pr-[68px] ${
-                      saveAttempted && passwordError ? inputErrorClassName : ""
-                    }`}
-                  />
-                  <button
-                    type="button"
-                    onClick={() =>
-                      setShowPasswords((current) => ({
-                        ...current,
-                        confirm: !current.confirm,
-                      }))
-                    }
-                    className="absolute top-1/2 right-3 min-h-0 min-w-0 -translate-y-1/2 border-0 bg-transparent p-0 text-[0.82rem] font-bold text-gray-500"
-                  >
-                    {showPasswords.confirm ? "Ocultar" : "Ver"}
-                  </button>
-                </div>
-                {saveAttempted && passwordError ? (
-                  <span className={errorTextClassName}>{passwordError}</span>
-                ) : null}
-
-                <button type="submit" disabled={saving} className={primaryButtonClassName}>
-                  {saving ? "Actualizando..." : "Guardar contraseña"}
-                </button>
-              </form>
-            )}
-
-            <Link
-              href="/forgot-password"
-              className="mt-[18px] inline-flex text-sm font-bold text-[#1e6260] no-underline hover:underline"
-            >
-              Volver al paso anterior
-            </Link>
-          </div>
-        </div>
+        <h1 className="mt-6 text-[2rem] font-semibold leading-tight tracking-[-0.03em] text-slate-950 sm:text-[2.25rem]">
+          {codeVerified
+            ? "Define tu nueva contraseña"
+            : "Ingresa el código recibido"}
+        </h1>
+        <p className="mt-3 text-[15px] leading-7 text-slate-600">
+          {codeVerified
+            ? "El código fue confirmado. Elige una contraseña que no uses en otros servicios."
+            : "Escribe los 8 dígitos que enviamos a tu correo para continuar."}
+        </p>
       </div>
-    </section>
+
+      {!codeVerified ? (
+        <form onSubmit={handleVerifyCode} noValidate className="mt-7">
+          {formError ? <FormError message={formError} /> : null}
+
+          <div>
+            <label htmlFor="correo" className={accountLabelClassName}>
+              Correo electrónico
+            </label>
+            <div className="relative">
+              <Mail
+                className="pointer-events-none absolute top-1/2 left-3.5 size-[17px] -translate-y-1/2 text-slate-400"
+                aria-hidden
+              />
+              <input
+                id="correo"
+                type="email"
+                value={correo}
+                onChange={(event) => {
+                  setCorreo(event.target.value);
+                  setCodeVerified(false);
+                  setFormError(null);
+                }}
+                autoComplete="email"
+                disabled={verifying}
+                aria-invalid={Boolean(verifyAttempted && emailError)}
+                className={`${accountInputClassName} pl-10 ${
+                  verifyAttempted && emailError
+                    ? "border-red-400 bg-red-50/40"
+                    : ""
+                }`}
+              />
+            </div>
+            {verifyAttempted && emailError ? (
+              <p role="alert" className="mt-2 text-xs font-medium text-red-600">
+                {emailError}
+              </p>
+            ) : null}
+          </div>
+
+          <fieldset className="mt-5 border-0 p-0">
+            <div className="mb-2 flex items-center justify-between gap-4">
+              <legend className="text-[13px] font-semibold text-slate-700">
+                Código de 8 dígitos
+              </legend>
+              <span className="text-xs text-slate-400">Sólo números</span>
+            </div>
+            <div className="grid grid-cols-8 gap-1.5 sm:gap-2">
+              {otpValues.map((value, index) => (
+                <input
+                  key={index}
+                  ref={(node) => {
+                    inputRefs.current[index] = node;
+                  }}
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete={index === 0 ? "one-time-code" : "off"}
+                  maxLength={1}
+                  value={value}
+                  onChange={(event) =>
+                    handleOtpChange(index, event.target.value)
+                  }
+                  onKeyDown={(event) => handleOtpKeyDown(index, event)}
+                  onPaste={handleOtpPaste}
+                  disabled={verifying}
+                  aria-label={`Dígito ${index + 1} del código`}
+                  className={`h-12 min-w-0 rounded-lg border bg-slate-50 text-center text-lg font-bold text-slate-900 outline-none transition focus:border-[#20636d] focus:bg-white focus:shadow-[0_0_0_3px_rgba(32,99,109,0.12)] sm:h-13 sm:text-xl ${
+                    verifyAttempted && codeError
+                      ? "border-red-300"
+                      : "border-slate-200"
+                  }`}
+                />
+              ))}
+            </div>
+            {verifyAttempted && codeError ? (
+              <p role="alert" className="mt-2 text-xs font-medium text-red-600">
+                {codeError}
+              </p>
+            ) : null}
+          </fieldset>
+
+          <button
+            type="submit"
+            disabled={verifying}
+            className={`${accountPrimaryButtonClassName} mt-6`}
+          >
+            {verifying ? "Comprobando código..." : "Confirmar código"}
+            {!verifying ? <ArrowRight className="size-4" aria-hidden /> : null}
+          </button>
+
+          <div className="mt-5 flex flex-wrap items-center justify-center gap-2 text-sm text-slate-500">
+            <span>¿No lo recibiste?</span>
+            <button
+              type="button"
+              onClick={handleResendCode}
+              disabled={resending || cooldown > 0}
+              className="inline-flex min-h-0 min-w-0 items-center gap-1.5 border-0 bg-transparent p-0 font-semibold text-[#20636d] underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:text-slate-400"
+            >
+              <RotateCcw className="size-3.5" aria-hidden />
+              {resending
+                ? "Reenviando..."
+                : cooldown > 0
+                  ? `Reenviar en ${cooldown}s`
+                  : "Reenviar código"}
+            </button>
+          </div>
+        </form>
+      ) : (
+        <form onSubmit={handleSavePassword} noValidate className="mt-7">
+          {formError ? <FormError message={formError} /> : null}
+
+          <PasswordInput
+            id="newPassword"
+            label="Nueva contraseña"
+            value={newPassword}
+            visible={showPasswords.password}
+            autoComplete="new-password"
+            onChange={(value) => {
+              setNewPassword(value);
+              setFormError(null);
+            }}
+            onToggle={() =>
+              setShowPasswords((current) => ({
+                ...current,
+                password: !current.password,
+              }))
+            }
+            invalid={Boolean(saveAttempted && passwordError)}
+          />
+
+          <ul
+            className="mt-3 grid list-none grid-cols-2 gap-x-4 gap-y-2 p-0"
+            aria-label="Requisitos de contraseña"
+          >
+            {rules.map((rule) => (
+              <li
+                key={rule.label}
+                className={`flex items-center gap-2 text-xs ${
+                  rule.met ? "font-medium text-slate-700" : "text-slate-400"
+                }`}
+              >
+                <span
+                  className={`grid size-4 shrink-0 place-items-center rounded-full ${
+                    rule.met
+                      ? "bg-[#20636d] text-white"
+                      : "border border-slate-300"
+                  }`}
+                  aria-hidden
+                >
+                  {rule.met ? (
+                    <Check className="size-2.5" strokeWidth={3} />
+                  ) : null}
+                </span>
+                {rule.label}
+              </li>
+            ))}
+          </ul>
+
+          <div className="mt-5">
+            <PasswordInput
+              id="confirmPassword"
+              label="Confirma la contraseña"
+              value={confirmPassword}
+              visible={showPasswords.confirm}
+              autoComplete="new-password"
+              onChange={(value) => {
+                setConfirmPassword(value);
+                setFormError(null);
+              }}
+              onToggle={() =>
+                setShowPasswords((current) => ({
+                  ...current,
+                  confirm: !current.confirm,
+                }))
+              }
+              invalid={Boolean(saveAttempted && passwordError)}
+            />
+          </div>
+
+          {saveAttempted && passwordError ? (
+            <p role="alert" className="mt-2 text-xs font-medium text-red-600">
+              {passwordError}
+            </p>
+          ) : null}
+
+          <button
+            type="submit"
+            disabled={saving}
+            className={`${accountPrimaryButtonClassName} mt-6`}
+          >
+            <KeyRound className="size-4" aria-hidden />
+            {saving ? "Guardando contraseña..." : "Guardar contraseña"}
+          </button>
+        </form>
+      )}
+
+      <div className="mt-7 border-t border-slate-200 pt-5">
+        <Link href="/forgot-password" className={accountTextLinkClassName}>
+          <ArrowLeft className="size-4" aria-hidden />
+          Volver al paso anterior
+        </Link>
+      </div>
+    </AccountActionLayout>
+  );
+}
+
+function FormError({ message }: { message: string }) {
+  return (
+    <div
+      role="alert"
+      className="mb-5 flex items-start gap-2.5 border-l-2 border-red-400 bg-red-50 px-3.5 py-3 text-sm text-red-700"
+    >
+      <AlertCircle className="mt-0.5 size-4 shrink-0" aria-hidden />
+      <p className="m-0 leading-6">{message}</p>
+    </div>
+  );
+}
+
+function PasswordInput({
+  id,
+  label,
+  value,
+  visible,
+  autoComplete,
+  onChange,
+  onToggle,
+  invalid,
+}: {
+  id: string;
+  label: string;
+  value: string;
+  visible: boolean;
+  autoComplete: string;
+  onChange: (value: string) => void;
+  onToggle: () => void;
+  invalid: boolean;
+}) {
+  return (
+    <div>
+      <label htmlFor={id} className={accountLabelClassName}>
+        {label}
+      </label>
+      <div className="relative">
+        <LockKeyhole
+          className="pointer-events-none absolute top-1/2 left-3.5 size-[17px] -translate-y-1/2 text-slate-400"
+          aria-hidden
+        />
+        <input
+          id={id}
+          type={visible ? "text" : "password"}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          autoComplete={autoComplete}
+          aria-invalid={invalid}
+          className={`${accountInputClassName} pr-12 pl-10 ${
+            invalid ? "border-red-400 bg-red-50/40" : ""
+          }`}
+        />
+        <button
+          type="button"
+          onClick={onToggle}
+          className="absolute top-1/2 right-2.5 grid size-8 -translate-y-1/2 place-items-center rounded-lg border-0 bg-transparent text-slate-400 transition hover:bg-slate-100 hover:text-slate-700"
+          aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
+        >
+          {visible ? (
+            <EyeOff className="size-4" aria-hidden />
+          ) : (
+            <Eye className="size-4" aria-hidden />
+          )}
+        </button>
+      </div>
+    </div>
   );
 }
 
 export default function ResetPasswordPage() {
   return (
-    <Suspense fallback={<section className={authShellClassName} />}>
+    <Suspense
+      fallback={<section className="min-h-[calc(100dvh-80px)] bg-[#f4f1eb]" />}
+    >
       <ResetPasswordContent />
     </Suspense>
   );

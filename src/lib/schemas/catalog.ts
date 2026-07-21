@@ -2,6 +2,7 @@ import { z } from "zod";
 
 export const catalogProductSchema = z.object({
   id: z.number(),
+  slug: z.string().optional(),
   nombre: z.string(),
   marca: z.string(),
   modelo: z.string(),

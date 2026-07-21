@@ -39,6 +39,23 @@ function normalizeBaseUrl(baseUrl: string) {
   return baseUrl.trim().replace(/\/$/, "");
 }
 
+export function slugifyProductName(value: string) {
+  const slug = value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || "producto";
+}
+
+export function getProductSlug(
+  product: Pick<CatalogProduct, "nombre"> & Partial<Pick<CatalogProduct, "slug">>,
+) {
+  return product.slug?.trim() || slugifyProductName(product.nombre);
+}
+
 function getStableIndex(product: CatalogProduct, total: number) {
   return Math.abs(product.id) % total;
 }
@@ -59,8 +76,11 @@ function formatMxPrice(value: number | null | undefined) {
   }).format(Number(value));
 }
 
-export function getProductUrl(product: Pick<CatalogProduct, "id">, baseUrl: string) {
-  return `${normalizeBaseUrl(baseUrl)}/producto/${product.id}`;
+export function getProductUrl(
+  product: Pick<CatalogProduct, "nombre"> & Partial<Pick<CatalogProduct, "slug">>,
+  baseUrl: string,
+) {
+  return `${normalizeBaseUrl(baseUrl)}/producto/${encodeURIComponent(getProductSlug(product))}`;
 }
 
 export function getProductSharePhrase(product: CatalogProduct) {

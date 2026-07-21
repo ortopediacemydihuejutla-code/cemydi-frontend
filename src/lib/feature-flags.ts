@@ -1,0 +1,2 @@
+export const ENABLE_RECOMMENDATION_DEMO =
+  process.env.NEXT_PUBLIC_ENABLE_RECOMMENDATION_DEMO === "true";
