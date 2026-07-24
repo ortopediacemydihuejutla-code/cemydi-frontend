@@ -35,7 +35,7 @@ const socialLinks = [
 export default function Footer() {
   return (
     <footer className="mt-auto border-t border-border bg-white text-foreground">
-      <div className="mx-auto grid max-w-[1320px] gap-10 px-5 py-12 md:px-8 lg:grid-cols-[1.15fr_0.75fr_1fr_0.8fr] lg:px-14">
+      <div className="mx-auto grid max-w-[82.5rem] gap-10 px-5 py-12 md:px-8 lg:grid-cols-[1.15fr_0.75fr_1fr_0.8fr] lg:px-14">
         
         {/* Cambié 'grid' por 'flex flex-col' para que el margen negativo se aplique mejor */}
         <section className="relative flex flex-col gap-4 overflow-hidden">
@@ -48,7 +48,7 @@ export default function Footer() {
               alt="CEMYDI"
               width={340}
               height={152}
-              className="h-auto w-[240px] sm:w-[280px] md:w-[320px] object-contain"
+              className="h-auto w-[15rem] object-contain sm:w-[17.5rem] md:w-[20rem]"
               priority
             />
           </Link>
@@ -57,13 +57,13 @@ export default function Footer() {
             <h2 className="m-0 text-2xl leading-tight text-foreground md:text-3xl">
               Mantente conectado
             </h2>
-            <p className="m-0 max-w-[430px] text-sm leading-6 text-muted-foreground">
+            <p className="m-0 max-w-[26.875rem] text-sm leading-6 text-muted-foreground">
               Recibe orientacion, disponibilidad de equipos y novedades para movilidad,
               rehabilitacion y cuidado en casa.
             </p>
           </div>
           
-          <div className="relative max-w-[420px] mt-1 z-10">
+          <div className="relative mt-1 max-w-[26.25rem] z-10">
             <label className="sr-only" htmlFor="footer-email">
               Correo electronico
             </label>
@@ -152,7 +152,7 @@ export default function Footer() {
         </section>
       </div>
 
-      <div className="mx-auto flex max-w-[1320px] flex-col items-center justify-between gap-3 border-t border-border px-5 py-5 text-center text-sm text-muted-foreground md:flex-row md:px-8 md:text-left lg:px-14">
+      <div className="mx-auto flex max-w-[82.5rem] flex-col items-center justify-between gap-3 border-t border-border px-5 py-5 text-center text-sm text-muted-foreground md:flex-row md:px-8 md:text-left lg:px-14">
         <small>
           © {new Date().getFullYear()} CEMYDI. Todos los derechos reservados.
         </small>

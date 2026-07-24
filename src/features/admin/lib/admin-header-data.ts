@@ -1,5 +1,3 @@
-import { ENABLE_RECOMMENDATION_DEMO } from "@/lib/feature-flags";
-
 export type AdminSearchDestination = {
   title: string;
   description: string;
@@ -19,22 +17,18 @@ export const ADMIN_SEARCH_DESTINATIONS: AdminSearchDestination[] = [
   { title: "Promociones", description: "Descuentos y campañas", href: "/admin/promotions", keywords: ["promocion", "descuento", "oferta"] },
   { title: "Reseñas", description: "Moderación de opiniones", href: "/admin/reviews", keywords: ["resena", "comentario", "opinion", "aprobar"] },
   { title: "Analytics", description: "Métricas operativas", href: "/admin/analytics", keywords: ["analiticas", "metrica", "reporte"] },
-  ...(ENABLE_RECOMMENDATION_DEMO
-    ? [
-        {
-          title: "Segmentación de productos",
-          description: "Grupos comerciales y prioridades de inventario",
-          href: "/admin/analytics/product-segmentation",
-          keywords: ["segmentacion", "cluster", "ventas", "rentas", "stock"],
-        },
-        {
-          title: "Predicción de demanda",
-          description: "Estimación mensual y reposición de inventario",
-          href: "/admin/analytics/demand-forecast",
-          keywords: ["prediccion", "demanda", "pronostico", "reposicion", "stock"],
-        },
-      ]
-    : []),
+  {
+    title: "Segmentación de clientes",
+    description: "Grupos de clientes según compras, rentas y consultas",
+    href: "/admin/analytics/product-segmentation",
+    keywords: ["segmentacion", "cluster", "clientes", "compras", "rentas", "consultas"],
+  },
+  {
+    title: "Predicción de demanda",
+    description: "Estimación mensual y reposición de inventario",
+    href: "/admin/analytics/demand-forecast",
+    keywords: ["prediccion", "demanda", "pronostico", "reposicion", "stock"],
+  },
   { title: "Monitoreo de BD", description: "Respaldos y mantenimiento", href: "/admin/database", keywords: ["base de datos", "respaldo", "backup", "mantenimiento"] },
   { title: "Quiénes somos", description: "Contenido de la página pública", href: "/admin/about", keywords: ["nosotros", "contenido"] },
   { title: "Páginas legales", description: "Privacidad y términos", href: "/admin/legal", keywords: ["legal", "privacidad", "terminos"] },

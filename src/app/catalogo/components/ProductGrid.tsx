@@ -153,7 +153,6 @@ export function ProductCard({
           productName={product.nombre}
           compact
           className="absolute right-3 top-3 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 sm:data-[open=true]:opacity-100"
-          triggerClassName="bg-white/96"
           menuClassName="bottom-auto right-0 top-[calc(100%+8px)]"
         />
       </div>

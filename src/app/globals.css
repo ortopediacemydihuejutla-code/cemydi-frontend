@@ -184,6 +184,17 @@ body {
     sans-serif;
 }
 
+/*
+ * En monitores muy anchos (y al alejar el zoom, que aumenta el viewport CSS)
+ * la interfaz pública conserva una escala legible en vez de encogerse en el centro.
+ * El panel administrativo queda fuera de este ajuste porque no renderiza `.appShell`.
+ */
+@media (min-width: 2560px) {
+  html:has(.appShell) {
+    font-size: clamp(16px, 0.625vw, 24px);
+  }
+}
+
 h1,
 h2,
 h3,
@@ -411,4 +422,3 @@ a[data-sidebar="menu-sub-button"] {
   height: 1rem !important;
   margin: 0 !important;
 }
-

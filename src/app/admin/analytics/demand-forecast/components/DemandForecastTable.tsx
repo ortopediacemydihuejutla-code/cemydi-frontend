@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { RotateCcw, Search } from "lucide-react";
+import { ChevronLeft, ChevronRight, RotateCcw, Search } from "lucide-react";
 
 import {
   type DemandForecast,
@@ -23,7 +23,8 @@ import {
 import { formatCurrencyMx } from "@/lib/formatters";
 
 type PromotionFilter = "ALL" | "ACTIVE" | "INACTIVE";
-type SortOption = "DEMAND_DESC" | "DEMAND_ASC" | "DIFFERENCE_DESC" | "DIFFERENCE_ASC";
+type SortOption =
+  "DEMAND_DESC" | "DEMAND_ASC" | "DIFFERENCE_DESC" | "DIFFERENCE_ASC";
 
 const statusOptions: DemandForecastStatus[] = [
   "Stock suficiente",
@@ -54,6 +55,8 @@ export function DemandForecastTable({
   const [status, setStatus] = useState<DemandForecastStatus | "ALL">("ALL");
   const [promotion, setPromotion] = useState<PromotionFilter>("ALL");
   const [sort, setSort] = useState<SortOption>("DEMAND_DESC");
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(25);
 
   const visibleForecasts = useMemo(() => {
     const normalizedSearch = search.trim().toLocaleLowerCase("es-MX");
@@ -65,7 +68,9 @@ export function DemandForecastTable({
       );
       const matchesSearch =
         normalizedSearch.length === 0 ||
-        forecast.productName.toLocaleLowerCase("es-MX").includes(normalizedSearch);
+        forecast.productName
+          .toLocaleLowerCase("es-MX")
+          .includes(normalizedSearch);
       const matchesStatus = status === "ALL" || forecastStatus === status;
       const matchesPromotion =
         promotion === "ALL" ||
@@ -89,11 +94,19 @@ export function DemandForecastTable({
     });
   }, [forecasts, promotion, search, sort, status]);
 
+  const totalPages = Math.max(1, Math.ceil(visibleForecasts.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedForecasts = visibleForecasts.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+
   const resetFilters = () => {
     setSearch("");
     setStatus("ALL");
     setPromotion("ALL");
     setSort("DEMAND_DESC");
+    setPage(1);
   };
 
   return (
@@ -103,7 +116,10 @@ export function DemandForecastTable({
     >
       <div className="border-b border-border px-4 py-5 sm:px-6">
         <div>
-          <h2 id="forecast-products-title" className="text-lg font-semibold text-foreground">
+          <h2
+            id="forecast-products-title"
+            className="text-lg font-semibold text-foreground"
+          >
             Predicción por producto
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -120,7 +136,10 @@ export function DemandForecastTable({
             />
             <Input
               value={search}
-              onChange={(event) => setSearch(event.target.value)}
+              onChange={(event) => {
+                setSearch(event.target.value);
+                setPage(1);
+              }}
               placeholder="Buscar producto"
               className="pl-9"
             />
@@ -130,14 +149,17 @@ export function DemandForecastTable({
             <span className="sr-only">Filtrar por estado</span>
             <select
               value={status}
-              onChange={(event) =>
-                setStatus(event.target.value as DemandForecastStatus | "ALL")
-              }
+              onChange={(event) => {
+                setStatus(event.target.value as DemandForecastStatus | "ALL");
+                setPage(1);
+              }}
               className={selectClassName}
             >
               <option value="ALL">Todos los estados</option>
               {statusOptions.map((item) => (
-                <option key={item} value={item}>{item}</option>
+                <option key={item} value={item}>
+                  {item}
+                </option>
               ))}
             </select>
           </label>
@@ -146,7 +168,10 @@ export function DemandForecastTable({
             <span className="sr-only">Filtrar por promoción</span>
             <select
               value={promotion}
-              onChange={(event) => setPromotion(event.target.value as PromotionFilter)}
+              onChange={(event) => {
+                setPromotion(event.target.value as PromotionFilter);
+                setPage(1);
+              }}
               className={selectClassName}
             >
               <option value="ALL">Todas las promociones</option>
@@ -159,7 +184,10 @@ export function DemandForecastTable({
             <span className="sr-only">Ordenar resultados</span>
             <select
               value={sort}
-              onChange={(event) => setSort(event.target.value as SortOption)}
+              onChange={(event) => {
+                setSort(event.target.value as SortOption);
+                setPage(1);
+              }}
               className={selectClassName}
             >
               <option value="DEMAND_DESC">Mayor demanda estimada</option>
@@ -194,7 +222,7 @@ export function DemandForecastTable({
         </TableHeader>
         <TableBody>
           {visibleForecasts.length > 0 ? (
-            visibleForecasts.map((forecast) => {
+            paginatedForecasts.map((forecast) => {
               const difference = getDemandDifference(forecast);
               const forecastStatus = getDemandStatus(
                 forecast.currentStock,
@@ -222,7 +250,9 @@ export function DemandForecastTable({
                     {forecast.previousMonthViews}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={forecast.activePromotion ? "blue" : "slate"}>
+                    <Badge
+                      variant={forecast.activePromotion ? "blue" : "slate"}
+                    >
                       {forecast.activePromotion ? "Activa" : "Sin promoción"}
                     </Badge>
                   </TableCell>
@@ -238,7 +268,8 @@ export function DemandForecastTable({
                           : "text-muted-foreground"
                     }`}
                   >
-                    {difference > 0 ? "+" : ""}{difference}
+                    {difference > 0 ? "+" : ""}
+                    {difference}
                   </TableCell>
                   <TableCell>
                     <Badge variant={statusBadgeVariants[forecastStatus]}>
@@ -253,13 +284,73 @@ export function DemandForecastTable({
             })
           ) : (
             <TableRow className="hover:bg-transparent">
-              <TableCell colSpan={11} className="h-32 text-center text-muted-foreground">
+              <TableCell
+                colSpan={11}
+                className="h-32 text-center text-muted-foreground"
+              >
                 No se encontraron productos con los filtros seleccionados.
               </TableCell>
             </TableRow>
           )}
         </TableBody>
       </Table>
+
+      {visibleForecasts.length > 0 ? (
+        <div className="flex flex-col gap-3 border-t border-border px-4 py-4 text-sm sm:flex-row sm:items-center sm:justify-between sm:px-6">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <span>Filas por página</span>
+            <select
+              value={pageSize}
+              onChange={(event) => {
+                setPageSize(Number(event.target.value));
+                setPage(1);
+              }}
+              className="h-8 rounded-md border border-input bg-background px-2 text-foreground outline-none focus-visible:ring-[3px] focus-visible:ring-ring/50"
+              aria-label="Filas por página"
+            >
+              <option value={10}>10</option>
+              <option value={25}>25</option>
+              <option value={50}>50</option>
+            </select>
+            <span>
+              {Math.min(
+                (currentPage - 1) * pageSize + 1,
+                visibleForecasts.length,
+              )}
+              –{Math.min(currentPage * pageSize, visibleForecasts.length)} de{" "}
+              {visibleForecasts.length}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <span className="mr-1 text-muted-foreground">
+              Página {currentPage} de {totalPages}
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              onClick={() => setPage((value) => Math.max(1, value - 1))}
+              disabled={currentPage === 1}
+              aria-label="Página anterior"
+            >
+              <ChevronLeft aria-hidden="true" />
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="icon-sm"
+              onClick={() =>
+                setPage((value) => Math.min(totalPages, value + 1))
+              }
+              disabled={currentPage === totalPages}
+              aria-label="Página siguiente"
+            >
+              <ChevronRight aria-hidden="true" />
+            </Button>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

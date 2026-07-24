@@ -32,7 +32,7 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-[linear-gradient(90deg,#1e6260_0%,#2aa09d_100%)] px-4 py-3 shadow-[0_10px_30px_rgba(15,61,59,0.16)] lg:grid lg:grid-cols-[auto_1fr_auto] lg:items-center lg:gap-5 lg:px-[60px] lg:py-5 lg:shadow-none">
+    <header className="sticky top-0 z-50 bg-[linear-gradient(90deg,#1e6260_0%,#2aa09d_100%)] px-4 py-3 shadow-[0_10px_30px_rgba(15,61,59,0.16)] lg:grid lg:grid-cols-[auto_1fr_auto] lg:items-center lg:gap-5 lg:px-[3.75rem] lg:py-5 lg:shadow-none">
       <div className="flex items-center justify-between gap-3 lg:contents">
         <Link href="/" className="flex min-h-0 min-w-0 items-center no-underline">
           <Image
@@ -41,7 +41,7 @@ export default function Header() {
             width={150}
             height={56}
             priority
-            className="block h-auto w-[96px] object-contain sm:w-[108px]"
+            className="block h-auto w-[6rem] object-contain sm:w-[6.75rem]"
           />
         </Link>
 
@@ -81,7 +81,7 @@ export default function Header() {
           <Link
             key={link.href}
             href={link.href}
-            className="rounded-full px-[10px] py-2 font-bold text-white no-underline hover:bg-white/15"
+            className="rounded-full px-[0.625rem] py-2 font-bold text-white no-underline hover:bg-white/15"
           >
             {link.label}
           </Link>

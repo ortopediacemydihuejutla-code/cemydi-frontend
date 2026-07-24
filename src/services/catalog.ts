@@ -38,6 +38,11 @@ export type CatalogProduct = {
   createdAt: string;
 };
 
+export type RecommendedCatalogProduct = CatalogProduct & {
+  recommendationScore: number;
+  recommendationReasons: string[];
+};
+
 export type ActivePromotion = {
   id: number;
   productId: number;
@@ -124,6 +129,18 @@ export async function getCatalogProductBySlug(slug: string) {
   const res = await publicFetch(`/products/slug/${encodeURIComponent(slug)}`);
 
   return parseApiResponse(res, "No se pudo cargar el producto", catalogProductDetailSchema);
+}
+
+export async function getCatalogRecommendations(productId: number, limit = 8) {
+  const res = await publicFetch(`/products/${productId}/recommendations?limit=${limit}`, {
+    cache: "no-store",
+  });
+
+  return parseApiResponse<{
+    method: string;
+    sourceProductId: number;
+    recommendations: RecommendedCatalogProduct[];
+  }>(res, "No se pudieron cargar las recomendaciones");
 }
 
 export async function getActivePromotions() {

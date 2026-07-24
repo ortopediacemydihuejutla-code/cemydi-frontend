@@ -34,7 +34,7 @@ const ADMIN_BREADCRUMB_CONFIG: Record<
   "/admin/legal": { label: "Páginas legales", parent: "/admin" },
   "/admin/analytics": { label: "Analytics", parent: "/admin" },
   "/admin/analytics/product-segmentation": {
-    label: "Segmentación de productos",
+    label: "Segmentación de clientes",
     parent: "/admin/analytics",
   },
   "/admin/analytics/demand-forecast": {

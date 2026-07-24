@@ -85,7 +85,7 @@ export default function ProductShareMenu({
 }: ProductShareMenuProps) {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const whatsappUrl = useMemo(() => getWhatsAppShareUrl(shareData), [shareData]);
   const facebookUrl = useMemo(() => getFacebookShareUrl(shareData), [shareData]);
   const mailUrl = useMemo(() => getMailShareUrl(shareData), [shareData]);
@@ -105,39 +105,39 @@ export default function ProductShareMenu({
       }
     };
 
-    const handlePointerMove = (event: PointerEvent) => {
-      if (event.pointerType !== "mouse" && event.pointerType !== "pen") return;
-
-      const containerRect = containerRef.current?.getBoundingClientRect();
-      const menuRect = menuRef.current?.getBoundingClientRect();
-      if (!containerRect || !menuRect) return;
-
-      const tolerance = 18;
-      const left = Math.min(containerRect.left, menuRect.left) - tolerance;
-      const right = Math.max(containerRect.right, menuRect.right) + tolerance;
-      const top = Math.min(containerRect.top, menuRect.top) - tolerance;
-      const bottom = Math.max(containerRect.bottom, menuRect.bottom) + tolerance;
-
-      if (
-        event.clientX < left ||
-        event.clientX > right ||
-        event.clientY < top ||
-        event.clientY > bottom
-      ) {
-        setIsOpen(false);
-      }
-    };
-
     document.addEventListener("pointerdown", handlePointerDown);
     document.addEventListener("keydown", handleKeyDown);
-    document.addEventListener("pointermove", handlePointerMove);
 
     return () => {
       document.removeEventListener("pointerdown", handlePointerDown);
       document.removeEventListener("keydown", handleKeyDown);
-      document.removeEventListener("pointermove", handlePointerMove);
     };
   }, [isOpen]);
+
+  useEffect(
+    () => () => {
+      if (closeTimerRef.current) {
+        clearTimeout(closeTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  const cancelScheduledClose = () => {
+    if (!closeTimerRef.current) return;
+    clearTimeout(closeTimerRef.current);
+    closeTimerRef.current = null;
+  };
+
+  const scheduleClose = (pointerType: string) => {
+    if (pointerType !== "mouse" && pointerType !== "pen") return;
+
+    cancelScheduledClose();
+    closeTimerRef.current = setTimeout(() => {
+      setIsOpen(false);
+      closeTimerRef.current = null;
+    }, 140);
+  };
 
   const onCopyLink = async () => {
     setIsOpen(false);
@@ -157,32 +157,32 @@ export default function ProductShareMenu({
       label: "Correo",
       href: mailUrl,
       Icon: Mail,
-      iconClassName: "text-[#1f6a67]",
+      iconClassName: "text-white",
       buttonClassName:
-        "bg-[#e7f4f3] ring-[#b9dcda] hover:bg-[#d7eeed] focus-visible:ring-[#1f6a67]",
+        "bg-[#16706d] ring-[#0f5b58] shadow-[0_8px_22px_rgba(22,112,109,0.25)] hover:bg-[#0f5f5c] focus-visible:ring-[#16706d]",
     },
     {
       label: "WhatsApp",
       href: whatsappUrl,
       Icon: WhatsAppIcon,
-      iconClassName: "text-[#128c7e]",
+      iconClassName: "text-white",
       buttonClassName:
-        "bg-[#dcf8f1] ring-[#9fe3d5] hover:bg-[#c8f0e6] focus-visible:ring-[#128c7e]",
+        "bg-[#25d366] ring-[#16a34a] shadow-[0_8px_22px_rgba(37,211,102,0.28)] hover:bg-[#1fbd5a] focus-visible:ring-[#25d366]",
     },
     {
       label: "Facebook",
       href: facebookUrl,
       Icon: FacebookIcon,
-      iconClassName: "text-[#1877f2]",
+      iconClassName: "text-white",
       buttonClassName:
-        "bg-[#e7f0ff] ring-[#b7d2ff] hover:bg-[#d8e8ff] focus-visible:ring-[#1877f2]",
+        "bg-[#1877f2] ring-[#0f5ec7] shadow-[0_8px_22px_rgba(24,119,242,0.27)] hover:bg-[#0f69dc] focus-visible:ring-[#1877f2]",
     },
     {
       label: "Copiar enlace",
       Icon: Copy,
-      iconClassName: "text-[#17333f]",
+      iconClassName: "text-white",
       buttonClassName:
-        "bg-[#edf3f5] ring-[#c9d8dc] hover:bg-[#e0ebee] focus-visible:ring-[#1f6a67]",
+        "bg-[#344f5b] ring-[#203944] shadow-[0_8px_22px_rgba(32,57,68,0.22)] hover:bg-[#263f4a] focus-visible:ring-[#344f5b]",
       onClick: () => void onCopyLink(),
     },
   ];
@@ -195,7 +195,7 @@ export default function ProductShareMenu({
 
   const renderAction = (action: ShareAction, index: number) => {
     const Icon = action.Icon;
-    const actionClassName = `share-action relative grid size-11 place-items-center rounded-full ring-1 transition duration-200 ease-out hover:scale-105 focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 ${action.buttonClassName}`;
+    const actionClassName = `share-action relative grid size-10 place-items-center rounded-full ring-1 transition duration-200 ease-out hover:scale-110 focus-visible:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${action.buttonClassName}`;
     const style = {
       animation: "share-menu-item 180ms ease-out both",
       animationDelay: `${index * 34}ms`,
@@ -249,10 +249,16 @@ export default function ProductShareMenu({
       ref={containerRef}
       data-open={isOpen ? "true" : "false"}
       className={`z-20 w-max ${className}`}
+      onPointerEnter={(event) => {
+        if (event.pointerType === "mouse" || event.pointerType === "pen") {
+          cancelScheduledClose();
+        }
+      }}
+      onPointerLeave={(event) => scheduleClose(event.pointerType)}
     >
       <button
         type="button"
-        className={`grid place-items-center rounded-full border border-[#cfe0e5] bg-white text-[#1f6a67] shadow-[0_12px_26px_rgba(15,61,59,0.14)] transition hover:border-[#1f6a67] hover:bg-[#f4fbfa] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f6a67] focus-visible:ring-offset-2 ${
+        className={`grid place-items-center rounded-full bg-transparent text-[#176b67] drop-shadow-[0_1px_2px_rgba(255,255,255,0.95)] transition hover:scale-110 hover:bg-transparent hover:text-[#0f4f4d] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1f6a67] focus-visible:ring-offset-2 ${
           compact ? "size-10" : "size-12"
         } ${triggerClassName}`}
         aria-label={`Compartir ${productName}`}
@@ -267,14 +273,16 @@ export default function ProductShareMenu({
           setIsOpen((current) => !current);
         }}
       >
-        <Share2 className={compact ? "size-4" : "size-5"} aria-hidden />
+        <Share2
+          className={compact ? "size-[18px] stroke-[2.2]" : "size-[22px] stroke-[2.2]"}
+          aria-hidden
+        />
       </button>
 
       {isOpen ? (
         <div
-          ref={menuRef}
           role="menu"
-          className={`absolute bottom-[calc(100%+10px)] right-0 flex w-max flex-col items-end gap-2 [animation:share-menu-pop_180ms_ease-out_both] ${menuClassName}`}
+          className={`absolute bottom-[calc(100%+10px)] right-0 flex w-max flex-col items-end gap-1.5 [animation:share-menu-pop_180ms_ease-out_both] ${menuClassName}`}
         >
           {shareActions.map((action, index) => renderAction(action, index))}
         </div>

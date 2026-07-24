@@ -6,13 +6,18 @@ import Link from "next/link";
 import {
   BadgeAlert,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   ClipboardList,
   Layers3,
   ListChecks,
+  MessageSquareText,
+  PenLine,
   Ruler,
   ShieldCheck,
+  Star,
   Store,
   Truck,
   Weight,
@@ -84,6 +89,10 @@ function renderStars(value: number) {
   const safeValue = Math.max(0, Math.min(5, value));
   return `${"\u2605".repeat(safeValue)}${"\u2606".repeat(5 - safeValue)}`;
 }
+
+const REVIEWS_PER_PAGE = 4;
+const REVIEW_MIN_LENGTH = 5;
+const REVIEW_MAX_LENGTH = 500;
 
 function getReviewerInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -171,6 +180,8 @@ export default function ProductDetailClient({
     averageRating: 0,
   });
   const [reviewsLoading, setReviewsLoading] = useState(false);
+  const [visibleReviewsCount, setVisibleReviewsCount] = useState(REVIEWS_PER_PAGE);
+  const [selectedReviewRating, setSelectedReviewRating] = useState<number | null>(null);
   const [showReviewModal, setShowReviewModal] = useState(false);
   const [showImageZoomModal, setShowImageZoomModal] = useState(false);
   const [savingReview, setSavingReview] = useState(false);
@@ -303,7 +314,7 @@ export default function ProductDetailClient({
     if (!node) return;
 
     const card = node.querySelector<HTMLElement>("[data-related-card='true']");
-    const scrollAmount = card ? card.offsetWidth + 16 : Math.max(node.clientWidth * 0.8, 280);
+    const scrollAmount = card ? card.offsetWidth + 20 : Math.max(node.clientWidth * 0.8, 280);
     node.scrollBy({ left: direction * scrollAmount, behavior: "smooth" });
   };
 
@@ -362,6 +373,45 @@ export default function ProductDetailClient({
   }, [reviews, user?.id]);
   const existingReview = myReview ?? myApprovedReview;
   const canEditReview = Boolean(existingReview);
+  const ratingBreakdown = useMemo(
+    () =>
+      [5, 4, 3, 2, 1].map((rating) => {
+        const count = reviews.filter((item) => item.rating === rating).length;
+
+        return {
+          rating,
+          count,
+          percentage:
+            reviewsSummary.count > 0
+              ? Math.round((count / reviewsSummary.count) * 100)
+              : 0,
+        };
+      }),
+    [reviews, reviewsSummary.count],
+  );
+  const filteredReviews = useMemo(
+    () =>
+      selectedReviewRating === null
+        ? reviews
+        : reviews.filter((item) => item.rating === selectedReviewRating),
+    [reviews, selectedReviewRating],
+  );
+  const visibleReviews = filteredReviews.slice(0, visibleReviewsCount);
+  const remainingReviewsCount = Math.max(
+    0,
+    filteredReviews.length - visibleReviewsCount,
+  );
+  const trimmedReviewComment = reviewForm.comment.trim();
+  const isReviewRatingValid = reviewForm.rating >= 1 && reviewForm.rating <= 5;
+  const isReviewCommentValid =
+    trimmedReviewComment.length >= REVIEW_MIN_LENGTH &&
+    trimmedReviewComment.length <= REVIEW_MAX_LENGTH;
+  const canSubmitReview =
+    !savingReview && isReviewRatingValid && isReviewCommentValid;
+
+  useEffect(() => {
+    setVisibleReviewsCount(REVIEWS_PER_PAGE);
+  }, [productId, selectedReviewRating]);
 
   useEffect(() => {
     setCartQuantity((current) => Math.max(1, Math.min(current, maxCartQuantity)));
@@ -400,8 +450,13 @@ export default function ProductDetailClient({
       return;
     }
 
-    if (comment.length < 5 || comment.length > 500) {
-      toast.error("El comentario debe tener entre 5 y 500 caracteres.");
+    if (
+      comment.length < REVIEW_MIN_LENGTH ||
+      comment.length > REVIEW_MAX_LENGTH
+    ) {
+      toast.error(
+        `El comentario debe tener entre ${REVIEW_MIN_LENGTH} y ${REVIEW_MAX_LENGTH} caracteres.`,
+      );
       return;
     }
 
@@ -409,7 +464,7 @@ export default function ProductDetailClient({
       setSavingReview(true);
       const result = await createProductReview({
         productId,
-        rating: canEditReview ? existingReview?.rating ?? reviewForm.rating : reviewForm.rating,
+        rating: reviewForm.rating,
         comment,
       });
       toast.success(result.message);
@@ -677,7 +732,6 @@ export default function ProductDetailClient({
                   shareData={productShareData}
                   productName={product.nombre}
                   className="absolute right-4 top-4 sm:right-5 sm:top-5"
-                  triggerClassName="bg-white/96"
                   menuClassName="bottom-auto right-0 top-[calc(100%+10px)]"
                 />
               </div>
@@ -1002,94 +1056,257 @@ export default function ProductDetailClient({
         ) : null}
       </section>
 
-      <section className="mt-6 rounded-[22px] border border-[#dbe4e6] bg-white p-5 sm:p-6">
-        <div className="grid gap-5 lg:grid-cols-[minmax(240px,280px)_minmax(0,1fr)]">
-          <div className="rounded-2xl border border-[#e1ebee] bg-[linear-gradient(180deg,#f9fcfc_0%,#f0f6f7_100%)] p-5">
-            <p className="text-sm font-semibold uppercase tracking-[0.08em] text-[#6c818a]">
-              Reseñas de clientes
-            </p>
-            <div className="mt-3 flex items-end gap-3">
-              <strong className="text-[2.5rem] leading-none text-[#152836]">
+      <section
+        id="resenas"
+        aria-labelledby="reviews-heading"
+        className="mt-8 border-y border-[#dce6e8] py-8"
+      >
+        <div className="border-b border-[#e2ebed] pb-7">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <p className="mb-1 text-sm font-bold uppercase tracking-[0.09em] text-[#1f6a67]">
+                Experiencias reales
+              </p>
+              <h2
+                id="reviews-heading"
+                className="m-0 text-[1.55rem] font-semibold text-[#152a37] sm:text-[1.75rem]"
+              >
+                Opiniones de clientes
+              </h2>
+              <p className="mt-2 max-w-[620px] text-sm leading-6 text-[#58707a]">
+                Consulta lo que otros clientes comparten sobre este producto.
+                Todas las opiniones publicadas pasan por moderación.
+              </p>
+            </div>
+            <button
+              type="button"
+              className="inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-[13px] bg-[#1f6a67] px-5 py-3 font-bold text-white shadow-[0_8px_20px_rgba(31,106,103,0.2)] transition hover:bg-[#185b59] sm:w-auto"
+              onClick={onOpenReviewModal}
+            >
+              <PenLine className="size-4" aria-hidden />
+              {canEditReview ? "Editar mi opinión" : "Escribir una opinión"}
+            </button>
+          </div>
+        </div>
+
+        <div className="grid gap-7 pt-7 lg:grid-cols-[310px_minmax(0,1fr)] lg:gap-8">
+          <aside className="border-b border-[#e2ebed] pb-7 lg:border-r lg:border-b-0 lg:pr-8 lg:pb-0">
+            <div className="flex items-center gap-4">
+              <strong className="text-[3.25rem] leading-none font-semibold tracking-[-0.05em] text-[#142b38]">
                 {reviewsSummary.averageRating > 0
                   ? reviewsSummary.averageRating.toFixed(1)
                   : "0.0"}
               </strong>
-              <span className="pb-1 text-sm font-medium text-[#5f7780]">de 5</span>
+              <div>
+                <div
+                  className="flex gap-0.5 text-[#e1a326]"
+                  aria-label={`${reviewsSummary.averageRating.toFixed(1)} de 5 estrellas`}
+                >
+                  {[1, 2, 3, 4, 5].map((star) => (
+                    <Star
+                      key={star}
+                      className={`size-[18px] ${
+                        star <= Math.round(reviewsSummary.averageRating)
+                          ? "fill-current"
+                          : "fill-transparent text-[#c9d3d6]"
+                      }`}
+                      aria-hidden
+                    />
+                  ))}
+                </div>
+                <p className="mt-1 text-sm text-[#5d747e]">
+                  {reviewsSummary.count}{" "}
+                  {reviewsSummary.count === 1 ? "calificación" : "calificaciones"}
+                </p>
+              </div>
             </div>
-            <p className="mt-2 text-[1.05rem] tracking-[0.08em] text-[#d9971a]">
-              {renderStars(Math.round(reviewsSummary.averageRating))}
-            </p>
-            <p className="mt-3 text-sm leading-6 text-[#536774]">
-              {reviewsSummary.count > 0
-                ? `Basado en ${reviewsSummary.count} reseña${reviewsSummary.count === 1 ? "" : "s"} aprobada${reviewsSummary.count === 1 ? "" : "s"}.`
-                : "Aún no hay reseñas aprobadas para este producto."}
-            </p>
-            <button
-              type="button"
-              className="mt-5 w-full cursor-pointer rounded-[12px] bg-[#1f6a67] px-[14px] py-3 font-bold text-white"
-              onClick={onOpenReviewModal}
-            >
-              {canEditReview ? "Editar comentario" : "Agregar comentario"}
-            </button>
-          </div>
 
-          <div className="grid gap-3">
+            <div className="mt-6 grid gap-2" aria-label="Distribución de calificaciones">
+              {ratingBreakdown.map(({ rating, count, percentage }) => {
+                const isSelected = selectedReviewRating === rating;
+
+                return (
+                  <button
+                    key={rating}
+                    type="button"
+                    className={`grid min-h-9 w-full cursor-pointer grid-cols-[30px_minmax(0,1fr)_38px] items-center gap-2 rounded-lg px-1.5 text-left text-xs font-semibold transition ${
+                      isSelected
+                        ? "bg-[#e7f2f1] text-[#155b58]"
+                        : "text-[#506872] hover:bg-[#f0f6f6]"
+                    } disabled:cursor-default disabled:opacity-55`}
+                    onClick={() =>
+                      setSelectedReviewRating((current) =>
+                        current === rating ? null : rating,
+                      )
+                    }
+                    disabled={count === 0}
+                    aria-pressed={isSelected}
+                    aria-label={`${rating} ${rating === 1 ? "estrella" : "estrellas"}: ${count} reseñas, ${percentage}%`}
+                  >
+                    <span>{rating} ★</span>
+                    <span className="h-2 overflow-hidden rounded-full bg-[#e2e9eb]">
+                      <span
+                        className="block h-full rounded-full bg-[#e3a329] transition-[width]"
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </span>
+                    <span className="text-right text-[#758891]">{percentage}%</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-6 flex items-start gap-2.5 rounded-xl border border-[#dce9e8] bg-[#f1f8f7] p-3 text-sm leading-5 text-[#45626a]">
+              <ShieldCheck className="mt-0.5 size-5 shrink-0 text-[#1f6a67]" aria-hidden />
+              <p>
+                Las reseñas se revisan antes de publicarse para mantener una
+                comunidad útil y respetuosa.
+              </p>
+            </div>
+          </aside>
+
+          <div className="min-w-0">
             {reviews.length > 0 ? (
-              <div className="flex items-center justify-between gap-3">
-                <h2 className="m-0 text-[1.35rem] text-[#1a2a37]">Opiniones recientes</h2>
-                <span className="text-sm text-[#6d818b]">
-                  {reviewsSummary.count} reseña{reviewsSummary.count === 1 ? "" : "s"}
-                </span>
+              <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <h3 className="m-0 text-[1.25rem] font-semibold text-[#192f3c]">
+                    {selectedReviewRating === null
+                      ? "Opiniones más recientes"
+                      : `Opiniones de ${selectedReviewRating} estrellas`}
+                  </h3>
+                  <p className="mt-1 text-sm text-[#687e87]" aria-live="polite">
+                    Mostrando {Math.min(visibleReviews.length, filteredReviews.length)} de{" "}
+                    {filteredReviews.length} reseña
+                    {filteredReviews.length === 1 ? "" : "s"}
+                  </p>
+                </div>
+                {selectedReviewRating !== null ? (
+                  <button
+                    type="button"
+                    className="cursor-pointer rounded-full border border-[#cbdcde] bg-white px-3 py-2 text-sm font-semibold text-[#1f6a67] transition hover:bg-[#f1f7f7]"
+                    onClick={() => setSelectedReviewRating(null)}
+                  >
+                    Ver todas
+                  </button>
+                ) : null}
               </div>
             ) : null}
 
             {reviewsLoading ? (
-              <p className="rounded-xl bg-[#edf4f5] px-3 py-[11px] font-bold text-[#3d5d66]">
-                Cargando reseñas...
-              </p>
-            ) : null}
-
-            {reviews.length > 0 ? (
-              <div className="grid gap-3">
-                {reviews.map((item) => (
-                  <article
-                    key={item.id}
-                    className="rounded-2xl border border-[#e0eaec] bg-[#fbfdfd] p-4 transition hover:border-[#c8d9dd]"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="grid size-11 shrink-0 place-items-center rounded-full bg-[#eaf4f3] text-sm font-bold text-[#1f6a67]">
-                        {getReviewerInitials(item.user.nombre)}
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                          <div className="min-w-0">
-                            <strong className="block truncate text-[#1a2f3b]">
-                              {item.user.nombre}
-                            </strong>
-                            <p className="mt-1 text-[1rem] tracking-[0.05em] text-[#dc9a1a]">
-                              {renderStars(item.rating)}
-                            </p>
-                          </div>
-                          <span className="shrink-0 text-[0.88rem] text-[#5f7780]">
-                            {new Date(item.createdAt).toLocaleDateString("es-MX")}
-                          </span>
-                        </div>
-                        <p className="mt-2 text-[0.98rem] leading-7 text-[#2f4a57]">
-                          {item.comment}
-                        </p>
-                      </div>
-                    </div>
-                  </article>
+              <div className="grid gap-3" role="status" aria-label="Cargando reseñas">
+                {[1, 2].map((item) => (
+                  <div
+                    key={item}
+                    className="h-36 animate-pulse rounded-2xl border border-[#e4ebed] bg-[#f3f7f7]"
+                  />
                 ))}
               </div>
+            ) : null}
+
+            {!reviewsLoading && filteredReviews.length > 0 ? (
+              <>
+                <div className="grid gap-3">
+                  {visibleReviews.map((item) => (
+                    <article
+                      key={item.id}
+                      className="rounded-2xl border border-[#dfe8ea] bg-white p-4 transition hover:border-[#bcd2d5] hover:shadow-[0_10px_28px_rgba(32,79,88,0.08)] sm:p-5"
+                    >
+                      <div className="flex items-start gap-3 sm:gap-4">
+                        <div
+                          className="grid size-11 shrink-0 place-items-center rounded-full bg-[#e4f1f0] text-sm font-bold text-[#1b625f] ring-4 ring-[#f4f9f8]"
+                          aria-hidden
+                        >
+                          {getReviewerInitials(item.user.nombre)}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                            <div className="min-w-0">
+                              <strong className="block truncate text-[0.98rem] text-[#18313d]">
+                                {item.user.nombre}
+                              </strong>
+                              <div className="mt-1 flex items-center gap-2">
+                                <span
+                                  className="text-[0.95rem] tracking-[0.04em] text-[#dc9a1a]"
+                                  aria-label={`${item.rating} de 5 estrellas`}
+                                >
+                                  {renderStars(item.rating)}
+                                </span>
+                                <span className="hidden text-xs font-semibold text-[#6a8089] sm:inline">
+                                  {item.rating}.0 de 5
+                                </span>
+                              </div>
+                            </div>
+                            <time
+                              dateTime={item.createdAt}
+                              className="shrink-0 text-[0.82rem] text-[#71858d]"
+                            >
+                              {new Date(item.createdAt).toLocaleDateString("es-MX", {
+                                day: "numeric",
+                                month: "short",
+                                year: "numeric",
+                              })}
+                            </time>
+                          </div>
+                          <p className="mt-3 whitespace-pre-line text-[0.96rem] leading-7 text-[#304d58]">
+                            {item.comment}
+                          </p>
+                        </div>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+
+                {remainingReviewsCount > 0 ? (
+                  <button
+                    type="button"
+                    className="mt-4 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 font-bold text-[#1f6a67] transition hover:bg-[#edf6f5]"
+                    onClick={() =>
+                      setVisibleReviewsCount((current) =>
+                        Math.min(current + REVIEWS_PER_PAGE, filteredReviews.length),
+                      )
+                    }
+                  >
+                    Ver {Math.min(REVIEWS_PER_PAGE, remainingReviewsCount)} reseña
+                    {Math.min(REVIEWS_PER_PAGE, remainingReviewsCount) === 1 ? "" : "s"} más
+                    <ChevronDown className="size-5" aria-hidden />
+                  </button>
+                ) : filteredReviews.length > REVIEWS_PER_PAGE ? (
+                  <button
+                    type="button"
+                    className="mt-5 inline-flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl px-4 py-3 font-bold text-[#1f6a67] transition hover:bg-[#f0f6f6]"
+                    onClick={() => setVisibleReviewsCount(REVIEWS_PER_PAGE)}
+                  >
+                    Mostrar menos
+                    <ChevronUp className="size-5" aria-hidden />
+                  </button>
+                ) : null}
+              </>
             ) : !reviewsLoading ? (
-              <div className="rounded-2xl border border-dashed border-[#c8dadd] bg-[#fbfdfd] px-5 py-8 text-center">
-                <h2 className="text-[1.2rem] font-semibold text-[#1a2a37]">
-                  Aún no hay reseñas
-                </h2>
-                <p className="mt-2 text-sm leading-6 text-[#5f7780]">
-                  Sé la primera persona en compartir su experiencia con este producto.
-                </p>
+              <div className="grid min-h-[260px] place-items-center rounded-2xl border border-dashed border-[#c8dadd] bg-[#fbfdfd] px-5 py-8 text-center">
+                <div>
+                  <span className="mx-auto grid size-14 place-items-center rounded-full bg-[#e8f3f2] text-[#1f6a67]">
+                    <MessageSquareText className="size-6" aria-hidden />
+                  </span>
+                  <h3 className="mt-4 text-[1.2rem] font-semibold text-[#1a2a37]">
+                    {selectedReviewRating === null
+                      ? "Aún no hay reseñas"
+                      : `No hay reseñas de ${selectedReviewRating} estrellas`}
+                  </h3>
+                  <p className="mx-auto mt-2 max-w-[420px] text-sm leading-6 text-[#5f7780]">
+                    {selectedReviewRating === null
+                      ? "Sé la primera persona en compartir su experiencia con este producto."
+                      : "Prueba con otra calificación o vuelve a ver todas las opiniones."}
+                  </p>
+                  {selectedReviewRating !== null ? (
+                    <button
+                      type="button"
+                      className="mt-4 cursor-pointer rounded-xl border border-[#c8dadd] bg-white px-4 py-2.5 font-semibold text-[#1f6a67]"
+                      onClick={() => setSelectedReviewRating(null)}
+                    >
+                      Ver todas las opiniones
+                    </button>
+                  ) : null}
+                </div>
               </div>
             ) : null}
           </div>
@@ -1099,9 +1316,19 @@ export default function ProductDetailClient({
       <DemoRecommendations context="product" sourceProducts={[product]} />
 
       <section className="mt-10">
-        <div className="mb-4 flex flex-col items-start justify-between gap-3 min-[681px]:flex-row min-[681px]:items-center">
-          <h2 className="m-0 text-[1.5rem] text-[#1a2a37]">Productos relacionados</h2>
-          <span className="text-[0.9rem] font-bold text-[#6d818b]">Misma clasificación</span>
+        <div className="mb-5 border-b border-[#dbe6e8] pb-4">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-[0.09em] text-[#1f6a67]">
+              Explora más
+            </p>
+            <h2 className="mt-1 text-[1.4rem] font-semibold tracking-[-0.01em] text-[#142734] sm:text-[1.65rem]">
+              Encuentra el complemento ideal
+            </h2>
+            <p className="mt-1 max-w-[620px] text-sm leading-5 text-[#617780]">
+              Alternativas de {product.clasificacion.toLowerCase()} para comparar
+              y elegir con confianza.
+            </p>
+          </div>
         </div>
 
         {relatedLoading ? (
@@ -1114,20 +1341,25 @@ export default function ProductDetailClient({
           <div className="relative">
             <button
               type="button"
-              className="absolute left-[-10px] top-1/2 z-[2] grid size-11 -translate-y-1/2 place-items-center rounded-full border border-[rgba(31,106,103,0.14)] bg-[rgba(255,255,255,0.96)] text-[1.7rem] leading-none text-[#1f6a67] shadow-[0_12px_26px_rgba(31,106,103,0.14)] disabled:cursor-default disabled:opacity-[0.38] disabled:shadow-none min-[681px]:left-[-26px] min-[681px]:size-[52px] min-[681px]:text-[2rem]"
+              className="absolute left-0 top-1/2 z-[2] grid size-11 -translate-y-1/2 place-items-center text-[#1f6a67] drop-shadow-[0_0_3px_rgba(255,255,255,0.98)] transition hover:scale-110 hover:text-[#154f4d] disabled:pointer-events-none disabled:opacity-0"
               onClick={() => scrollRelated(-1)}
               aria-label="Ver productos relacionados anteriores"
               disabled={!canScrollRelatedPrev}
             >
-              ‹
+              <ChevronLeft className="size-8 stroke-[2.4]" aria-hidden />
             </button>
+
             <div
               ref={relatedTrackRef}
-              className="overflow-x-auto overflow-y-hidden scroll-smooth px-1 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+              className="overflow-x-auto overflow-y-hidden scroll-smooth px-1 py-1 [scrollbar-width:none] [scroll-snap-type:x_mandatory] [&::-webkit-scrollbar]:hidden"
             >
-              <div className="grid grid-flow-col auto-cols-[86%] gap-4 min-[681px]:auto-cols-[minmax(240px,70%)] min-[1081px]:auto-cols-[minmax(260px,31%)]">
+              <div className="grid grid-flow-col auto-cols-[100%] gap-5 min-[681px]:auto-cols-[48%] min-[1081px]:auto-cols-[23.5%]">
                 {relatedProducts.map((item) => (
-                  <div key={item.id} data-related-card="true" className="h-full">
+                  <div
+                    key={item.id}
+                    data-related-card="true"
+                    className="h-full [scroll-snap-align:start]"
+                  >
                     <ProductCard
                       product={item}
                       searchQuery=""
@@ -1138,14 +1370,15 @@ export default function ProductDetailClient({
                 ))}
               </div>
             </div>
+
             <button
               type="button"
-              className="absolute right-[-10px] top-1/2 z-[2] grid size-11 -translate-y-1/2 place-items-center rounded-full border border-[rgba(31,106,103,0.14)] bg-[rgba(255,255,255,0.96)] text-[1.7rem] leading-none text-[#1f6a67] shadow-[0_12px_26px_rgba(31,106,103,0.14)] disabled:cursor-default disabled:opacity-[0.38] disabled:shadow-none min-[681px]:right-[-26px] min-[681px]:size-[52px] min-[681px]:text-[2rem]"
+              className="absolute right-0 top-1/2 z-[2] grid size-11 -translate-y-1/2 place-items-center text-[#1f6a67] drop-shadow-[0_0_3px_rgba(255,255,255,0.98)] transition hover:scale-110 hover:text-[#154f4d] disabled:pointer-events-none disabled:opacity-0"
               onClick={() => scrollRelated(1)}
               aria-label="Ver más productos relacionados"
               disabled={!canScrollRelatedNext}
             >
-              ›
+              <ChevronRight className="size-8 stroke-[2.4]" aria-hidden />
             </button>
           </div>
         ) : null}
@@ -1189,55 +1422,134 @@ export default function ProductDetailClient({
           }}
         >
           <div
-            className="w-full max-w-[540px] rounded-2xl border border-[#d5e2e5] bg-white p-4"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="review-dialog-title"
+            className="w-full max-w-[560px] overflow-hidden rounded-[22px] border border-[#d5e2e5] bg-white shadow-[0_28px_80px_rgba(9,30,38,0.28)]"
             onClick={(e) => e.stopPropagation()}
           >
-            <h3 className="mb-3 text-[#192e39]">
-              {canEditReview ? "Editar comentario" : "Calificar producto"}
-            </h3>
-            <form onSubmit={submitReview}>
-              <div className="mb-3 flex gap-2">
-                {[1, 2, 3, 4, 5].map((star) => (
-                  <button
-                    key={star}
-                    type="button"
-                    className={`size-[42px] rounded-lg border text-[1.25rem] ${
-                      reviewForm.rating >= star
-                        ? "border-[#ebb755] bg-[#fff8ea] text-[#d9971a]"
-                        : "border-[#d3dde1] bg-white text-[#9aa9af]"
-                    }`}
-                    onClick={() => {
-                      if (canEditReview) return;
-                      setReviewForm((prev) => ({ ...prev, rating: star }));
-                    }}
-                    disabled={canEditReview}
-                    aria-label={`Calificar con ${star} estrellas`}
-                  >
-                    {"\u2605"}
-                  </button>
-                ))}
-              </div>
-              {canEditReview ? (
-                <p className="mb-4 rounded-xl bg-[#edf4f5] px-3 py-[11px] font-bold text-[#3d5d66]">
-                  La calificacion no se puede editar.
+            <div className="flex items-start justify-between gap-4 border-b border-[#e2ebed] bg-[#f5faf9] px-5 py-5 sm:px-6">
+              <div>
+                <p className="text-xs font-bold uppercase tracking-[0.09em] text-[#1f6a67]">
+                  Tu experiencia importa
                 </p>
+                <h3 id="review-dialog-title" className="mt-1 text-xl font-semibold text-[#192e39]">
+                  {canEditReview ? "Editar mi opinión" : "Calificar producto"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                className="grid size-11 shrink-0 cursor-pointer place-items-center rounded-full text-[#526a74] transition hover:bg-[#e5f0ef] hover:text-[#183f43]"
+                onClick={() => setShowReviewModal(false)}
+                disabled={savingReview}
+                aria-label="Cerrar formulario de reseña"
+              >
+                <X className="size-5" aria-hidden />
+              </button>
+            </div>
+
+            <form onSubmit={submitReview} className="p-5 sm:p-6">
+              <fieldset>
+                <legend className="text-sm font-bold text-[#203944]">
+                  ¿Cómo calificarías este producto?
+                </legend>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <div className="flex gap-1" aria-label="Seleccionar calificación">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        className={`grid size-11 place-items-center rounded-lg border transition ${
+                          reviewForm.rating >= star
+                            ? "border-[#e5b24d] bg-[#fff7e7] text-[#d9971a]"
+                            : "border-[#d3dde1] bg-white text-[#9aa9af] hover:border-[#e5b24d] hover:bg-[#fffbf2]"
+                        } disabled:cursor-default`}
+                        onClick={() => {
+                          setReviewForm((prev) => ({ ...prev, rating: star }));
+                        }}
+                        aria-label={`Calificar con ${star} estrella${star === 1 ? "" : "s"}`}
+                        aria-pressed={reviewForm.rating === star}
+                      >
+                        <Star className="size-6 fill-current" aria-hidden />
+                      </button>
+                    ))}
+                  </div>
+                  <span className="text-sm font-semibold text-[#536b75]" aria-live="polite">
+                    {reviewForm.rating > 0
+                      ? `${reviewForm.rating} de 5`
+                      : "Selecciona de 1 a 5"}
+                  </span>
+                </div>
+              </fieldset>
+
+              {canEditReview ? (
+                <div className="mt-4 flex items-start gap-2 rounded-xl border border-[#d8e7e6] bg-[#eef7f6] px-3 py-3 text-sm leading-5 text-[#46636b]">
+                  <ShieldCheck className="mt-0.5 size-4 shrink-0 text-[#1f6a67]" aria-hidden />
+                  <p>
+                    Puedes cambiar la calificación y el comentario. Al guardar,
+                    la reseña volverá a revisión antes de publicarse.
+                  </p>
+                </div>
               ) : null}
 
-              <textarea
-                className="min-h-[110px] w-full resize-y rounded-[10px] border border-[#d0dde0] p-2.5 text-[#203944] outline-none"
-                placeholder="Escribe tu comentario"
-                value={reviewForm.comment}
-                onChange={(e) =>
-                  setReviewForm((prev) => ({ ...prev, comment: e.target.value }))
-                }
-                minLength={5}
-                maxLength={500}
-              />
+              <div className="mt-5">
+                <label htmlFor="review-comment" className="text-sm font-bold text-[#203944]">
+                  Cuéntanos tu experiencia
+                </label>
+                <p id="review-comment-help" className="mt-1 text-xs leading-5 text-[#6b7f88]">
+                  Comenta sobre uso, comodidad, calidad o cualquier detalle útil
+                  para otros clientes.
+                </p>
+                <textarea
+                  id="review-comment"
+                  className={`mt-2 min-h-[132px] w-full resize-y rounded-xl border bg-white p-3 text-[#203944] outline-none transition placeholder:text-[#96a5ab] ${
+                    reviewForm.comment.length > 0 && !isReviewCommentValid
+                      ? "border-[#d86262] focus:border-[#bd3535]"
+                      : "border-[#cbdadd] focus:border-[#1f6a67]"
+                  }`}
+                  placeholder="Ejemplo: Es cómodo, resistente y fácil de ajustar..."
+                  value={reviewForm.comment}
+                  onChange={(e) =>
+                    setReviewForm((prev) => ({ ...prev, comment: e.target.value }))
+                  }
+                  aria-describedby="review-comment-help review-comment-status"
+                  aria-invalid={reviewForm.comment.length > 0 && !isReviewCommentValid}
+                  minLength={REVIEW_MIN_LENGTH}
+                  maxLength={REVIEW_MAX_LENGTH}
+                  required
+                />
+                <div
+                  id="review-comment-status"
+                  className="mt-1.5 flex flex-wrap items-center justify-between gap-2 text-xs"
+                >
+                  <span
+                    className={
+                      reviewForm.comment.length > 0 && !isReviewCommentValid
+                        ? "font-semibold text-[#b42318]"
+                        : "text-[#6d8088]"
+                    }
+                  >
+                    {reviewForm.comment.length > 0 &&
+                    trimmedReviewComment.length < REVIEW_MIN_LENGTH
+                      ? `Escribe al menos ${REVIEW_MIN_LENGTH} caracteres.`
+                      : "Entre 5 y 500 caracteres."}
+                  </span>
+                  <span
+                    className={
+                      reviewForm.comment.length >= REVIEW_MAX_LENGTH
+                        ? "font-semibold text-[#b42318]"
+                        : "text-[#6d8088]"
+                    }
+                  >
+                    {reviewForm.comment.length}/{REVIEW_MAX_LENGTH}
+                  </span>
+                </div>
+              </div>
 
-              <div className="mt-3 flex justify-end gap-2.5">
+              <div className="mt-6 flex flex-col-reverse gap-2.5 sm:flex-row sm:justify-end">
                 <button
                   type="button"
-                  className={secondaryButtonClassName}
+                  className={`${secondaryButtonClassName} w-full sm:w-auto`}
                   onClick={() => setShowReviewModal(false)}
                   disabled={savingReview}
                 >
@@ -1245,8 +1557,8 @@ export default function ProductDetailClient({
                 </button>
                 <button
                   type="submit"
-                  className={primaryButtonClassName}
-                  disabled={savingReview}
+                  className={`${primaryButtonClassName} w-full sm:w-auto`}
+                  disabled={!canSubmitReview}
                 >
                   {savingReview
                     ? canEditReview

@@ -8,7 +8,9 @@ import {
   Expand,
   LoaderCircle,
   MessageSquareQuote,
+  MoreHorizontal,
   Star,
+  TableProperties,
   Trash2,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -42,6 +44,15 @@ import {
   DialogTitle,
 } from "@/features/admin/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/features/admin/components/ui/dropdown-menu";
+import {
   Table,
   TableBody,
   TableCell,
@@ -49,6 +60,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/features/admin/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/features/admin/components/ui/tooltip";
 import { cn } from "@/features/admin/lib/utils";
 import { formatDate } from "@/features/admin/lib/product-shared";
 
@@ -57,6 +73,15 @@ const HOME_TESTIMONIALS_MIN = 3;
 const HOME_TESTIMONIALS_MAX = 8;
 
 type StatusFilter = ReviewStatus | "ALL";
+type ReviewColumnId =
+  | "date"
+  | "user"
+  | "product"
+  | "rating"
+  | "comment"
+  | "status"
+  | "home"
+  | "moderatedBy";
 
 const STATUS_TABS: { id: StatusFilter; label: string }[] = [
   { id: "ALL", label: "Todas" },
@@ -64,6 +89,50 @@ const STATUS_TABS: { id: StatusFilter; label: string }[] = [
   { id: "APPROVED", label: "Aprobadas" },
   { id: "REJECTED", label: "Rechazadas" },
 ];
+
+const REVIEW_COLUMN_ORDER: ReviewColumnId[] = [
+  "date",
+  "user",
+  "product",
+  "rating",
+  "comment",
+  "status",
+  "home",
+  "moderatedBy",
+];
+
+const REVIEW_COLUMN_LABELS: Record<ReviewColumnId, string> = {
+  date: "Fecha",
+  user: "Usuario",
+  product: "Producto",
+  rating: "Calificación",
+  comment: "Comentario",
+  status: "Estado",
+  home: "Visible en inicio",
+  moderatedBy: "Moderado por",
+};
+
+const DEFAULT_VISIBLE_COLUMNS: Record<ReviewColumnId, boolean> = {
+  date: true,
+  user: true,
+  product: true,
+  rating: true,
+  comment: true,
+  status: true,
+  home: false,
+  moderatedBy: false,
+};
+
+const REVIEW_COLUMN_WIDTHS: Record<ReviewColumnId, number> = {
+  date: 112,
+  user: 190,
+  product: 210,
+  rating: 130,
+  comment: 250,
+  status: 112,
+  home: 120,
+  moderatedBy: 150,
+};
 
 function formatReviewStatus(status: ReviewStatus) {
   if (status === "PENDING") return "Pendiente";
@@ -105,6 +174,8 @@ export default function AdminReviewsPage() {
   const [actionId, setActionId] = useState<number | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminReview | null>(null);
   const [fullCommentReview, setFullCommentReview] = useState<AdminReview | null>(null);
+  const [visibleColumns, setVisibleColumns] =
+    useState<Record<ReviewColumnId, boolean>>(DEFAULT_VISIBLE_COLUMNS);
 
   const load = useCallback(async () => {
     const reviewsResult = await listAdminReviews({ status: "ALL" });
@@ -176,6 +247,24 @@ export default function AdminReviewsPage() {
     return sorted.slice(start, start + PAGE_SIZE);
   }, [sorted, page]);
 
+  const visibleColumnCount = useMemo(
+    () => REVIEW_COLUMN_ORDER.filter((columnId) => visibleColumns[columnId]).length,
+    [visibleColumns],
+  );
+
+  const tableMinWidth = useMemo(
+    () =>
+      Math.max(
+        720,
+        REVIEW_COLUMN_ORDER.reduce(
+          (total, columnId) =>
+            total + (visibleColumns[columnId] ? REVIEW_COLUMN_WIDTHS[columnId] : 0),
+          0,
+        ) + 72,
+      ),
+    [visibleColumns],
+  );
+
   useClampPage(page, setPage, totalPages);
   useResetPageOnChange(setPage, [statusFilter, search]);
 
@@ -233,6 +322,22 @@ export default function AdminReviewsPage() {
     } finally {
       setActionId(null);
     }
+  };
+
+  const toggleColumnVisibility = (columnId: ReviewColumnId, checked: boolean) => {
+    if (!checked && visibleColumnCount === 1 && visibleColumns[columnId]) {
+      toast.error("Debes mantener al menos una columna visible.");
+      return;
+    }
+
+    setVisibleColumns((current) => ({
+      ...current,
+      [columnId]: checked,
+    }));
+  };
+
+  const resetVisibleColumns = () => {
+    setVisibleColumns(DEFAULT_VISIBLE_COLUMNS);
   };
 
   if (blockingFullPage) {
@@ -296,12 +401,50 @@ export default function AdminReviewsPage() {
               formatCount={formatNumberEsMx}
             />
 
-            <AdminSearchField
-              value={search}
-              onChange={setSearch}
-              placeholder="Buscar por comentario, producto, nombre o correo…"
-              wrapperClassName="w-full max-w-md"
-            />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              <AdminSearchField
+                value={search}
+                onChange={setSearch}
+                placeholder="Buscar por comentario, producto, nombre o correo…"
+                wrapperClassName="w-full sm:max-w-md"
+              />
+
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-11 shrink-0 rounded-md border-[var(--border-soft)] bg-[var(--card)] px-4 text-[var(--brand-800)] shadow-none hover:bg-[var(--surface)]"
+                  >
+                    <TableProperties className="size-4" aria-hidden />
+                    Columnas
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent
+                  align="end"
+                  className="w-60 rounded-lg border-[var(--border-soft)] bg-[var(--card)] p-1.5 shadow-[var(--shadow-md)]"
+                >
+                  <DropdownMenuLabel>Mostrar columnas</DropdownMenuLabel>
+                  <DropdownMenuSeparator />
+                  {REVIEW_COLUMN_ORDER.map((columnId) => (
+                    <DropdownMenuCheckboxItem
+                      key={columnId}
+                      checked={visibleColumns[columnId]}
+                      onCheckedChange={(checked) =>
+                        toggleColumnVisibility(columnId, checked === true)
+                      }
+                    >
+                      {REVIEW_COLUMN_LABELS[columnId]}
+                    </DropdownMenuCheckboxItem>
+                  ))}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onSelect={resetVisibleColumns}>
+                    <EyeOff className="size-4" aria-hidden />
+                    Restaurar columnas
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
 
             <div className="flex items-center gap-2 text-sm text-[var(--text-muted)]">
               <MessageSquareQuote className="size-4 opacity-70" aria-hidden />
@@ -330,26 +473,52 @@ export default function AdminReviewsPage() {
                   className="min-w-0"
                   style={{
                     width: "100%",
-                    minWidth: "1040px",
+                    minWidth: `${tableMinWidth}px`,
                   }}
                 >
                   <TableHeader>
                     <TableRow className="border-b border-[color-mix(in_srgb,var(--brand-700)_24%,var(--border-soft))] bg-[color-mix(in_srgb,var(--brand-700)_18%,var(--surface))] hover:bg-[color-mix(in_srgb,var(--brand-700)_18%,var(--surface))]">
-                      <TableHead className="whitespace-nowrap text-[var(--brand-900)]">
-                        Fecha
-                      </TableHead>
-                      <TableHead className="min-w-[140px] text-[var(--brand-900)]">Usuario</TableHead>
-                      <TableHead className="min-w-[160px] text-[var(--brand-900)]">Producto</TableHead>
-                      <TableHead className="whitespace-nowrap text-[var(--brand-900)]">
-                        Calificación
-                      </TableHead>
-                      <TableHead className="w-[14rem] max-w-[14rem] text-[var(--brand-900)] sm:w-[18rem] sm:max-w-[18rem]">
-                        Comentario
-                      </TableHead>
-                      <TableHead className="whitespace-nowrap text-[var(--brand-900)]">Estado</TableHead>
-                      <TableHead className="whitespace-nowrap text-[var(--brand-900)]">Inicio</TableHead>
-                      <TableHead className="min-w-[120px] text-[var(--brand-900)]">Moderado por</TableHead>
-                      <TableHead className="w-[280px] whitespace-nowrap text-right text-[var(--brand-900)]">
+                      {visibleColumns.date ? (
+                        <TableHead className="whitespace-nowrap text-[var(--brand-900)]">
+                          Fecha
+                        </TableHead>
+                      ) : null}
+                      {visibleColumns.user ? (
+                        <TableHead className="min-w-[140px] text-[var(--brand-900)]">
+                          Usuario
+                        </TableHead>
+                      ) : null}
+                      {visibleColumns.product ? (
+                        <TableHead className="min-w-[160px] text-[var(--brand-900)]">
+                          Producto
+                        </TableHead>
+                      ) : null}
+                      {visibleColumns.rating ? (
+                        <TableHead className="whitespace-nowrap text-[var(--brand-900)]">
+                          Calificación
+                        </TableHead>
+                      ) : null}
+                      {visibleColumns.comment ? (
+                        <TableHead className="w-[14rem] max-w-[14rem] text-[var(--brand-900)] sm:w-[18rem] sm:max-w-[18rem]">
+                          Comentario
+                        </TableHead>
+                      ) : null}
+                      {visibleColumns.status ? (
+                        <TableHead className="whitespace-nowrap text-[var(--brand-900)]">
+                          Estado
+                        </TableHead>
+                      ) : null}
+                      {visibleColumns.home ? (
+                        <TableHead className="whitespace-nowrap text-[var(--brand-900)]">
+                          Visible en inicio
+                        </TableHead>
+                      ) : null}
+                      {visibleColumns.moderatedBy ? (
+                        <TableHead className="min-w-[120px] text-[var(--brand-900)]">
+                          Moderado por
+                        </TableHead>
+                      ) : null}
+                      <TableHead className="w-[72px] whitespace-nowrap text-right text-[var(--brand-900)]">
                         Acciones
                       </TableHead>
                     </TableRow>
@@ -361,119 +530,153 @@ export default function AdminReviewsPage() {
                         !item.showOnHome && counts.featured >= HOME_TESTIMONIALS_MAX;
                       return (
                         <TableRow key={item.id}>
-                          <TableCell className="whitespace-nowrap text-sm text-[var(--text-muted)]">
-                            {formatDate(item.createdAt)}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex flex-col gap-0.5">
-                              <span className="font-medium text-[var(--text-main)]">
-                                {item.user.nombre}
-                              </span>
-                              <span className="text-xs text-[var(--text-muted)]">{item.user.correo}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium text-[var(--text-main)]">
-                            {item.product.nombre}
-                          </TableCell>
-                          <TableCell>
-                            <RatingStars rating={item.rating} />
-                          </TableCell>
-                          <TableCell className="max-w-[14rem] sm:max-w-[18rem]">
-                            {item.comment.trim() ? (
-                              <button
-                                type="button"
-                                className="group flex w-full min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-md py-0.5 pr-1 pl-0.5 text-left transition hover:bg-[color-mix(in_srgb,var(--brand-600)_8%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-600)] focus-visible:ring-offset-2"
-                                onClick={() => setFullCommentReview(item)}
-                                aria-label="Ampliar opinión del cliente"
-                              >
-                                <span className="min-w-0 flex-1 overflow-hidden text-sm leading-snug wrap-break-word text-[var(--text-main)] line-clamp-3">
-                                  {item.comment}
+                          {visibleColumns.date ? (
+                            <TableCell className="whitespace-nowrap text-sm text-[var(--text-muted)]">
+                              {formatDate(item.createdAt)}
+                            </TableCell>
+                          ) : null}
+                          {visibleColumns.user ? (
+                            <TableCell>
+                              <div className="flex flex-col gap-0.5">
+                                <span className="font-medium text-[var(--text-main)]">
+                                  {item.user.nombre}
                                 </span>
-                                <Expand
-                                  className="size-4 shrink-0 self-center text-[var(--brand-600)] opacity-60 transition group-hover:opacity-100"
-                                  aria-hidden
-                                />
-                              </button>
-                            ) : (
-                              <span className="text-sm text-[var(--text-muted)]">—</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant={statusBadgeVariant(item.status)}>
-                              {formatReviewStatus(item.status)}
-                            </Badge>
-                          </TableCell>
-                          <TableCell>
-                            {item.showOnHome ? (
-                              <Badge variant="emerald">Visible</Badge>
-                            ) : (
-                              <Badge variant="slate">Oculta</Badge>
-                            )}
-                          </TableCell>
-                          <TableCell className="text-sm text-[var(--text-muted)]">
-                            {item.approvedBy ? (
-                              <span className="text-[var(--text-main)]">{item.approvedBy.nombre}</span>
-                            ) : (
-                              "—"
-                            )}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <div className="flex flex-wrap items-center justify-end gap-2">
-                              {item.status === "PENDING" ? (
-                                <Button
+                                <span className="text-xs text-[var(--text-muted)]">
+                                  {item.user.correo}
+                                </span>
+                              </div>
+                            </TableCell>
+                          ) : null}
+                          {visibleColumns.product ? (
+                            <TableCell className="font-medium text-[var(--text-main)]">
+                              {item.product.nombre}
+                            </TableCell>
+                          ) : null}
+                          {visibleColumns.rating ? (
+                            <TableCell>
+                              <RatingStars rating={item.rating} />
+                            </TableCell>
+                          ) : null}
+                          {visibleColumns.comment ? (
+                            <TableCell className="max-w-[14rem] sm:max-w-[18rem]">
+                              {item.comment.trim() ? (
+                                <button
                                   type="button"
-                                  size="sm"
-                                  variant="success"
-                                  className="h-8 rounded-md px-3"
-                                  disabled={busy}
-                                  onClick={() => void approvePending(item.id)}
+                                  className="group flex w-full min-w-0 max-w-full items-center gap-2 overflow-hidden rounded-md py-0.5 pr-1 pl-0.5 text-left transition hover:bg-[color-mix(in_srgb,var(--brand-600)_8%,transparent)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--brand-600)] focus-visible:ring-offset-2"
+                                  onClick={() => setFullCommentReview(item)}
+                                  aria-label="Ampliar opinión del cliente"
                                 >
-                                  {busy ? (
-                                    <LoaderCircle className="size-4 animate-spin" aria-hidden />
-                                  ) : (
+                                  <span className="min-w-0 flex-1 overflow-hidden text-sm leading-snug wrap-break-word text-[var(--text-main)] line-clamp-3">
+                                    {item.comment}
+                                  </span>
+                                  <Expand
+                                    className="size-4 shrink-0 self-center text-[var(--brand-600)] opacity-60 transition group-hover:opacity-100"
+                                    aria-hidden
+                                  />
+                                </button>
+                              ) : (
+                                <span className="text-sm text-[var(--text-muted)]">—</span>
+                              )}
+                            </TableCell>
+                          ) : null}
+                          {visibleColumns.status ? (
+                            <TableCell>
+                              <Badge variant={statusBadgeVariant(item.status)}>
+                                {formatReviewStatus(item.status)}
+                              </Badge>
+                            </TableCell>
+                          ) : null}
+                          {visibleColumns.home ? (
+                            <TableCell>
+                              {item.showOnHome ? (
+                                <Badge variant="emerald">Visible</Badge>
+                              ) : (
+                                <Badge variant="slate">Oculta</Badge>
+                              )}
+                            </TableCell>
+                          ) : null}
+                          {visibleColumns.moderatedBy ? (
+                            <TableCell className="text-sm text-[var(--text-muted)]">
+                              {item.approvedBy ? (
+                                <span className="text-[var(--text-main)]">
+                                  {item.approvedBy.nombre}
+                                </span>
+                              ) : (
+                                "—"
+                              )}
+                            </TableCell>
+                          ) : null}
+                          <TableCell className="text-right">
+                            <DropdownMenu>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button
+                                      type="button"
+                                      variant="ghost"
+                                      size="icon-sm"
+                                      className="rounded-md text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--brand-800)]"
+                                      disabled={busy}
+                                      aria-label={`Acciones para la reseña de ${item.user.nombre}`}
+                                    >
+                                      {busy ? (
+                                        <LoaderCircle
+                                          className="size-4 animate-spin"
+                                          aria-hidden
+                                        />
+                                      ) : (
+                                        <MoreHorizontal className="size-4" aria-hidden />
+                                      )}
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                </TooltipTrigger>
+                                <TooltipContent sideOffset={6}>Acciones</TooltipContent>
+                              </Tooltip>
+
+                              <DropdownMenuContent
+                                align="end"
+                                className="w-56 rounded-lg border-[var(--border-soft)] bg-[var(--card)] p-1.5 shadow-[var(--shadow-md)]"
+                              >
+                                <DropdownMenuLabel>Gestionar reseña</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                {item.status === "PENDING" ? (
+                                  <DropdownMenuItem
+                                    onSelect={() => void approvePending(item.id)}
+                                  >
                                     <CheckCircle2 className="size-4" aria-hidden />
+                                    Aprobar reseña
+                                  </DropdownMenuItem>
+                                ) : null}
+                                <DropdownMenuItem
+                                  disabled={item.status !== "APPROVED" || homeLimitReached}
+                                  onSelect={() => void toggleHomeVisibility(item)}
+                                  title={
+                                    item.status === "APPROVED"
+                                      ? item.showOnHome
+                                        ? "Quitar de testimonios de inicio"
+                                        : homeLimitReached
+                                          ? `Máximo ${HOME_TESTIMONIALS_MAX} reseñas en inicio`
+                                          : "Mostrar en testimonios de inicio"
+                                      : "Aprueba la reseña antes de mostrarla en inicio"
+                                  }
+                                >
+                                  {item.showOnHome ? (
+                                    <EyeOff className="size-4" aria-hidden />
+                                  ) : (
+                                    <Eye className="size-4" aria-hidden />
                                   )}
-                                  Aprobar
-                                </Button>
-                              ) : null}
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant={item.showOnHome ? "secondary" : "outline"}
-                                className="h-8 rounded-md px-3"
-                                disabled={busy || item.status !== "APPROVED" || homeLimitReached}
-                                onClick={() => void toggleHomeVisibility(item)}
-                                title={
-                                  item.status === "APPROVED"
-                                    ? item.showOnHome
-                                      ? "Quitar de testimonios de inicio"
-                                      : homeLimitReached
-                                        ? `Máximo ${HOME_TESTIMONIALS_MAX} reseñas en inicio`
-                                        : "Mostrar en testimonios de inicio"
-                                    : "Aprueba la reseña antes de mostrarla en inicio"
-                                }
-                              >
-                                {busy ? (
-                                  <LoaderCircle className="size-4 animate-spin" aria-hidden />
-                                ) : item.showOnHome ? (
-                                  <EyeOff className="size-4" aria-hidden />
-                                ) : (
-                                  <Eye className="size-4" aria-hidden />
-                                )}
-                                {item.showOnHome ? "Quitar inicio" : "Mostrar inicio"}
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="destructive"
-                                className="h-8 rounded-md px-3"
-                                disabled={busy}
-                                onClick={() => setDeleteTarget(item)}
-                              >
-                                <Trash2 className="size-4" aria-hidden />
-                                Eliminar
-                              </Button>
-                            </div>
+                                  {item.showOnHome ? "Quitar de inicio" : "Mostrar en inicio"}
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onSelect={() => setDeleteTarget(item)}
+                                >
+                                  <Trash2 className="size-4" aria-hidden />
+                                  Eliminar reseña
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       );

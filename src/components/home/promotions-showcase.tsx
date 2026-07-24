@@ -47,10 +47,10 @@ export function PromotionsShowcase({ promotions }: Props) {
         className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(42,159,155,0.14),transparent)]"
         aria-hidden
       />
-      <div className="pointer-events-none absolute top-24 right-0 size-[min(420px,70vw)] rounded-full bg-[#2a9f9b]/[0.06] blur-3xl" aria-hidden />
-      <div className="pointer-events-none absolute bottom-0 left-0 size-[min(360px,60vw)] rounded-full bg-[#134e4a]/[0.05] blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute top-24 right-0 size-[min(26.25rem,70vw)] rounded-full bg-[#2a9f9b]/[0.06] blur-3xl" aria-hidden />
+      <div className="pointer-events-none absolute bottom-0 left-0 size-[min(22.5rem,60vw)] rounded-full bg-[#134e4a]/[0.05] blur-3xl" aria-hidden />
 
-      <div className="relative mx-auto w-full max-w-[1120px] px-4">
+      <div className="relative mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-8">
         <div className="mb-10 max-w-2xl">
           <p className="mb-3 text-xs font-bold tracking-[0.2em] text-[#2f6470] uppercase">
             Ofertas para ti
@@ -90,7 +90,7 @@ export function PromotionsShowcase({ promotions }: Props) {
                 <Link
                   key={promotion.id}
                   href={`/producto/${encodeURIComponent(getProductSlug(promotion.product))}`}
-                  className="group flex min-w-[min(100%,320px)] max-w-[100%] shrink-0 snap-center flex-col overflow-hidden rounded-3xl border border-[#d4e4e7] bg-white no-underline shadow-[0_4px_20px_rgba(19,78,74,0.06)] transition duration-300 hover:-translate-y-1 hover:border-[#9cc9c8] hover:shadow-[0_20px_48px_rgba(19,78,74,0.12)] md:min-w-0 md:max-w-none"
+                  className="group flex min-w-[min(100%,20rem)] max-w-[100%] shrink-0 snap-center flex-col overflow-hidden rounded-3xl border border-[#d4e4e7] bg-white no-underline shadow-[0_4px_20px_rgba(19,78,74,0.06)] transition duration-300 hover:-translate-y-1 hover:border-[#9cc9c8] hover:shadow-[0_20px_48px_rgba(19,78,74,0.12)] md:min-w-0 md:max-w-none"
                 >
                   <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-[#165a5e] via-[#1f7a78] to-[#3dbfb8]">
                     {isOptimizableImageUrl(promotion.imageUrl) ? (

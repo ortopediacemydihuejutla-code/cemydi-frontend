@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useEffect, useMemo, useState } from "react";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   AlertCircle,
   ArrowLeft,
   ArrowRight,
   CheckCircle2,
+  KeyRound,
   LoaderCircle,
   Mail,
   RotateCcw,
@@ -22,10 +23,12 @@ import {
 } from "@/components/auth/account-action-layout";
 import {
   confirmEmailVerification,
+  confirmEmailVerificationCode,
   resendVerificationEmail,
 } from "@/services/auth";
 
 const RESEND_COOLDOWN_SECONDS = 60;
+const VERIFICATION_CODE_LENGTH = 8;
 
 type VerificationStatus = "idle" | "loading" | "success" | "error";
 
@@ -39,9 +42,16 @@ function VerifyEmailContent() {
     token ? "loading" : "idle",
   );
   const [loadingResend, setLoadingResend] = useState(false);
+  const [verifyingCode, setVerifyingCode] = useState(false);
   const [resendAttempted, setResendAttempted] = useState(false);
+  const [codeAttempted, setCodeAttempted] = useState(false);
   const [resendFeedback, setResendFeedback] = useState<string | null>(null);
   const [cooldown, setCooldown] = useState(0);
+  const [otpValues, setOtpValues] = useState<string[]>(
+    Array.from({ length: VERIFICATION_CODE_LENGTH }, () => ""),
+  );
+  const inputRefs = useRef<Array<HTMLInputElement | null>>([]);
+  const codigo = otpValues.join("");
 
   const emailError = useMemo(() => {
     if (!correo.trim()) return "Ingresa el correo de tu cuenta";
@@ -50,6 +60,11 @@ function VerifyEmailContent() {
     }
     return "";
   }, [correo]);
+
+  const codeError =
+    codigo.length === VERIFICATION_CODE_LENGTH
+      ? ""
+      : "Completa los 8 dígitos del código";
 
   useEffect(() => {
     if (!token) return;
@@ -90,6 +105,8 @@ function VerifyEmailContent() {
       setLoadingResend(true);
       const result = await resendVerificationEmail(correo.trim().toLowerCase());
       setResendFeedback(result.message);
+      setOtpValues(Array.from({ length: VERIFICATION_CODE_LENGTH }, () => ""));
+      setCodeAttempted(false);
       setCooldown(RESEND_COOLDOWN_SECONDS);
     } catch {
       setResendFeedback(
@@ -97,6 +114,68 @@ function VerifyEmailContent() {
       );
     } finally {
       setLoadingResend(false);
+    }
+  };
+
+  const handleOtpChange = (index: number, value: string) => {
+    const digit = value.replace(/\D/g, "").slice(-1);
+    const nextValues = [...otpValues];
+    nextValues[index] = digit;
+    setOtpValues(nextValues);
+    setResendFeedback(null);
+
+    if (digit && index < VERIFICATION_CODE_LENGTH - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleOtpKeyDown = (
+    index: number,
+    event: React.KeyboardEvent<HTMLInputElement>,
+  ) => {
+    if (event.key === "Backspace" && !otpValues[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handleOtpPaste = (event: React.ClipboardEvent<HTMLInputElement>) => {
+    const digits = event.clipboardData
+      .getData("text")
+      .replace(/\D/g, "")
+      .slice(0, VERIFICATION_CODE_LENGTH);
+    if (!digits) return;
+
+    event.preventDefault();
+    setOtpValues(
+      Array.from(
+        { length: VERIFICATION_CODE_LENGTH },
+        (_, index) => digits[index] ?? "",
+      ),
+    );
+    inputRefs.current[
+      Math.min(digits.length, VERIFICATION_CODE_LENGTH) - 1
+    ]?.focus();
+  };
+
+  const handleConfirmCode = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setCodeAttempted(true);
+    setResendFeedback(null);
+
+    if (emailError || codeError) return;
+
+    try {
+      setVerifyingCode(true);
+      await confirmEmailVerificationCode({
+        correo: correo.trim().toLowerCase(),
+        codigo,
+      });
+      setStatus("success");
+    } catch {
+      setStatus("error");
+      setResendFeedback("El código es incorrecto, venció o ya fue utilizado.");
+    } finally {
+      setVerifyingCode(false);
     }
   };
 
@@ -117,13 +196,13 @@ function VerifyEmailContent() {
       eyebrow: "Enlace no disponible",
       title: "No pudimos verificar el correo",
       description:
-        "El enlace puede haber vencido o ya fue utilizado. Solicita uno nuevo para continuar.",
+        "El enlace o código puede haber vencido o ya fue utilizado. Solicita nuevas instrucciones para continuar.",
     },
     idle: {
       eyebrow: "Revisa tu bandeja",
       title: "Confirma tu correo electrónico",
       description:
-        "Enviamos un enlace a la dirección que usaste al registrarte. También revisa spam o correo no deseado.",
+        "Enviamos un código y un enlace a la dirección que usaste al registrarte. También revisa spam o correo no deseado.",
     },
   }[status];
 
@@ -133,7 +212,7 @@ function VerifyEmailContent() {
       asideTitle="Un último paso para proteger tu cuenta."
       asideDescription="La confirmación de correo evita accesos no autorizados y mantiene tus datos asociados a la dirección correcta."
       asideItems={[
-        "Enlace personal de un solo uso",
+        "Código y enlace de un solo uso",
         "Vigencia limitada por seguridad",
         "Acceso habilitado al confirmar",
       ]}
@@ -146,7 +225,7 @@ function VerifyEmailContent() {
                 ? "bg-emerald-50 text-emerald-700"
                 : status === "error"
                   ? "bg-red-50 text-red-600"
-                  : "bg-slate-100 text-[#20636d]"
+                  : "bg-slate-100 text-[#1e6260]"
             }`}
           >
             {status === "loading" ? (
@@ -159,7 +238,7 @@ function VerifyEmailContent() {
               <Mail className="size-5" aria-hidden />
             )}
           </span>
-          <p className="m-0 text-[11px] font-bold uppercase tracking-[0.18em] text-[#20636d]">
+          <p className="m-0 text-[11px] font-bold uppercase tracking-[0.18em] text-[#1e6260]">
             {stateCopy.eyebrow}
           </p>
         </div>
@@ -177,7 +256,7 @@ function VerifyEmailContent() {
           className="mt-8 h-1.5 overflow-hidden rounded-full bg-slate-100"
           aria-hidden
         >
-          <div className="h-full w-1/2 animate-pulse rounded-full bg-[#20636d]" />
+          <div className="h-full w-1/2 animate-pulse rounded-full bg-[#1e6260]" />
         </div>
       ) : null}
 
@@ -192,86 +271,144 @@ function VerifyEmailContent() {
       ) : null}
 
       {status === "idle" || status === "error" ? (
-        <form
-          onSubmit={handleResend}
-          noValidate
-          className="mt-8 border-t border-slate-200 pt-6"
-        >
-          <h2 className="text-base font-semibold text-slate-900">
-            ¿Necesitas otro enlace?
-          </h2>
-          <p className="mt-1 text-sm leading-6 text-slate-500">
-            Escríbenos el correo de la cuenta y enviaremos nuevas instrucciones
-            si corresponde.
-          </p>
+        <div className="mt-8 border-t border-slate-200 pt-6">
+          <form onSubmit={handleConfirmCode} noValidate>
+            <h2 className="text-base font-semibold text-slate-900">
+              Confirma con el código
+            </h2>
+            <p className="mt-1 text-sm leading-6 text-slate-500">
+              Ingresa el correo de la cuenta y los ocho dígitos recibidos.
+            </p>
 
-          <div className="mt-5">
-            <label htmlFor="correo" className={accountLabelClassName}>
-              Correo electrónico
-            </label>
-            <div className="relative">
-              <Mail
-                className="pointer-events-none absolute top-1/2 left-3.5 size-[17px] -translate-y-1/2 text-slate-400"
-                aria-hidden
-              />
-              <input
-                id="correo"
-                type="email"
-                autoComplete="email"
-                value={correo}
-                onChange={(event) => {
-                  setCorreo(event.target.value);
-                  setResendFeedback(null);
-                }}
-                placeholder="nombre@correo.com"
-                disabled={loadingResend}
-                aria-invalid={Boolean(resendAttempted && emailError)}
-                aria-describedby={
-                  resendAttempted && emailError
-                    ? "resend-email-error"
-                    : undefined
-                }
-                className={`${accountInputClassName} pl-10 ${
-                  resendAttempted && emailError
-                    ? "border-red-400 bg-red-50/40"
-                    : ""
-                }`}
-              />
+            <div className="mt-5">
+              <label htmlFor="correo" className={accountLabelClassName}>
+                Correo electrónico
+              </label>
+              <div className="relative">
+                <Mail
+                  className="pointer-events-none absolute top-1/2 left-3.5 size-[17px] -translate-y-1/2 text-slate-400"
+                  aria-hidden
+                />
+                <input
+                  id="correo"
+                  type="email"
+                  autoComplete="email"
+                  value={correo}
+                  onChange={(event) => {
+                    setCorreo(event.target.value);
+                    setResendFeedback(null);
+                  }}
+                  placeholder="nombre@correo.com"
+                  disabled={loadingResend || verifyingCode}
+                  aria-invalid={Boolean(
+                    (resendAttempted || codeAttempted) && emailError,
+                  )}
+                  aria-describedby={
+                    (resendAttempted || codeAttempted) && emailError
+                      ? "verification-email-error"
+                      : undefined
+                  }
+                  className={`${accountInputClassName} pl-10 ${
+                    (resendAttempted || codeAttempted) && emailError
+                      ? "border-red-400 bg-red-50/40"
+                      : ""
+                  }`}
+                />
+              </div>
+              {(resendAttempted || codeAttempted) && emailError ? (
+                <p
+                  id="verification-email-error"
+                  role="alert"
+                  className="mt-2 text-xs font-medium text-red-600"
+                >
+                  {emailError}
+                </p>
+              ) : null}
             </div>
-            {resendAttempted && emailError ? (
-              <p
-                id="resend-email-error"
-                role="alert"
-                className="mt-2 text-xs font-medium text-red-600"
-              >
-                {emailError}
+
+            <fieldset className="mt-5 border-0 p-0">
+              <div className="mb-2 flex items-center justify-between gap-4">
+                <legend className="text-[13px] font-semibold text-slate-700">
+                  Código de 8 dígitos
+                </legend>
+                <span className="text-xs text-slate-400">Sólo números</span>
+              </div>
+              <div className="grid grid-cols-8 gap-1.5 sm:gap-2">
+                {otpValues.map((value, index) => (
+                  <input
+                    key={index}
+                    ref={(node) => {
+                      inputRefs.current[index] = node;
+                    }}
+                    type="text"
+                    inputMode="numeric"
+                    autoComplete={index === 0 ? "one-time-code" : "off"}
+                    maxLength={1}
+                    value={value}
+                    onChange={(event) =>
+                      handleOtpChange(index, event.target.value)
+                    }
+                    onKeyDown={(event) => handleOtpKeyDown(index, event)}
+                    onPaste={handleOtpPaste}
+                    disabled={verifyingCode}
+                    aria-label={`Dígito ${index + 1} del código`}
+                    className={`h-12 min-w-0 rounded-lg border bg-slate-50 text-center text-lg font-bold text-slate-900 outline-none transition focus:border-[#1e6260] focus:bg-white focus:shadow-[0_0_0_3px_rgba(30,98,96,0.12)] ${
+                      codeAttempted && codeError
+                        ? "border-red-300"
+                        : "border-slate-200"
+                    }`}
+                  />
+                ))}
+              </div>
+              {codeAttempted && codeError ? (
+                <p
+                  role="alert"
+                  className="mt-2 text-xs font-medium text-red-600"
+                >
+                  {codeError}
+                </p>
+              ) : null}
+            </fieldset>
+
+            {resendFeedback ? (
+              <p className="mt-4 flex items-start gap-2 text-[13px] leading-6 text-slate-600">
+                <AlertCircle
+                  className="mt-1 size-3.5 shrink-0 text-[#1e6260]"
+                  aria-hidden
+                />
+                {resendFeedback}
               </p>
             ) : null}
-          </div>
 
-          {resendFeedback ? (
-            <p className="mt-4 flex items-start gap-2 text-[13px] leading-6 text-slate-600">
-              <CheckCircle2
-                className="mt-1 size-3.5 shrink-0 text-[#20636d]"
-                aria-hidden
-              />
-              {resendFeedback}
-            </p>
-          ) : null}
+            <button
+              type="submit"
+              disabled={verifyingCode}
+              className={`${accountPrimaryButtonClassName} mt-6`}
+            >
+              <KeyRound className="size-4" aria-hidden />
+              {verifyingCode ? "Verificando..." : "Confirmar código"}
+            </button>
+          </form>
 
-          <button
-            type="submit"
-            disabled={loadingResend || cooldown > 0}
-            className={`${accountSecondaryButtonClassName} mt-5 w-full`}
+          <form
+            onSubmit={handleResend}
+            noValidate
+            className="mt-5 border-t border-slate-100 pt-5"
           >
-            <RotateCcw className="size-4" aria-hidden />
-            {loadingResend
-              ? "Procesando..."
-              : cooldown > 0
-                ? `Podrás reenviar en ${cooldown}s`
-                : "Reenviar enlace"}
-          </button>
-        </form>
+            <button
+              type="submit"
+              disabled={loadingResend || cooldown > 0 || verifyingCode}
+              className={`${accountSecondaryButtonClassName} w-full`}
+            >
+              <RotateCcw className="size-4" aria-hidden />
+              {loadingResend
+                ? "Procesando..."
+                : cooldown > 0
+                  ? `Podrás reenviar en ${cooldown}s`
+                  : "Reenviar código y enlace"}
+            </button>
+          </form>
+        </div>
       ) : null}
 
       <div className="mt-7 border-t border-slate-200 pt-5">

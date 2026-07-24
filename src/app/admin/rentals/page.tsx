@@ -8,6 +8,7 @@ import {
   FileText,
   Eye,
   LoaderCircle,
+  MoreHorizontal,
   PackageCheck,
   RotateCcw,
   ShieldCheck,
@@ -61,6 +62,14 @@ import {
   DialogTitle,
 } from "@/features/admin/components/ui/dialog";
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/features/admin/components/ui/dropdown-menu";
+import {
   Table,
   TableBody,
   TableCell,
@@ -68,6 +77,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/features/admin/components/ui/table";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/features/admin/components/ui/tooltip";
 
 type StatusFilter = RentalStatus | "ALL";
 type RentalActionKind =
@@ -464,7 +478,7 @@ export default function AdminRentalsPage() {
                   <TableHead>Fecha</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
+                  <TableHead className="w-[72px] text-right">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -501,80 +515,108 @@ export default function AdminRentalsPage() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex flex-wrap justify-end gap-2">
-                          <Button
-                            type="button"
-                            size="sm"
-                            variant="outline"
-                            onClick={() => openRental(rental)}
+                        <DropdownMenu>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="icon-sm"
+                                  className="rounded-md text-[var(--text-muted)] hover:bg-[var(--surface)] hover:text-[var(--brand-800)]"
+                                  disabled={busy}
+                                  aria-label={`Acciones para la renta ${rental.folio ?? rental.id.slice(-8).toUpperCase()}`}
+                                >
+                                  {busy ? (
+                                    <LoaderCircle
+                                      className="size-4 animate-spin"
+                                      aria-hidden
+                                    />
+                                  ) : (
+                                    <MoreHorizontal className="size-4" aria-hidden />
+                                  )}
+                                </Button>
+                              </DropdownMenuTrigger>
+                            </TooltipTrigger>
+                            <TooltipContent sideOffset={6}>Acciones</TooltipContent>
+                          </Tooltip>
+
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-56 rounded-lg border-[var(--border-soft)] bg-[var(--card)] p-1.5 shadow-[var(--shadow-md)]"
                           >
-                            <Eye className="size-4" />
-                            Ver detalles
-                          </Button>
-                          {rental.status === "PENDING" ? (
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="success"
-                              disabled={busy || !canApproveRental(rental)}
-                              onClick={() =>
-                                setPendingAction({ rental, kind: "approve" })
-                              }
+                            <DropdownMenuLabel>Gestionar renta</DropdownMenuLabel>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              className="text-[var(--brand-800)] focus:bg-[color-mix(in_srgb,var(--brand-600)_10%,transparent)] focus:text-[var(--brand-900)]"
+                              onSelect={() => openRental(rental)}
                             >
-                              {busy ? (
-                                <LoaderCircle className="size-4 animate-spin" />
-                              ) : (
-                                <CheckCircle2 className="size-4" />
-                              )}
-                              Aprobar solicitud
-                            </Button>
-                          ) : null}
-                          {rental.status === "APPROVED" ? (
-                            <>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="update"
-                                disabled={busy}
-                                onClick={() =>
-                                  setPendingAction({ rental, kind: "deliver" })
+                              <Eye
+                                className="size-4 text-[var(--brand-700)]"
+                                aria-hidden
+                              />
+                              Ver detalles
+                            </DropdownMenuItem>
+                            {rental.status === "PENDING" ? (
+                              <DropdownMenuItem
+                                className="text-emerald-700 focus:bg-emerald-50 focus:text-emerald-800 dark:text-emerald-400 dark:focus:bg-emerald-950/40 dark:focus:text-emerald-300"
+                                disabled={!canApproveRental(rental)}
+                                onSelect={() =>
+                                  setPendingAction({ rental, kind: "approve" })
                                 }
                               >
-                                <PackageCheck className="size-4" />
-                                Marcar entregada
-                              </Button>
-                              <Button
-                                type="button"
-                                size="sm"
-                                variant="destructive"
-                                disabled={busy}
-                                onClick={() =>
-                                  setPendingAction({
-                                    rental,
-                                    kind: "cancelApproved",
-                                  })
+                                <CheckCircle2
+                                  className="size-4 text-emerald-700 dark:text-emerald-400"
+                                  aria-hidden
+                                />
+                                Aprobar solicitud
+                              </DropdownMenuItem>
+                            ) : null}
+                            {rental.status === "APPROVED" ? (
+                              <>
+                                <DropdownMenuItem
+                                  className="text-[var(--action-update)] focus:bg-[color-mix(in_srgb,var(--action-update)_10%,transparent)] focus:text-[var(--action-update-hover)]"
+                                  onSelect={() =>
+                                    setPendingAction({ rental, kind: "deliver" })
+                                  }
+                                >
+                                  <PackageCheck
+                                    className="size-4 text-[var(--action-update)]"
+                                    aria-hidden
+                                  />
+                                  Marcar entregada
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  variant="destructive"
+                                  onSelect={() =>
+                                    setPendingAction({
+                                      rental,
+                                      kind: "cancelApproved",
+                                    })
+                                  }
+                                >
+                                  <Ban className="size-4" aria-hidden />
+                                  Cancelar solicitud
+                                </DropdownMenuItem>
+                              </>
+                            ) : null}
+                            {rental.status === "DELIVERED" ? (
+                              <DropdownMenuItem
+                                className="text-[var(--action-update)] focus:bg-[color-mix(in_srgb,var(--action-update)_10%,transparent)] focus:text-[var(--action-update-hover)]"
+                                onSelect={() =>
+                                  setPendingAction({ rental, kind: "return" })
                                 }
                               >
-                                <Ban className="size-4" />
-                                Cancelar
-                              </Button>
-                            </>
-                          ) : null}
-                          {rental.status === "DELIVERED" ? (
-                            <Button
-                              type="button"
-                              size="sm"
-                              variant="update"
-                              disabled={busy}
-                              onClick={() =>
-                                setPendingAction({ rental, kind: "return" })
-                              }
-                            >
-                              <RotateCcw className="size-4" />
-                              Marcar devuelta
-                            </Button>
-                          ) : null}
-                        </div>
+                                <RotateCcw
+                                  className="size-4 text-[var(--action-update)]"
+                                  aria-hidden
+                                />
+                                Marcar devuelta
+                              </DropdownMenuItem>
+                            ) : null}
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   );

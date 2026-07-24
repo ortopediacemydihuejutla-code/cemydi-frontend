@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Script from "next/script";
 import "./globals.css";
 import { headers } from "next/headers";
 import { AuthProvider } from "@/providers/AuthContext";
@@ -74,6 +75,13 @@ export default async function RootLayout({
         <link rel="manifest" href="/manifest.webmanifest" />
       </head>
       <body suppressHydrationWarning>
+        {process.env.NODE_ENV === "development" ? (
+          <Script
+            id="development-hydration-attribute-cleanup"
+            src="/development-hydration-attribute-cleanup.js"
+            strategy="beforeInteractive"
+          />
+        ) : null}
         <AuthProvider>
           <CartProvider>
             <ToasterClient />

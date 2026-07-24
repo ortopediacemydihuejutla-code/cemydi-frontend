@@ -16,7 +16,7 @@ export function AlexaSkillPromo() {
       className="border-y border-[#dcebed] bg-white py-12 sm:py-16"
       aria-labelledby="alexa-skill-title"
     >
-      <div className="mx-auto w-full max-w-[1120px] px-4">
+      <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-8">
         <div className="grid overflow-hidden rounded-2xl border border-[#d1e4e6] bg-[#f7fbfb] shadow-[0_10px_30px_rgba(19,78,74,0.06)] lg:grid-cols-[1.08fr_0.92fr]">
           <div className="relative p-6 sm:p-8 lg:p-10">
             <p className="mb-3 text-xs font-bold tracking-[0.2em] text-[#2f6470] uppercase">
@@ -64,8 +64,8 @@ export function AlexaSkillPromo() {
             </div>
           </div>
 
-          <div className="flex min-h-[260px] items-center justify-center border-t border-[#d1e4e6] bg-[#e8f2f2] p-6 text-[#123f3d] sm:p-8 lg:border-t-0 lg:border-l lg:p-10">
-            <div className="grid w-full max-w-[390px] gap-5">
+          <div className="flex min-h-[16.25rem] items-center justify-center border-t border-[#d1e4e6] bg-[#e8f2f2] p-6 text-[#123f3d] sm:p-8 lg:border-t-0 lg:border-l lg:p-10">
+            <div className="grid w-full max-w-[28rem] gap-5">
               <div className="flex items-start gap-4">
                 <span className="flex size-14 shrink-0 items-center justify-center rounded-full bg-[#134e4a] text-white shadow-[0_12px_28px_rgba(19,78,74,0.18)]">
                   <Mic2 className="size-7" aria-hidden="true" />

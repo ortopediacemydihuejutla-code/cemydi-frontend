@@ -322,7 +322,7 @@ export default function LoginPage() {
         {showResendVerification ? (
           <div className="grid gap-2.5 border-l-2 border-[#c7a76b] py-1 pl-4">
             <p className="m-0 text-sm text-slate-700">
-              Tu cuenta aún no está verificada. ¿Necesitas un nuevo enlace?
+              Tu cuenta aún no está verificada. ¿Necesitas nuevas instrucciones?
             </p>
             <button
               type="button"
@@ -330,7 +330,7 @@ export default function LoginPage() {
               disabled={resendingVerification}
               className={secondaryButtonClassName}
             >
-              {resendingVerification ? "Reenviando…" : "Reenviar enlace de verificación"}
+              {resendingVerification ? "Reenviando…" : "Reenviar código y enlace de verificación"}
             </button>
           </div>
         ) : null}

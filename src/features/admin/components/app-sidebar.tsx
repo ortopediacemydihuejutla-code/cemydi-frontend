@@ -24,7 +24,6 @@ import { NavMain } from "./nav-main"
 import { NavProjects } from "./nav-projects"
 import { NavUser } from "./nav-user"
 import { SidebarBrand } from "./sidebar-brand"
-import { ENABLE_RECOMMENDATION_DEMO } from "@/lib/feature-flags"
 import {
   Sidebar,
   SidebarContent,
@@ -88,38 +87,28 @@ const data = {
         },
       ],
     },
-    ...(ENABLE_RECOMMENDATION_DEMO
-      ? [
-          {
-            title: "Analytics",
-            url: "#",
-            icon: BarChart3,
-            items: [
-              {
-                icon: BarChart3,
-                title: "Resumen general",
-                url: "/admin/analytics",
-              },
-              {
-                icon: LayersPlus,
-                title: "Segmentación",
-                url: "/admin/analytics/product-segmentation",
-              },
-              {
-                icon: TrendingUp,
-                title: "Predicción de demanda",
-                url: "/admin/analytics/demand-forecast",
-              },
-            ],
-          },
-        ]
-      : [
-          {
-            title: "Analytics",
-            url: "/admin/analytics",
-            icon: BarChart3,
-          },
-        ]),
+    {
+      title: "Analytics",
+      url: "#",
+      icon: BarChart3,
+      items: [
+        {
+          icon: BarChart3,
+          title: "Resumen general",
+          url: "/admin/analytics",
+        },
+        {
+          icon: LayersPlus,
+          title: "Segmentación de clientes",
+          url: "/admin/analytics/product-segmentation",
+        },
+        {
+          icon: TrendingUp,
+          title: "Predicción de demanda",
+          url: "/admin/analytics/demand-forecast",
+        },
+      ],
+    },
     {
       title: "Reseñas",
       url: "/admin/reviews",

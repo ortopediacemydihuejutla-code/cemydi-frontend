@@ -62,13 +62,13 @@ export default function ForgotPasswordPage() {
       asideTitle="Vuelve a tu cuenta con tranquilidad."
       asideDescription="Te guiaremos en dos pasos breves para confirmar tu identidad y crear una contraseña nueva."
       asideItems={[
-        "Código temporal enviado por correo",
+        "Código y enlace enviados por correo",
         "Respuesta privada para proteger tu cuenta",
         "Cierre automático de sesiones anteriores",
       ]}
     >
       <div>
-        <p className="m-0 text-[11px] font-bold uppercase tracking-[0.18em] text-[#20636d]">
+        <p className="m-0 text-[11px] font-bold uppercase tracking-[0.18em] text-[#1e6260]">
           Paso 1 de 2
         </p>
         <h1 className="mt-3 text-[2rem] font-semibold leading-tight tracking-[-0.03em] text-slate-950 sm:text-[2.25rem]">
@@ -76,7 +76,7 @@ export default function ForgotPasswordPage() {
         </h1>
         <p className="mt-3 max-w-[430px] text-[15px] leading-7 text-slate-600">
           Escribe el correo asociado a tu cuenta. Si está registrado, recibirás
-          un código para continuar.
+          un código y un enlace directo para continuar.
         </p>
       </div>
 
@@ -137,7 +137,7 @@ export default function ForgotPasswordPage() {
           disabled={loading}
           className={`${accountPrimaryButtonClassName} mt-6`}
         >
-          {loading ? "Enviando instrucciones..." : "Enviar código"}
+          {loading ? "Enviando instrucciones..." : "Enviar instrucciones"}
           {!loading ? <ArrowRight className="size-4" aria-hidden /> : null}
         </button>
       </form>

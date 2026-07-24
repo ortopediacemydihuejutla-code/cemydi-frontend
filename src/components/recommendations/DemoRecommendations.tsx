@@ -5,24 +5,25 @@ import { ChevronLeft, ChevronRight, Sparkles } from "lucide-react";
 
 import { ProductCard } from "@/app/catalogo/components/ProductGrid";
 import {
-  ENABLE_RECOMMENDATION_DEMO,
-  getMatchingDemoRules,
-  selectDemoRecommendations,
-  type DemoRecommendationSource,
-} from "@/data/recommendation-demo";
-import { getCatalogProducts, type CatalogProduct } from "@/services/catalog";
+  getCatalogRecommendations,
+  type CatalogProduct,
+} from "@/services/catalog";
+
+type RecommendationSource = Pick<CatalogProduct, "id">;
 
 type DemoRecommendationsProps = {
   context: "product" | "cart";
-  sourceProducts: DemoRecommendationSource[];
+  sourceProducts: RecommendationSource[];
 };
 
 const contentByContext = {
   product: {
-    title: "También te puede interesar",
+    title: "Descubre opciones pensadas para ti",
+    subtitle: "Productos seleccionados según lo que estás consultando.",
   },
   cart: {
     title: "Completa tu compra",
+    subtitle: "Complementos que pueden acompañar los productos de tu carrito.",
   },
 } as const;
 
@@ -35,28 +36,34 @@ export default function DemoRecommendations({
   const [loading, setLoading] = useState(false);
   const [canScrollPrevious, setCanScrollPrevious] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
-  const matchingRules = useMemo(
-    () => getMatchingDemoRules(sourceProducts),
-    [sourceProducts],
-  );
   const sourceKey = sourceProducts.map((product) => product.id).join(",");
 
   useEffect(() => {
-    if (!ENABLE_RECOMMENDATION_DEMO || matchingRules.length === 0) return;
+    const sourceIds = sourceKey.split(",").map(Number).filter(Number.isFinite);
+    if (sourceIds.length === 0) return;
 
     let cancelled = false;
 
     const loadCatalog = async () => {
       try {
         setLoading(true);
-        const result = await getCatalogProducts({
-          page: 1,
-          pageSize: 200,
-          soloDisponibles: true,
-        });
+        const results = await Promise.all(
+          sourceIds.slice(0, 4).map((productId) =>
+            getCatalogRecommendations(productId, 8),
+          ),
+        );
+        const excludedIds = new Set(sourceIds);
+        const unique = new Map<number, CatalogProduct>();
+        results.forEach((result) =>
+          result.recommendations.forEach((product) => {
+            if (!excludedIds.has(product.id) && !unique.has(product.id)) {
+              unique.set(product.id, product);
+            }
+          }),
+        );
 
         if (!cancelled) {
-          setCatalogProducts(result.products);
+          setCatalogProducts([...unique.values()].slice(0, 12));
         }
       } catch {
         if (!cancelled) {
@@ -74,12 +81,9 @@ export default function DemoRecommendations({
     return () => {
       cancelled = true;
     };
-  }, [matchingRules.length, sourceKey]);
+  }, [sourceKey]);
 
-  const recommendations = useMemo(
-    () => selectDemoRecommendations(sourceProducts, catalogProducts),
-    [catalogProducts, sourceProducts],
-  );
+  const recommendations = useMemo(() => catalogProducts, [catalogProducts]);
 
   const updateCarouselControls = useCallback(() => {
     const track = trackRef.current;
@@ -115,7 +119,7 @@ export default function DemoRecommendations({
     track.scrollBy({ left: direction * scrollAmount, behavior: "smooth" });
   };
 
-  if (!ENABLE_RECOMMENDATION_DEMO || matchingRules.length === 0) return null;
+  if (sourceProducts.length === 0) return null;
   if (!loading && recommendations.length === 0) return null;
 
   const content = contentByContext[context];
@@ -125,16 +129,23 @@ export default function DemoRecommendations({
       className="mt-10"
       aria-labelledby={`recommendations-${context}-title`}
     >
-      <div className="mb-5 flex items-center gap-3 border-b border-[#dbe6e8] pb-4">
-        <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#e3f2f1] text-[#176b67]">
-          <Sparkles className="size-5" aria-hidden="true" />
-        </span>
-        <h2
-          id={`recommendations-${context}-title`}
-          className="text-[1.5rem] font-semibold tracking-[-0.01em] text-[#142734] sm:text-[1.65rem]"
-        >
-          {content.title}
-        </h2>
+      <div className="mb-5 flex items-end justify-between gap-4 border-b border-[#dbe6e8] pb-4">
+        <div className="flex min-w-0 items-start gap-3">
+          <span className="grid size-10 shrink-0 place-items-center rounded-xl bg-[#e3f2f1] text-[#176b67]">
+            <Sparkles className="size-5" aria-hidden="true" />
+          </span>
+          <div>
+            <h2
+              id={`recommendations-${context}-title`}
+              className="text-[1.4rem] font-semibold tracking-[-0.01em] text-[#142734] sm:text-[1.65rem]"
+            >
+              {content.title}
+            </h2>
+            <p className="mt-1 text-sm leading-5 text-[#617780]">
+              {content.subtitle}
+            </p>
+          </div>
+        </div>
       </div>
 
       {loading ? (
@@ -153,18 +164,22 @@ export default function DemoRecommendations({
             onClick={() => scrollCarousel(-1)}
             disabled={!canScrollPrevious}
             aria-label="Ver recomendaciones anteriores"
-            className="absolute left-[-12px] top-1/2 z-[2] grid size-11 -translate-y-1/2 place-items-center rounded-full border border-[#cfe0e3] bg-white text-[#1f6a67] shadow-[0_12px_26px_rgba(31,106,103,0.14)] transition hover:bg-[#eef7f6] disabled:pointer-events-none disabled:opacity-0 sm:left-[-20px]"
+            className="absolute left-0 top-1/2 z-[2] grid size-11 -translate-y-1/2 place-items-center text-[#1f6a67] drop-shadow-[0_0_3px_rgba(255,255,255,0.98)] transition hover:scale-110 hover:text-[#154f4d] disabled:pointer-events-none disabled:opacity-0"
           >
-            <ChevronLeft className="size-5" aria-hidden="true" />
+            <ChevronLeft className="size-8 stroke-[2.4]" aria-hidden="true" />
           </button>
 
           <div
             ref={trackRef}
-            className="overflow-x-auto overflow-y-hidden scroll-smooth px-1 py-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
+            className="overflow-x-auto overflow-y-hidden scroll-smooth px-1 py-1 [scrollbar-width:none] [scroll-snap-type:x_mandatory] [&::-webkit-scrollbar]:hidden"
           >
-            <div className="grid grid-flow-col auto-cols-[88%] gap-5 sm:auto-cols-[48%] lg:auto-cols-[31.5%] xl:auto-cols-[23.5%]">
+            <div className="grid grid-flow-col auto-cols-[100%] gap-5 sm:auto-cols-[48%] lg:auto-cols-[31.5%] xl:auto-cols-[23.5%]">
               {recommendations.map((product) => (
-                <div key={product.id} data-recommendation-card="true" className="h-full">
+                <div
+                  key={product.id}
+                  data-recommendation-card="true"
+                  className="h-full [scroll-snap-align:start]"
+                >
                   <ProductCard
                     product={product}
                     searchQuery=""
@@ -181,9 +196,9 @@ export default function DemoRecommendations({
             onClick={() => scrollCarousel(1)}
             disabled={!canScrollNext}
             aria-label="Ver más recomendaciones"
-            className="absolute right-[-12px] top-1/2 z-[2] grid size-11 -translate-y-1/2 place-items-center rounded-full border border-[#cfe0e3] bg-white text-[#1f6a67] shadow-[0_12px_26px_rgba(31,106,103,0.14)] transition hover:bg-[#eef7f6] disabled:pointer-events-none disabled:opacity-0 sm:right-[-20px]"
+            className="absolute right-0 top-1/2 z-[2] grid size-11 -translate-y-1/2 place-items-center text-[#1f6a67] drop-shadow-[0_0_3px_rgba(255,255,255,0.98)] transition hover:scale-110 hover:text-[#154f4d] disabled:pointer-events-none disabled:opacity-0"
           >
-            <ChevronRight className="size-5" aria-hidden="true" />
+            <ChevronRight className="size-8 stroke-[2.4]" aria-hidden="true" />
           </button>
         </div>
       )}

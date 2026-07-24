@@ -29,10 +29,7 @@ export async function registerUser(data: {
   return parseApiResponse<{ message: string }>(res, "Error al registrar");
 }
 
-export async function loginUser(data: {
-  correo: string;
-  password: string;
-}) {
+export async function loginUser(data: { correo: string; password: string }) {
   const res = await fetch(resolveApiUrl("/auth/login"), {
     method: "POST",
     headers: {
@@ -55,7 +52,10 @@ export async function resendVerificationEmail(correo: string) {
     body: JSON.stringify({ correo }),
   });
 
-  return parseApiResponse<{ message: string }>(res, "No se pudo reenviar el enlace");
+  return parseApiResponse<{ message: string }>(
+    res,
+    "No se pudo reenviar el enlace",
+  );
 }
 
 export async function confirmEmailVerification(token: string) {
@@ -68,7 +68,32 @@ export async function confirmEmailVerification(token: string) {
     body: JSON.stringify({ token }),
   });
 
-  return parseApiResponse<{ message: string }>(res, "No se pudo verificar el correo");
+  return parseApiResponse<{ message: string }>(
+    res,
+    "No se pudo verificar el correo",
+  );
+}
+
+export async function confirmEmailVerificationCode(data: {
+  correo: string;
+  codigo: string;
+}) {
+  const res = await fetch(
+    resolveApiUrl("/auth/email-verification/confirm-code"),
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(data),
+    },
+  );
+
+  return parseApiResponse<{ message: string }>(
+    res,
+    "No se pudo verificar el código",
+  );
 }
 
 export async function requestPasswordReset(correo: string) {
@@ -81,7 +106,10 @@ export async function requestPasswordReset(correo: string) {
     body: JSON.stringify({ correo }),
   });
 
-  return parseApiResponse<{ message: string }>(res, "No se pudo solicitar el código");
+  return parseApiResponse<{ message: string }>(
+    res,
+    "No se pudo solicitar el código",
+  );
 }
 
 export async function verifyPasswordResetCode(data: {
@@ -103,6 +131,22 @@ export async function verifyPasswordResetCode(data: {
   );
 }
 
+export async function verifyPasswordResetToken(token: string) {
+  const res = await fetch(resolveApiUrl("/auth/password-reset/verify-token"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify({ token }),
+  });
+
+  return parseApiResponse<{ message: string; expiresAt: string }>(
+    res,
+    "No se pudo verificar el enlace",
+  );
+}
+
 export async function confirmPasswordReset(data: {
   correo: string;
   codigo: string;
@@ -117,7 +161,29 @@ export async function confirmPasswordReset(data: {
     body: JSON.stringify(data),
   });
 
-  return parseApiResponse<{ message: string }>(res, "No se pudo restablecer la contraseña");
+  return parseApiResponse<{ message: string }>(
+    res,
+    "No se pudo restablecer la contraseña",
+  );
+}
+
+export async function confirmPasswordResetToken(data: {
+  token: string;
+  newPassword: string;
+}) {
+  const res = await fetch(resolveApiUrl("/auth/password-reset/confirm-token"), {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    credentials: "include",
+    body: JSON.stringify(data),
+  });
+
+  return parseApiResponse<{ message: string }>(
+    res,
+    "No se pudo restablecer la contraseña",
+  );
 }
 
 export async function logoutUser() {

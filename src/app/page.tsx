@@ -45,7 +45,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <section className="relative flex min-h-[620px] items-center overflow-hidden text-white">
+      <section className="relative flex min-h-[calc(100svh-3.75rem)] items-center overflow-hidden text-white lg:min-h-[calc(100svh-5rem)]">
         <Image
           src="/rehabilitacion.webp"
           alt=""
@@ -55,8 +55,8 @@ export default async function HomePage() {
           className="absolute inset-0 object-cover"
         />
         <div className="absolute inset-0 bg-[linear-gradient(to_right,rgba(15,61,59,.95),rgba(30,98,96,.78),rgba(30,98,96,.25))]" />
-        <div className="relative z-[1] mx-auto w-full max-w-[1120px] px-4">
-          <div className="max-w-[700px]">
+        <div className="relative z-[1] mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-8">
+          <div className="max-w-[43.75rem]">
             <span className="mb-6 inline-flex rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-bold uppercase tracking-[1px]">
               Calidad médica certificada
             </span>

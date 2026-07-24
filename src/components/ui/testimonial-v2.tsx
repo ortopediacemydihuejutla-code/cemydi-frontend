@@ -161,7 +161,7 @@ export default function TestimonialsSection({ testimonials }: Props) {
       className="overflow-hidden bg-gradient-to-b from-[#f8fbfb] to-white px-4 py-12 sm:py-20"
       aria-labelledby="testimonios-titulo"
     >
-      <div className="mx-auto max-w-6xl">
+      <div className="mx-auto w-full max-w-[80rem]">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
