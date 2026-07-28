@@ -1,8 +1,17 @@
+"use client";
+
 import Image from "next/image";
 import Link from "next/link";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+
+import ProductShareMenu from "@/components/product/ProductShareMenu";
+import { PromotionBadge } from "@/components/product/PromotionBadge";
 import { isOptimizableImageUrl } from "@/lib/cloudinary-image";
-import type { ActivePromotion } from "@/services/catalog";
 import { getProductSlug } from "@/lib/product-share";
+import { getSavingsAmount } from "@/lib/promotion-pricing";
+import { getClientSiteUrl } from "@/lib/site-config";
+import type { ActivePromotion } from "@/services/catalog";
 
 function getProductMonogram(nombre: string) {
   const clean = nombre.trim().toUpperCase();
@@ -31,140 +40,321 @@ function formatOfferEnd(iso: string) {
   }
 }
 
+function formatAcquisitionType(type: ActivePromotion["product"]["tipoAdquisicion"]) {
+  if (type === "RENTA") return "Renta";
+  if (type === "MIXTO") return "Venta y renta";
+  return "Venta";
+}
+
 type Props = {
   promotions: ActivePromotion[];
 };
 
 export function PromotionsShowcase({ promotions }: Props) {
-  const list = promotions.slice(0, 8);
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const [canScrollPrevious, setCanScrollPrevious] = useState(false);
+  const [canScrollNext, setCanScrollNext] = useState(false);
+  const list = useMemo(() => {
+    const bestPromotionByProduct = new Map<number, ActivePromotion>();
+    for (const promotion of promotions) {
+      const current = bestPromotionByProduct.get(promotion.productId);
+      if (!current || promotion.discountPercent > current.discountPercent) {
+        bestPromotionByProduct.set(promotion.productId, promotion);
+      }
+    }
+
+    return Array.from(bestPromotionByProduct.values()).sort(
+      (a, b) => b.discountPercent - a.discountPercent,
+    );
+  }, [promotions]);
+
+  const updateCarouselState = useCallback(() => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const remaining = track.scrollWidth - track.clientWidth - track.scrollLeft;
+    setCanScrollPrevious(track.scrollLeft > 4);
+    setCanScrollNext(remaining > 4);
+  }, []);
+
+  useEffect(() => {
+    updateCarouselState();
+    window.addEventListener("resize", updateCarouselState);
+    return () => window.removeEventListener("resize", updateCarouselState);
+  }, [list.length, updateCarouselState]);
+
+  const scrollCarousel = (direction: -1 | 1) => {
+    const track = trackRef.current;
+    if (!track) return;
+
+    const firstCard = track.querySelector<HTMLElement>(
+      "[data-promotion-card]",
+    );
+    const distance = firstCard
+      ? firstCard.offsetWidth + 20
+      : track.clientWidth * 0.85;
+
+    track.scrollBy({
+      left: direction * distance,
+      behavior: "smooth",
+    });
+  };
 
   return (
     <section
-      className="relative overflow-hidden py-14 sm:py-20"
+      className="border-y border-[#edf2f3] bg-[#f8faf9] py-14 sm:py-18"
       aria-labelledby="promociones-titulo"
     >
-      <div
-        className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_50%_at_50%_-20%,rgba(42,159,155,0.14),transparent)]"
-        aria-hidden
-      />
-      <div className="pointer-events-none absolute top-24 right-0 size-[min(26.25rem,70vw)] rounded-full bg-[#2a9f9b]/[0.06] blur-3xl" aria-hidden />
-      <div className="pointer-events-none absolute bottom-0 left-0 size-[min(22.5rem,60vw)] rounded-full bg-[#134e4a]/[0.05] blur-3xl" aria-hidden />
+      <div className="mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-8">
+        <div className="mb-8 flex flex-col gap-5 sm:mb-10 sm:flex-row sm:items-end sm:justify-between">
+          <div className="max-w-2xl">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-[#557079]">
+              Ofertas seleccionadas
+            </p>
+            <h2
+              id="promociones-titulo"
+              className="m-0 text-[clamp(1.65rem,4vw,2.25rem)] font-bold tracking-tight text-[#122731]"
+            >
+              Productos con precio especial
+            </h2>
+            <p className="mt-3 text-base leading-relaxed text-[#5f7780]">
+              Aprovecha descuentos por tiempo limitado con el precio y el
+              ahorro claramente identificados.
+            </p>
+          </div>
 
-      <div className="relative mx-auto w-full max-w-[80rem] px-4 sm:px-6 lg:px-8">
-        <div className="mb-10 max-w-2xl">
-          <p className="mb-3 text-xs font-bold tracking-[0.2em] text-[#2f6470] uppercase">
-            Ofertas para ti
-          </p>
-          <h2
-            id="promociones-titulo"
-            className="m-0 text-[clamp(1.65rem,4vw,2.25rem)] font-bold tracking-tight text-[#0f2a32]"
-          >
-            Promociones destacadas
-          </h2>
-          <p className="mt-3 text-base leading-relaxed text-[#4a6670] sm:text-[1.05rem]">
-            Descuentos y condiciones especiales en equipos y productos seleccionados. Toca una tarjeta
-            para ver ficha, precio y disponibilidad.
-          </p>
+          {list.length > 0 ? (
+            <div className="flex shrink-0 items-center gap-2">
+              <button
+                type="button"
+                onClick={() => scrollCarousel(-1)}
+                disabled={!canScrollPrevious}
+                aria-label="Ver ofertas anteriores"
+                className="grid size-10 place-items-center rounded-full border border-[#d3dfe2] bg-white text-[#294650] transition hover:border-[#9fb5bb] hover:text-[#0f6a67] disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                <ChevronLeft className="size-5" aria-hidden="true" />
+              </button>
+              <button
+                type="button"
+                onClick={() => scrollCarousel(1)}
+                disabled={!canScrollNext}
+                aria-label="Ver más ofertas"
+                className="grid size-10 place-items-center rounded-full border border-[#d3dfe2] bg-white text-[#294650] transition hover:border-[#9fb5bb] hover:text-[#0f6a67] disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                <ChevronRight className="size-5" aria-hidden="true" />
+              </button>
+              <Link
+                href="/catalogo"
+                className="ml-1 hidden shrink-0 border-b border-[#9fabad] pb-0.5 text-sm font-semibold text-[#344850] no-underline transition hover:border-[#0f6a67] hover:text-[#0f6a67] sm:inline-flex"
+              >
+                Ver catálogo
+              </Link>
+            </div>
+          ) : null}
         </div>
 
         {list.length === 0 ? (
-          <div className="rounded-3xl border border-dashed border-[#c5d8dc] bg-white/80 px-6 py-16 text-center shadow-[0_4px_24px_rgba(15,61,59,0.04)] backdrop-blur-sm">
-            <p className="m-0 text-lg font-semibold text-[#1a3d47]">Pronto tendremos nuevas ofertas</p>
-            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-[#5c7680]">
-              Mientras tanto explorá nuestro catálogo completo de ortopedia y equipamiento médico.
+          <div className="rounded-lg border border-dashed border-[#cfe0e5] bg-white px-6 py-14 text-center shadow-[0_16px_34px_rgba(15,42,50,0.05)]">
+            <p className="m-0 text-lg font-semibold text-[#142734]">
+              Pronto tendremos nuevas ofertas
+            </p>
+            <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-[#5f7780]">
+              Mientras tanto, explora nuestro catálogo de ortopedia y equipo
+              médico.
             </p>
             <Link
               href="/catalogo"
-              className="mt-6 inline-flex items-center justify-center rounded-full bg-[#134e4a] px-7 py-3.5 text-sm font-bold text-white no-underline transition hover:bg-[#0f3d3a]"
+              className="mt-6 inline-flex items-center justify-center rounded-full bg-[#0f6a67] px-7 py-3 text-sm font-bold text-white no-underline transition hover:bg-[#0b5552]"
             >
               Ir al catálogo
             </Link>
           </div>
         ) : (
           <div
-            className="-mx-4 flex snap-x snap-mandatory gap-5 overflow-x-auto px-4 pb-3 [-ms-overflow-style:none] [scrollbar-width:none] md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 md:pb-0 lg:grid-cols-3 xl:gap-7 [&::-webkit-scrollbar]:hidden"
+            ref={trackRef}
+            onScroll={updateCarouselState}
+            className="-mx-4 grid snap-x snap-mandatory grid-flow-col auto-cols-[84%] gap-4 overflow-x-auto px-4 pb-3 scroll-smooth [scrollbar-width:none] sm:auto-cols-[47%] sm:gap-5 md:mx-0 md:auto-cols-[31.5%] md:px-0 lg:auto-cols-[23.6%] [&::-webkit-scrollbar]:hidden"
+            aria-label="Carrusel de productos en oferta"
           >
             {list.map((promotion) => {
               const endLabel = formatOfferEnd(promotion.endAt);
+              const imageUrl =
+                promotion.imageUrl ?? promotion.product.imageUrl;
+              const savings = getSavingsAmount(
+                promotion.product.precio,
+                promotion.discountedPrice,
+              );
+              const href = `/producto/${encodeURIComponent(
+                getProductSlug(promotion.product),
+              )}`;
+              const productUrl = `${getClientSiteUrl()}${href}`;
+              const customCampaignImage =
+                promotion.imageStrategy === "CUSTOM";
+              const acquisitionBadges =
+                promotion.product.tipoAdquisicion === "MIXTO"
+                  ? [
+                      {
+                        label: "Venta",
+                        className: "bg-[#0f6a67] text-white",
+                      },
+                      {
+                        label: "Renta",
+                        className: "bg-[#2f6fa3] text-white",
+                      },
+                    ]
+                  : [
+                      promotion.product.tipoAdquisicion === "RENTA"
+                        ? {
+                            label: "Renta",
+                            className: "bg-[#2f6fa3] text-white",
+                          }
+                        : {
+                            label: "Venta",
+                            className: "bg-[#0f6a67] text-white",
+                          },
+                    ];
+              const shareData = {
+                title: `${promotion.product.nombre} | CEMYDI`,
+                text: `Conoce ${promotion.product.nombre} en CEMYDI con ${promotion.discountPercent}% de descuento. Precio especial ${formatPriceMXN(promotion.discountedPrice)}. Ver producto: ${productUrl}`,
+                url: productUrl,
+              };
+
               return (
-                <Link
-                  key={promotion.id}
-                  href={`/producto/${encodeURIComponent(getProductSlug(promotion.product))}`}
-                  className="group flex min-w-[min(100%,20rem)] max-w-[100%] shrink-0 snap-center flex-col overflow-hidden rounded-3xl border border-[#d4e4e7] bg-white no-underline shadow-[0_4px_20px_rgba(19,78,74,0.06)] transition duration-300 hover:-translate-y-1 hover:border-[#9cc9c8] hover:shadow-[0_20px_48px_rgba(19,78,74,0.12)] md:min-w-0 md:max-w-none"
+                <article
+                  key={`${promotion.id}:${promotion.productId}`}
+                  data-promotion-card
+                  className="group flex snap-start flex-col self-start overflow-visible rounded-lg border border-[#e1e9eb] bg-white text-inherit no-underline shadow-[0_12px_30px_rgba(18,39,49,0.055)] outline-none transition duration-200 hover:border-[#c9d8db] hover:shadow-[0_16px_34px_rgba(18,39,49,0.09)] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
                 >
-                  <div className="relative aspect-[16/10] w-full overflow-hidden bg-gradient-to-br from-[#165a5e] via-[#1f7a78] to-[#3dbfb8]">
-                    {isOptimizableImageUrl(promotion.imageUrl) ? (
-                      <Image
-                        src={promotion.imageUrl}
-                        alt=""
-                        fill
-                        sizes="(max-width: 768px) 320px, (max-width: 1280px) 50vw, 360px"
-                        className="object-cover transition duration-500 ease-out group-hover:scale-[1.04]"
-                      />
-                    ) : (
-                      <div className="flex h-full w-full items-center justify-center">
-                        <span className="text-[clamp(2.5rem,8vw,3.25rem)] font-extrabold tracking-[0.08em] text-white/90">
-                          {getProductMonogram(promotion.product.nombre)}
-                        </span>
-                      </div>
-                    )}
-                    <div
-                      className="absolute inset-0 bg-gradient-to-t from-[#0a2826]/75 via-[#0a2826]/15 to-transparent"
-                      aria-hidden
+                  <div className="relative aspect-[4/3] w-full overflow-visible border-b border-[#edf2f3] bg-[#fbfcfc]">
+                    <Link
+                      href={href}
+                      aria-label={`Ver ${promotion.product.nombre} con ${promotion.discountPercent}% de descuento`}
+                      className="absolute inset-0 z-[1] outline-none"
                     />
-                    <div className="absolute bottom-0 left-0 right-0 flex items-end justify-between gap-2 p-4">
-                      <span className="inline-flex rounded-full bg-white/95 px-3 py-1 text-[11px] font-extrabold tracking-wide text-[#0d4a45] uppercase shadow-sm backdrop-blur-sm">
-                        Oferta
-                      </span>
-                      {endLabel ? (
-                        <span className="rounded-full bg-black/35 px-2.5 py-1 text-[11px] font-semibold text-white backdrop-blur-sm">
-                          Hasta {endLabel}
+                    <div className="pointer-events-none absolute left-3 right-14 top-3 z-10 flex flex-wrap items-start gap-2">
+                      {acquisitionBadges.map((badge) => (
+                        <span
+                          key={badge.label}
+                          className={`rounded px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] ${badge.className}`}
+                        >
+                          {badge.label}
+                        </span>
+                      ))}
+                      {promotion.product.requiereReceta ? (
+                        <span className="rounded bg-[#f2f6f7] px-2.5 py-1 text-[0.68rem] font-semibold text-[#304853] ring-1 ring-inset ring-[#dce6e9]">
+                          Receta requerida
                         </span>
                       ) : null}
                     </div>
+
+                    <ProductShareMenu
+                      shareData={shareData}
+                      productName={promotion.product.nombre}
+                      compact
+                      className="absolute right-3 top-3 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 sm:data-[open=true]:opacity-100"
+                      menuClassName="bottom-auto right-0 top-[calc(100%+8px)]"
+                      triggerClassName="!bg-transparent !text-[#176b67] shadow-none ring-0 hover:!bg-transparent hover:!text-[#0f4f4d]"
+                    />
+
+                    {isOptimizableImageUrl(imageUrl) ? (
+                      <div
+                        className={`pointer-events-none absolute inset-0 overflow-hidden rounded-t-lg ${
+                          customCampaignImage
+                            ? ""
+                            : "px-2 pb-1 pt-9 sm:px-3 sm:pt-10"
+                        }`}
+                      >
+                        <div className="relative size-full">
+                          <Image
+                            src={imageUrl}
+                            alt={promotion.product.nombre}
+                            fill
+                            sizes="(max-width: 640px) 84vw, (max-width: 1024px) 47vw, 25vw"
+                            className={
+                              customCampaignImage
+                                ? "object-cover transition duration-300 group-hover:scale-[1.03]"
+                                : "scale-[1.08] object-contain transition duration-300 group-hover:scale-[1.12]"
+                            }
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="pointer-events-none absolute inset-0 flex items-center justify-center pt-8">
+                        <div className="grid size-20 place-items-center rounded-lg border border-[#d6e2e4] bg-white text-xl font-bold text-[#1e6260] shadow-sm">
+                          {getProductMonogram(promotion.product.nombre)}
+                        </div>
+                      </div>
+                    )}
                   </div>
 
-                  <div className="flex flex-1 flex-col p-5 pt-4">
-                    <p className="m-0 text-[11px] font-bold tracking-wider text-[#5a7a82] uppercase">
-                      {promotion.product.clasificacion}
-                    </p>
-                    <h3 className="mt-1.5 line-clamp-2 text-lg font-bold leading-snug text-[#0f2a32]">
-                      {promotion.product.nombre}
-                    </h3>
-                    <p className="mt-2 line-clamp-2 flex-1 text-sm leading-relaxed text-[#5a6f76]">
-                      {promotion.descripcion?.trim() || "Condición especial vigente en este producto."}
-                    </p>
-                    <div className="mt-4 flex flex-wrap items-end justify-between gap-3 border-t border-[#e8f0f1] pt-4">
-                      <div>
-                        <p className="m-0 text-[11px] font-semibold text-[#6b858c] uppercase">Desde</p>
-                        <p className="m-0 text-xl font-extrabold tabular-nums text-[#134e4a]">
-                          {formatPriceMXN(promotion.product.precio)}
-                        </p>
-                      </div>
-                      <span className="inline-flex items-center gap-1 text-sm font-bold text-[#1f7a78] transition group-hover:gap-2">
-                        Ver producto
-                        <span aria-hidden className="inline-block transition-transform group-hover:translate-x-0.5">
-                          →
+                  <div className="flex min-w-0 flex-col p-4">
+                    <div className="grid gap-1">
+                      <div className="flex min-w-0 items-center justify-between gap-2">
+                        <span className="truncate text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-[#667b84]">
+                          {promotion.product.marca}
                         </span>
-                      </span>
+                        {endLabel ? (
+                          <span className="shrink-0 text-[0.68rem] font-medium text-[#71858d]">
+                            Hasta {endLabel}
+                          </span>
+                        ) : null}
+                      </div>
+                      <h3 className="line-clamp-2 text-[1rem] font-semibold leading-6 text-[#142734] sm:text-[1.03rem]">
+                        <Link
+                          href={href}
+                          className="outline-none transition hover:text-[#0f6a67] focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
+                        >
+                          {promotion.product.nombre}
+                        </Link>
+                      </h3>
+                    </div>
+
+                    <p className="mt-1.5 text-sm text-[#5f7780]">
+                      {promotion.product.modelo} ·{" "}
+                      {formatAcquisitionType(
+                        promotion.product.tipoAdquisicion,
+                      )}
+                    </p>
+
+                    <div className="mt-3 grid gap-1.5">
+                      <div className="flex min-h-4 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                        <span className="tabular-nums text-[#84959b] line-through">
+                          {formatPriceMXN(promotion.product.precio)}
+                        </span>
+                        <span className="font-semibold text-[#9f3029]">
+                          Ahorras {formatPriceMXN(savings)}
+                        </span>
+                      </div>
+
+                      <div className="flex flex-wrap items-center gap-2.5">
+                        <strong className="text-[1.5rem] font-semibold leading-none tracking-[-0.02em] text-[#172f38]">
+                          {formatPriceMXN(promotion.discountedPrice)}
+                        </strong>
+                        <PromotionBadge
+                          percent={promotion.discountPercent}
+                          compact
+                          shortLabel
+                          className="rounded-full px-2.5 py-1 shadow-none"
+                        />
+                      </div>
                     </div>
                   </div>
-                </Link>
+                </article>
               );
             })}
           </div>
         )}
 
         {list.length > 0 ? (
-          <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <div className="mt-8 flex flex-col items-center gap-3 sm:hidden">
             <Link
               href="/catalogo"
-              className="inline-flex items-center justify-center rounded-full border-2 border-[#134e4a] bg-transparent px-8 py-3.5 text-sm font-bold text-[#134e4a] no-underline transition hover:bg-[#134e4a] hover:text-white"
+              className="inline-flex w-full items-center justify-center rounded-full border border-[#0f6a67] px-6 py-3 text-sm font-bold text-[#0f6a67] no-underline transition hover:bg-[#0f6a67] hover:text-white"
             >
-              Ver catálogo completo
+              Ver todos los productos
             </Link>
-            <p className="m-0 text-center text-xs text-[#6b858c] sm:text-left">
-              Precios y existencias sujetos a cambio. Consultá la ficha del producto.
+            <p className="m-0 text-center text-xs text-[#6b858c]">
+              Precios y existencias sujetos a cambio.
             </p>
           </div>
         ) : null}

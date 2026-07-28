@@ -7,7 +7,6 @@ import { Save } from "lucide-react";
 import { AdminImageUpload } from "@/features/admin/components/admin-image-upload";
 import { PageHeader } from "@/features/admin/components/page-header";
 import { PublicPageLinkButton } from "@/features/admin/components/public-page-link-button";
-import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
 import { Button } from "@/features/admin/components/ui/button";
 import {
   Card,
@@ -58,7 +57,7 @@ export default function AdminAboutPage() {
   const [heroImagePreview, setHeroImagePreview] = useState<string | null>(null);
   const [secondaryImagePreview, setSecondaryImagePreview] = useState<string | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["admin-about-page"],
     queryFn: getAdminAboutPage,
   });
@@ -175,10 +174,6 @@ export default function AdminAboutPage() {
       secondaryImageFile,
     });
   };
-
-  if (isLoading) {
-    return <AdminPageLoading />;
-  }
 
   return (
     <>

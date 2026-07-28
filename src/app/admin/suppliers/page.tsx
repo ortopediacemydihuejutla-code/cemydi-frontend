@@ -30,7 +30,7 @@ import {
 import { useAdminDataBootstrap } from "@/features/admin/hooks/use-admin-data-bootstrap";
 import { useClampPage, useResetPageOnChange } from "@/features/admin/hooks/use-admin-pagination";
 import { AdminFilterTabs } from "@/features/admin/components/admin-filter-tabs";
-import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
+import { AdminTableSkeleton } from "@/features/admin/components/admin-content-skeletons";
 import { AdminSearchField } from "@/features/admin/components/admin-search-field";
 import { AdminTablePagination } from "@/features/admin/components/admin-table-pagination";
 import { AdminTableSortHeader } from "@/features/admin/components/admin-table-sort-header";
@@ -162,7 +162,7 @@ export default function AdminSuppliersPage() {
     setRows(merged);
   }, []);
 
-  const { blockingFullPage } = useAdminDataBootstrap({
+  const { initLoading } = useAdminDataBootstrap({
     load,
     loadErrorFallback: "No se pudieron cargar los proveedores.",
   });
@@ -315,10 +315,6 @@ export default function AdminSuppliersPage() {
     }
   };
 
-  if (blockingFullPage) {
-    return <AdminPageLoading />;
-  }
-
   return (
     <>
       <PageHeader
@@ -432,7 +428,9 @@ export default function AdminSuppliersPage() {
         </CardHeader>
 
         <CardContent className="w-full min-w-0 max-w-full pb-2">
-          {processedRows.length === 0 ? (
+          {initLoading ? (
+            <AdminTableSkeleton columns={7} rows={6} className="my-2" />
+          ) : processedRows.length === 0 ? (
             <div className="py-12 text-center text-sm text-[var(--text-muted)]">
               {search.trim() ? "Sin coincidencias." : "Sin registros."}
             </div>

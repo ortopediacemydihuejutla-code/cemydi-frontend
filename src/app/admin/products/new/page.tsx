@@ -30,7 +30,6 @@ import toast from "react-hot-toast";
 
 import { createProduct, type CreateProductPayload } from "@/services/admin";
 
-import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
 import { PageHeader } from "@/features/admin/components/page-header";
 import { Button } from "@/features/admin/components/ui/button";
 import {
@@ -95,7 +94,7 @@ export default function NewProductPage() {
     setSuppliers(referenceData.suppliers);
   }, []);
 
-  const { blockingFullPage } = useAdminDataBootstrap({
+  const { initLoading } = useAdminDataBootstrap({
     load: loadFormReference,
     loadErrorFallback: "No se pudo cargar el formulario",
   });
@@ -306,10 +305,6 @@ export default function NewProductPage() {
     }
   };
 
-  if (blockingFullPage) {
-    return <AdminPageLoading layout="viewport" />;
-  }
-
   return (
     <>
       <PageHeader
@@ -318,7 +313,11 @@ export default function NewProductPage() {
       />
 
       <div className="rounded-[28px] border border-border bg-card p-4 text-card-foreground shadow-[0_20px_44px_rgba(15,61,59,0.08)] dark:shadow-[0_20px_48px_rgba(0,0,0,0.55)] sm:p-6">
-          <form className="grid w-full min-w-0 gap-8" onSubmit={handleSubmit}>
+          <form
+            className="grid w-full min-w-0 gap-8"
+            onSubmit={handleSubmit}
+            aria-busy={initLoading}
+          >
             <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(260px,320px)] xl:items-start">
               <div className="grid min-w-0 gap-6">
                 <section className="grid gap-4">

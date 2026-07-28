@@ -11,10 +11,12 @@ import {
 import { useAuth } from "@/providers/AuthContext";
 import {
   addCartItem,
+  applyCartCoupon,
   clearMyCart,
   clearMyRentalItems,
   getMyCart,
   removeCartItem,
+  removeCartCoupon,
   type ShoppingCart,
   updateCartItem,
 } from "@/services/cart";
@@ -57,6 +59,14 @@ type CartContextType = {
     cart: ShoppingCart;
     message: string;
   }>;
+  applyCoupon: (code: string) => Promise<{
+    cart: ShoppingCart;
+    message: string;
+  }>;
+  removeCoupon: () => Promise<{
+    cart: ShoppingCart;
+    message: string;
+  }>;
 };
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -67,6 +77,7 @@ function createEmptyCart(): ShoppingCart {
     createdAt: null,
     updatedAt: null,
     items: [],
+    appliedCoupon: null,
     summary: {
       distinctItems: 0,
       totalQuantity: 0,
@@ -77,6 +88,9 @@ function createEmptyCart(): ShoppingCart {
       total: 0,
       saleItems: 0,
       rentalItems: 0,
+      promotionDiscountTotal: 0,
+      couponDiscountTotal: 0,
+      discountTotal: 0,
       hasUnavailableItems: false,
       hasUnconfiguredRentalItems: false,
     },
@@ -313,6 +327,29 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     return result;
   }, [assertClientSession, clientUserId]);
 
+  const applyCoupon = useCallback(
+    async (code: string) => {
+      assertClientSession();
+      const result = await applyCartCoupon(code);
+      setState((previous) => ({
+        ownerUserId: clientUserId,
+        cart: preserveCartItemOrder(previous.cart, result.cart),
+      }));
+      return result;
+    },
+    [assertClientSession, clientUserId],
+  );
+
+  const removeCoupon = useCallback(async () => {
+    assertClientSession();
+    const result = await removeCartCoupon();
+    setState((previous) => ({
+      ownerUserId: clientUserId,
+      cart: preserveCartItemOrder(previous.cart, result.cart),
+    }));
+    return result;
+  }, [assertClientSession, clientUserId]);
+
   const value = useMemo(
     () => ({
       cart,
@@ -324,9 +361,12 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       removeItem,
       clearCart,
       clearRentals,
+      applyCoupon,
+      removeCoupon,
     }),
     [
       addItem,
+      applyCoupon,
       cart,
       clearCart,
       clearRentals,
@@ -334,6 +374,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       loading,
       refreshCart,
       removeItem,
+      removeCoupon,
       updateItemQuantity,
     ],
   );

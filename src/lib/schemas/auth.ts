@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 export const authUserSchema = z.object({
   id: z.number(),
@@ -13,7 +13,7 @@ export const authUserSchema = z.object({
 });
 
 export const authProfileResponseSchema = z.object({
-  user: authUserSchema,
+  user: authUserSchema.nullable(),
 });
 
 export const authProfileUpdateResponseSchema = z.object({

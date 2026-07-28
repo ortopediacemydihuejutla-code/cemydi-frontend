@@ -38,7 +38,7 @@ import {
 import { useAdminDataBootstrap } from "@/features/admin/hooks/use-admin-data-bootstrap";
 import { useClampPage, useResetPageOnChange } from "@/features/admin/hooks/use-admin-pagination";
 import { AdminFilterTabs } from "@/features/admin/components/admin-filter-tabs";
-import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
+import { AdminTableSkeleton } from "@/features/admin/components/admin-content-skeletons";
 import { AdminSearchField } from "@/features/admin/components/admin-search-field";
 import { AdminTablePaginationNumbered } from "@/features/admin/components/admin-table-pagination-numbered";
 import { AdminTableSortHeader } from "@/features/admin/components/admin-table-sort-header";
@@ -505,7 +505,7 @@ export default function UsersPage() {
     setUsers(response.users);
   }, []);
 
-  const { user, blockingFullPage } = useAdminDataBootstrap({
+  const { user, initLoading } = useAdminDataBootstrap({
     load: loadUsers,
     loadErrorFallback: "No se pudieron cargar los usuarios",
   });
@@ -867,10 +867,6 @@ export default function UsersPage() {
     }
   };
 
-  if (blockingFullPage) {
-    return <AdminPageLoading layout="viewport" />;
-  }
-
   return (
     <>
       <PageHeader
@@ -1149,7 +1145,21 @@ export default function UsersPage() {
         </CardHeader>
 
         <CardContent className="w-full min-w-0 max-w-full pb-2">
-          <div className="w-full min-w-0 overflow-x-auto">
+          {initLoading ? (
+            <AdminTableSkeleton
+              columns={visibleColumnDefinitions.length + 1}
+              rows={7}
+              showAvatar
+              className="my-2"
+            />
+          ) : null}
+          <div
+            className={
+              initLoading
+                ? "hidden"
+                : "w-full min-w-0 overflow-x-auto"
+            }
+          >
           <Table
             className="min-w-0"
             style={{

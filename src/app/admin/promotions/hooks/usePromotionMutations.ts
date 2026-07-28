@@ -13,10 +13,7 @@ import {
   updatePromotion,
 } from "@/services/admin";
 
-import {
-  mapFormToCreatePayload,
-  mapFormToIsoDates,
-} from "../utils/promotion-mappers";
+import { mapPromotionFormToPayload } from "../utils/promotion-mappers";
 import { validatePromotionForm } from "../utils/promotion-validators";
 import type { UsePromotionsReturn } from "./usePromotions";
 
@@ -41,6 +38,7 @@ export function usePromotionMutations(state: UsePromotionsReturn) {
     setPage,
     resetForm,
     setSaving,
+    imageFile,
   } = state;
 
   const handleSubmit = useCallback(
@@ -53,25 +51,23 @@ export function usePromotionMutations(state: UsePromotionsReturn) {
         return;
       }
 
-      const { productId, startIso, endIso, descripcion } = mapFormToIsoDates(form);
+      const payload = mapPromotionFormToPayload(form);
 
       setSaving(true);
       try {
         if (editingId !== null) {
-          const result = await updatePromotion(editingId, {
-            productId,
-            startAt: startIso,
-            endAt: endIso,
-            descripcion,
-          });
+          const result = await updatePromotion(
+            editingId,
+            payload,
+            imageFile,
+          );
           updatePromotionsCache((prev) =>
             prev.map((p) => (p.id === editingId ? result.promotion : p)),
           );
           toast.success(result.message);
         } else {
-          const payload = mapFormToCreatePayload(form, startIso, endIso, descripcion, productId);
-          const result = await createPromotion(payload);
-          updatePromotionsCache((prev) => [...result.promotions, ...prev]);
+          const result = await createPromotion(payload, imageFile);
+          updatePromotionsCache((prev) => [result.promotion, ...prev]);
           setPage(1);
           toast.success(result.message);
         }
@@ -82,7 +78,16 @@ export function usePromotionMutations(state: UsePromotionsReturn) {
         setSaving(false);
       }
     },
-    [form, editingId, todayStr, setPage, resetForm, setSaving, updatePromotionsCache],
+    [
+      form,
+      editingId,
+      todayStr,
+      imageFile,
+      setPage,
+      resetForm,
+      setSaving,
+      updatePromotionsCache,
+    ],
   );
 
   const handleDelete = useCallback(async () => {

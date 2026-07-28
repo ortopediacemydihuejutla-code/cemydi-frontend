@@ -4,7 +4,8 @@ import Image from "next/image";
 import Link from "next/link";
 
 import ProductShareMenu from "@/components/product/ProductShareMenu";
-import type { CatalogProduct } from "@/services/catalog";
+import { PromotionBadge } from "@/components/product/PromotionBadge";
+import type { ActivePromotion, CatalogProduct } from "@/services/catalog";
 import { isOptimizableImageUrl } from "@/lib/cloudinary-image";
 import { getClientSiteUrl } from "@/lib/site-config";
 import { buildProductShareData, getProductSlug } from "@/lib/product-share";
@@ -19,7 +20,7 @@ type ProductGridProps = {
   products: CatalogProduct[];
   view: CatalogView;
   searchQuery?: string;
-  promotedProductIds?: Set<number>;
+  promotionsByProduct?: Map<number, ActivePromotion>;
   isPending?: boolean;
 };
 
@@ -59,18 +60,20 @@ function highlightMatch(text: string, query: string) {
 export function ProductCard({
   product,
   searchQuery,
-  isPromoted,
+  isPromoted = false,
+  promotion = null,
   view,
 }: {
   product: CatalogProduct;
   searchQuery: string;
-  isPromoted: boolean;
+  isPromoted?: boolean;
+  promotion?: ActivePromotion | null;
   view: CatalogView;
 }) {
   const hasImage = isOptimizableImageUrl(product.imageUrl);
-  const isOutOfStock = product.stock <= 0;
   const detailHref = `/producto/${encodeURIComponent(getProductSlug(product))}`;
   const shareData = buildProductShareData(product, getClientSiteUrl());
+  const hasPromotion = Boolean(promotion) || isPromoted;
   const acquisitionBadges =
     product.tipoAdquisicion === "MIXTO"
       ? [
@@ -85,7 +88,7 @@ export function ProductCard({
 
   return (
     <article
-      className={`group flex h-full overflow-visible rounded-lg border border-[#e7edef] bg-white text-inherit no-underline shadow-[0_12px_30px_rgba(18,39,49,0.055)] outline-none transition hover:border-[#d0dde0] hover:shadow-[0_16px_34px_rgba(18,39,49,0.08)] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2 ${
+      className={`group flex self-start overflow-visible rounded-lg border border-[#e7edef] bg-white text-inherit no-underline shadow-[0_12px_30px_rgba(18,39,49,0.055)] outline-none transition hover:border-[#d0dde0] hover:shadow-[0_16px_34px_rgba(18,39,49,0.08)] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2 ${
         view === "list"
           ? "flex-col sm:grid sm:grid-cols-[220px_minmax(0,1fr)]"
           : "flex-col"
@@ -95,7 +98,7 @@ export function ProductCard({
         className={`relative overflow-visible border-b border-[#edf2f3] bg-[#fbfcfc] outline-none focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-inset ${
           view === "list"
             ? "aspect-[4/3] sm:h-full sm:min-h-[240px] sm:aspect-auto sm:border-b-0 sm:border-r"
-            : "aspect-[1/1] sm:aspect-[4/3]"
+            : "aspect-[4/3]"
         }`}
       >
         <Link
@@ -103,7 +106,7 @@ export function ProductCard({
           className="absolute inset-0 z-[1] outline-none"
           aria-label={`Ver detalles de ${product.nombre}`}
         />
-        <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex flex-wrap items-start gap-2">
+        <div className="pointer-events-none absolute left-3 right-14 top-3 z-10 flex flex-wrap items-start gap-2">
           {acquisitionBadges.map((badge) => (
             <span
               key={badge.label}
@@ -112,11 +115,6 @@ export function ProductCard({
               {badge.label}
             </span>
           ))}
-          {isPromoted ? (
-            <span className="rounded bg-[#172932] px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-white">
-              Oferta
-            </span>
-          ) : null}
           {product.requiereReceta ? (
             <span className="rounded bg-[#f2f6f7] px-2.5 py-1 text-[0.68rem] font-semibold text-[#304853] ring-1 ring-inset ring-[#dce6e9]">
               Receta requerida
@@ -124,7 +122,7 @@ export function ProductCard({
           ) : null}
         </div>
 
-        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-t-lg p-5 sm:p-6">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-t-lg px-2 pb-1 pt-9 sm:px-3 sm:pt-10">
           <div className="relative flex h-full w-full items-center justify-center">
           {hasImage ? (
             <div className="relative h-full w-full">
@@ -137,7 +135,7 @@ export function ProductCard({
                     ? "(max-width: 640px) 100vw, 220px"
                     : "(max-width: 640px) 100vw, (max-width: 1200px) 33vw, 25vw"
                 }
-                className="object-contain object-center transition duration-300 group-hover:scale-[1.02]"
+                className="scale-[1.08] object-contain object-center transition duration-300 group-hover:scale-[1.12]"
               />
             </div>
           ) : (
@@ -154,10 +152,11 @@ export function ProductCard({
           compact
           className="absolute right-3 top-3 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 sm:data-[open=true]:opacity-100"
           menuClassName="bottom-auto right-0 top-[calc(100%+8px)]"
+          triggerClassName="!bg-transparent !text-[#176b67] shadow-none ring-0 hover:!bg-transparent hover:!text-[#0f4f4d]"
         />
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col p-4 sm:p-4">
+      <div className="flex min-w-0 flex-1 flex-col p-4">
         <div className="grid gap-1">
           <span className="text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-[#667b84]">
             {highlightMatch(product.marca, searchQuery)}
@@ -173,33 +172,46 @@ export function ProductCard({
           </h3>
         </div>
 
-        <p className="mt-2 text-sm text-[#5f7780]">
+        <p className="mt-1.5 text-sm text-[#5f7780]">
           {product.modelo} · {formatTipo(product.tipoAdquisicion)}
         </p>
 
-        <div className="mt-auto flex flex-wrap items-end justify-between gap-3 pt-5">
-          <div className="grid gap-1">
-            <strong className="text-[1.24rem] font-bold leading-none text-[#122731]">
-              {formatMoney(product.precio)}
-            </strong>
-            <span
-              className={`text-xs font-semibold ${
-                isOutOfStock ? "text-[#b42318]" : "text-[#15803d]"
-              }`}
-            >
-              {isOutOfStock ? "Sin stock" : "Disponible"}
-            </span>
+        <div className="mt-3 grid gap-1.5">
+          <div className="flex min-h-4 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+            {promotion ? (
+              <>
+                <span className="tabular-nums text-[#84959b] line-through">
+                  {formatMoney(product.precio)}
+                </span>
+                <span className="font-semibold text-[#9f3029]">
+                  Ahorras{" "}
+                  {formatMoney(product.precio - promotion.discountedPrice)}
+                </span>
+              </>
+            ) : (
+              <span className="text-[#71858d]">
+                Precio de {formatTipo(product.tipoAdquisicion).toLowerCase()}
+              </span>
+            )}
           </div>
 
-          <div className="flex items-center">
-            <Link
-              href={detailHref}
-              className="mb-0.5 border-b border-[#c6d0d3] text-sm font-semibold text-[#344850] transition group-hover:border-[#0f6a67] group-hover:text-[#0f6a67] focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
+          <div className="flex flex-wrap items-center gap-2.5">
+            <strong
+              className="text-[1.5rem] font-semibold leading-none tracking-[-0.02em] text-[#172f38]"
             >
-              Ver detalles
-            </Link>
+              {formatMoney(promotion?.discountedPrice ?? product.precio)}
+            </strong>
+            {hasPromotion ? (
+              <PromotionBadge
+                percent={promotion?.discountPercent}
+                compact
+                shortLabel
+                className="rounded-full px-2.5 py-1 shadow-none"
+              />
+            ) : null}
           </div>
         </div>
+
       </div>
     </article>
   );
@@ -209,7 +221,7 @@ export default function ProductGrid({
   products,
   view,
   searchQuery = "",
-  promotedProductIds = new Set<number>(),
+  promotionsByProduct = new Map<number, ActivePromotion>(),
   isPending = false,
 }: ProductGridProps) {
   if (products.length === 0) {
@@ -246,7 +258,7 @@ export default function ProductGrid({
           key={product.id}
           product={product}
           searchQuery={searchQuery}
-          isPromoted={promotedProductIds.has(product.id)}
+          promotion={promotionsByProduct.get(product.id) ?? null}
           view={view}
         />
       ))}

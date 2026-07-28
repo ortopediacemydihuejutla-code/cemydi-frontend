@@ -7,6 +7,7 @@ import { MoreHorizontal, PackagePlus, PencilLine, ShieldCheck, Trash2 } from "lu
 import type { AdminProduct } from "@/services/admin";
 
 import { AdminTableSortHeader } from "@/features/admin/components/admin-table-sort-header";
+import { AdminTableSkeleton } from "@/features/admin/components/admin-content-skeletons";
 import { Badge } from "@/features/admin/components/ui/badge";
 import { Button } from "@/features/admin/components/ui/button";
 import {
@@ -43,6 +44,7 @@ import { PRODUCT_COLUMN_LABELS, type ProductColumnId } from "../utils/product-ty
 
 type ProductsTableProps = {
   state: ProductsAdminState;
+  loading?: boolean;
 };
 
 function renderProductTableCell(
@@ -121,7 +123,7 @@ function renderProductTableCell(
   }
 }
 
-export function ProductsTable({ state }: ProductsTableProps) {
+export function ProductsTable({ state, loading = false }: ProductsTableProps) {
   const {
     products,
     filteredProducts,
@@ -136,6 +138,17 @@ export function ProductsTable({ state }: ProductsTableProps) {
     saving,
     requestDeleteProduct,
   } = state;
+
+  if (loading) {
+    return (
+      <AdminTableSkeleton
+        columns={Math.max(2, visibleOrderedProductColumns.length + 1)}
+        rows={7}
+        showAvatar
+        className="my-2"
+      />
+    );
+  }
 
   if (filteredProducts.length === 0) {
     return (

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 export const catalogProductSchema = z.object({
   id: z.number(),

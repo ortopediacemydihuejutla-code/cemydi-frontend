@@ -18,6 +18,7 @@ import {
   ShoppingBag,
   TrendingUp,
   ClipboardCheck,
+  TicketPercent,
 } from "lucide-react";
 
 import {
@@ -27,10 +28,9 @@ import {
   type AnalyticsDashboardData,
 } from "@/services/admin";
 import { AdminMetricCard } from "@/features/admin/components/admin-metric-card";
-import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
+import { AdminTableSkeleton } from "@/features/admin/components/admin-content-skeletons";
 import { PageHeader } from "@/features/admin/components/page-header";
 import { Card, CardContent, CardHeader, CardTitle } from "@/features/admin/components/ui/card";
-import { useAdminRouteGate } from "@/features/admin/hooks/use-admin-route-gate";
 
 const QUICK_LINKS = [
   {
@@ -83,11 +83,19 @@ const QUICK_LINKS = [
   },
   {
     label: "Promociones",
-    description: "Descuentos y ofertas activas",
+    description: "Campañas de productos en oferta",
     href: "/admin/promotions",
     icon: Megaphone,
     color: "text-indigo-600 dark:text-indigo-400",
     bg: "bg-indigo-500/10 dark:bg-indigo-400/12",
+  },
+  {
+    label: "Cupones",
+    description: "Códigos y reglas de descuento",
+    href: "/admin/coupons",
+    icon: TicketPercent,
+    color: "text-orange-600 dark:text-orange-400",
+    bg: "bg-orange-500/10 dark:bg-orange-400/12",
   },
   {
     label: "Reseñas",
@@ -203,29 +211,6 @@ const ACTIVITY_STYLES: Record<
   },
 };
 
-const DASHBOARD_METRIC_PLACEHOLDERS = [
-  {
-    context: "analytics-sessions" as const,
-    label: "Nuevos usuarios",
-    helper: "Últimos 30 días",
-  },
-  {
-    context: "analytics-sessions" as const,
-    label: "Actividad de sesión",
-    helper: "Eventos registrados en el periodo",
-  },
-  {
-    context: "products-active" as const,
-    label: "Productos activos",
-    helper: "En catálogo y visibles",
-  },
-  {
-    context: "reviews-pending" as const,
-    label: "Reseñas pendientes",
-    helper: "Esperando moderación",
-  },
-];
-
 function formatRelativeTime(iso: string): string {
   const date = new Date(iso);
   const diffMs = Date.now() - date.getTime();
@@ -254,7 +239,6 @@ function formatRelativeTime(iso: string): string {
 }
 
 export default function AdminPage() {
-  const { blockingFullPage } = useAdminRouteGate();
   const [dashboard, setDashboard] = useState<AnalyticsDashboardData | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
@@ -263,10 +247,6 @@ export default function AdminPage() {
   const [activityError, setActivityError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (blockingFullPage) {
-      return;
-    }
-
     let cancelled = false;
 
     const loadDashboard = async () => {
@@ -297,13 +277,9 @@ export default function AdminPage() {
     return () => {
       cancelled = true;
     };
-  }, [blockingFullPage]);
+  }, []);
 
   useEffect(() => {
-    if (blockingFullPage) {
-      return;
-    }
-
     let cancelled = false;
 
     const loadActivity = async () => {
@@ -334,16 +310,12 @@ export default function AdminPage() {
     return () => {
       cancelled = true;
     };
-  }, [blockingFullPage]);
+  }, []);
 
   const alerts = useMemo(
     () => (dashboard ? buildDashboardAlerts(dashboard.kpis) : []),
     [dashboard],
   );
-
-  if (blockingFullPage) {
-    return <AdminPageLoading layout="viewport" />;
-  }
 
   return (
     <div className="flex flex-col gap-6">
@@ -362,45 +334,34 @@ export default function AdminPage() {
       ) : null}
 
       {/* KPI Cards */}
-      <section className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        {dashboardLoading || !dashboard ? (
-          DASHBOARD_METRIC_PLACEHOLDERS.map((item) => (
-            <AdminMetricCard
-              key={item.label}
-              context={item.context}
-              label={item.label}
-              value="--"
-              helper={item.helper}
-            />
-          ))
-        ) : (
-          <>
-            <AdminMetricCard
-              context="analytics-sessions"
-              label="Nuevos usuarios"
-              value={String(dashboard.kpis.newUsersInRange)}
-              helper="Últimos 30 días"
-            />
-            <AdminMetricCard
-              context="analytics-sessions"
-              label="Actividad de sesión"
-              value={String(dashboard.kpis.sessionActivityEvents)}
-              helper="Eventos registrados en el periodo"
-            />
-            <AdminMetricCard
-              context="products-active"
-              label="Productos activos"
-              value={String(dashboard.kpis.productsActive)}
-              helper="En catálogo y visibles"
-            />
-            <AdminMetricCard
-              context="reviews-pending"
-              label="Reseñas pendientes"
-              value={String(dashboard.kpis.reviewsPending)}
-              helper="Esperando moderación"
-            />
-          </>
-        )}
+      <section
+        className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4"
+        aria-busy={dashboardLoading}
+      >
+        <AdminMetricCard
+          context="analytics-sessions"
+          label="Nuevos usuarios"
+          value={dashboard ? String(dashboard.kpis.newUsersInRange) : "—"}
+          helper="Últimos 30 días"
+        />
+        <AdminMetricCard
+          context="analytics-sessions"
+          label="Actividad de sesión"
+          value={dashboard ? String(dashboard.kpis.sessionActivityEvents) : "—"}
+          helper="Eventos registrados en el periodo"
+        />
+        <AdminMetricCard
+          context="products-active"
+          label="Productos activos"
+          value={dashboard ? String(dashboard.kpis.productsActive) : "—"}
+          helper="En catálogo y visibles"
+        />
+        <AdminMetricCard
+          context="reviews-pending"
+          label="Reseñas pendientes"
+          value={dashboard ? String(dashboard.kpis.reviewsPending) : "—"}
+          helper="Esperando moderación"
+        />
       </section>
 
       {/* Accesos rápidos + Alertas */}
@@ -455,9 +416,7 @@ export default function AdminPage() {
           </CardHeader>
           <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
             {dashboardLoading ? (
-              <p className="m-0 rounded-xl border border-(--border-soft) bg-(--surface) px-3 py-4 text-center text-sm text-(--text-muted)">
-                Revisando alertas operativas...
-              </p>
+              <AdminTableSkeleton columns={2} rows={3} />
             ) : (
               <ul className="flex flex-col gap-3">
                 {alerts.map((alert) => {
@@ -512,9 +471,7 @@ export default function AdminPage() {
         </CardHeader>
         <CardContent className="px-5 pb-5 sm:px-6 sm:pb-6">
           {activityLoading ? (
-            <p className="m-0 rounded-xl border border-(--border-soft) bg-(--surface) px-3 py-4 text-center text-sm text-(--text-muted)">
-              Cargando actividad reciente...
-            </p>
+            <AdminTableSkeleton columns={3} rows={4} />
           ) : activityError ? (
             <p className="m-0 text-center text-sm text-red-600 dark:text-red-400">
               {activityError}

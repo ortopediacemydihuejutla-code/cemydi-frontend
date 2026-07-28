@@ -12,6 +12,7 @@ import {
   Minus,
   Plus,
   ShoppingBag,
+  TicketPercent,
   Trash2,
   Upload,
   X,
@@ -129,6 +130,8 @@ export default function CarritoPage() {
     removeItem,
     clearCart,
     clearRentals,
+    applyCoupon,
+    removeCoupon,
   } = useCart();
   const [pendingItemId, setPendingItemId] = useState<number | null>(null);
   const [clearing, setClearing] = useState(false);
@@ -151,6 +154,8 @@ export default function CarritoPage() {
     null,
   );
   const [requirementsOpen, setRequirementsOpen] = useState(false);
+  const [couponCode, setCouponCode] = useState("");
+  const [couponBusy, setCouponBusy] = useState(false);
 
   const hasItems = cart.summary.totalQuantity > 0;
   const saleItems = cart.items.filter((item) => item.mode !== "RENTA");
@@ -158,6 +163,14 @@ export default function CarritoPage() {
   const hasSaleItems = saleItems.length > 0;
   const hasRentalItems = rentalItems.length > 0;
   const cartDiscount = Math.max(0, cart.summary.discountTotal ?? 0);
+  const promotionDiscount = Math.max(
+    0,
+    cart.summary.promotionDiscountTotal ?? 0,
+  );
+  const couponDiscount = Math.max(
+    0,
+    cart.summary.couponDiscountTotal ?? 0,
+  );
   const cartTotal =
     cart.summary.total ?? Math.max(0, cart.summary.subtotal - cartDiscount);
   const hasUnavailableSaleItems = saleItems.some(
@@ -384,6 +397,42 @@ export default function CarritoPage() {
       );
     } finally {
       setClearingRentals(false);
+    }
+  };
+
+  const handleApplyCoupon = async (event: React.FormEvent) => {
+    event.preventDefault();
+    const code = couponCode.trim().toUpperCase();
+    if (code.length < 4) {
+      toast.error("Ingresa un código de cupón válido.");
+      return;
+    }
+
+    try {
+      setCouponBusy(true);
+      const result = await applyCoupon(code);
+      setCouponCode("");
+      toast.success(result.message);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "No se pudo aplicar el cupón.",
+      );
+    } finally {
+      setCouponBusy(false);
+    }
+  };
+
+  const handleRemoveCoupon = async () => {
+    try {
+      setCouponBusy(true);
+      const result = await removeCoupon();
+      toast.success(result.message);
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "No se pudo quitar el cupón.",
+      );
+    } finally {
+      setCouponBusy(false);
     }
   };
 
@@ -926,7 +975,7 @@ export default function CarritoPage() {
                             </p>
                             <p className="mt-1 text-sm leading-6 text-[#6b7f87]">
                               {isRental
-                                ? `Tarifa diaria ${formatCurrencyMx(item.rentalSummary?.dailyPrice ?? item.product.rentalDailyPrice ?? 0, { fractionDigits: 0 })}`
+                                ? `Tarifa diaria ${formatCurrencyMx(item.rentalSummary?.dailyPrice ?? item.product.rentalDailyPrice ?? 0, { fractionDigits: 2 })}`
                                 : `Precio unitario ${formatCurrencyMx(item.product.precio, { fractionDigits: 0 })}`}
                             </p>
                             {isRental ? (
@@ -1122,7 +1171,7 @@ export default function CarritoPage() {
                                 <div className="flex items-center gap-2 lg:justify-end">
                                   <span className="text-sm text-[#8a9aa1] line-through">
                                     {formatCurrencyMx(originalLineTotal, {
-                                      fractionDigits: 0,
+                                      fractionDigits: isRental ? 2 : 0,
                                     })}
                                   </span>
                                   <span className="rounded-full bg-[#ffe8e6] px-2 py-0.5 text-xs font-bold text-[#c33127]">
@@ -1133,9 +1182,9 @@ export default function CarritoPage() {
                               <strong className="text-[1.45rem] leading-tight text-[#132633]">
                                 {finalLineTotal === null
                                   ? "Pendiente"
-                                  : formatCurrencyMx(finalLineTotal, {
-                                      fractionDigits: 0,
-                                    })}
+                                    : formatCurrencyMx(finalLineTotal, {
+                                        fractionDigits: isRental ? 2 : 0,
+                                      })}
                               </strong>
                             </div>
                           </div>
@@ -1160,6 +1209,97 @@ export default function CarritoPage() {
               <h2 className="text-sm font-bold uppercase tracking-[0.1em] text-[#405b65]">
                 Resumen
               </h2>
+
+              <div className="mt-5">
+                {cart.appliedCoupon ? (
+                  <div
+                    className={`rounded-2xl border p-4 ${
+                      cart.appliedCoupon.isValid
+                        ? "border-[#b9ddd5] bg-[#effaf6]"
+                        : "border-[#f1c9c5] bg-[#fff6f5]"
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="grid size-9 shrink-0 place-items-center rounded-xl bg-white text-[#1f6a67] shadow-sm">
+                        <TicketPercent className="size-5" aria-hidden />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-mono text-sm font-extrabold tracking-[0.1em] text-[#17333f]">
+                          {cart.appliedCoupon.code}
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-[#5b717c]">
+                          {cart.appliedCoupon.description}
+                        </p>
+                        {cart.appliedCoupon.isValid ? (
+                          <p className="mt-2 text-sm font-bold text-[#18745f]">
+                            Ahorras{" "}
+                            {formatCurrencyMx(
+                              cart.appliedCoupon.discountAmount,
+                              { fractionDigits: 0 },
+                            )}
+                          </p>
+                        ) : (
+                          <p className="mt-2 text-xs font-semibold text-[#b42318]">
+                            {cart.appliedCoupon.reason}
+                          </p>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => void handleRemoveCoupon()}
+                        disabled={couponBusy}
+                        className="grid size-8 shrink-0 place-items-center rounded-full text-[#6b7f87] transition hover:bg-white hover:text-[#b42318] disabled:opacity-50"
+                        aria-label={`Quitar cupón ${cart.appliedCoupon.code}`}
+                      >
+                        <X className="size-4" aria-hidden />
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <form
+                    onSubmit={handleApplyCoupon}
+                    className="rounded-2xl border border-[#dbe5e7] bg-[#f8fbfb] p-3"
+                  >
+                    <label
+                      htmlFor="cart-coupon"
+                      className="mb-2 flex items-center gap-2 text-xs font-bold text-[#405b65]"
+                    >
+                      <TicketPercent className="size-4 text-[#1f6a67]" aria-hidden />
+                      ¿Tienes un cupón?
+                    </label>
+                    <div className="flex gap-2">
+                      <input
+                        id="cart-coupon"
+                        value={couponCode}
+                        onChange={(event) =>
+                          setCouponCode(
+                            event.target.value
+                              .toUpperCase()
+                              .replace(/[^A-Z0-9_-]/g, ""),
+                          )
+                        }
+                        maxLength={24}
+                        autoComplete="off"
+                        placeholder="Ingresa tu código"
+                        className="min-w-0 flex-1 rounded-xl border border-[#cfdcdf] bg-white px-3 py-2.5 font-mono text-sm font-semibold uppercase tracking-[0.06em] text-[#17333f] outline-none transition placeholder:font-sans placeholder:font-normal placeholder:normal-case placeholder:tracking-normal placeholder:text-[#87989f] focus:border-[#1f6a67] focus:ring-2 focus:ring-[#1f6a67]/15"
+                      />
+                      <button
+                        type="submit"
+                        disabled={couponBusy || couponCode.trim().length < 4}
+                        className="rounded-xl bg-[#17333f] px-4 text-sm font-bold text-white transition hover:bg-[#244b58] disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {couponBusy ? "..." : "Aplicar"}
+                      </button>
+                    </div>
+                    {!hasSaleItems ? (
+                      <p className="mt-2 text-xs text-[#7a6a43]">
+                        Los cupones se aplican a productos de compra.
+                      </p>
+                    ) : null}
+                  </form>
+                )}
+              </div>
+
               <div className="mt-5 grid gap-3">
                 <div className="flex items-center justify-between text-[0.95rem] text-[#5b717c]">
                   <span>Compra</span>
@@ -1201,11 +1341,21 @@ export default function CarritoPage() {
                     })}
                   </strong>
                 </div>
-                {cartDiscount > 0 ? (
+                {promotionDiscount > 0 ? (
                   <div className="flex items-center justify-between rounded-xl bg-[#fff6f5] px-3 py-2 text-[0.95rem] text-[#b42318]">
-                    <span>Descuento</span>
+                    <span>Promociones</span>
                     <strong className="font-bold">
-                      -{formatCurrencyMx(cartDiscount, { fractionDigits: 0 })}
+                      -{formatCurrencyMx(promotionDiscount, { fractionDigits: 0 })}
+                    </strong>
+                  </div>
+                ) : null}
+                {couponDiscount > 0 ? (
+                  <div className="flex items-center justify-between rounded-xl bg-[#effaf6] px-3 py-2 text-[0.95rem] text-[#18745f]">
+                    <span>
+                      Cupón{cart.appliedCoupon ? ` ${cart.appliedCoupon.code}` : ""}
+                    </span>
+                    <strong className="font-bold">
+                      -{formatCurrencyMx(couponDiscount, { fractionDigits: 0 })}
                     </strong>
                   </div>
                 ) : null}

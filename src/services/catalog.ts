@@ -46,6 +46,9 @@ export type RecommendedCatalogProduct = CatalogProduct & {
 export type ActivePromotion = {
   id: number;
   productId: number;
+  discountPercent: number;
+  discountedPrice: number;
+  imageStrategy?: "AUTO" | "CUSTOM";
   descripcion: string;
   startAt: string;
   endAt: string;
@@ -55,10 +58,15 @@ export type ActivePromotion = {
     id: number;
     slug?: string;
     nombre: string;
+    marca: string;
+    modelo: string;
     clasificacion: string;
     precio: number;
     stock: number;
     activo: boolean;
+    tipoAdquisicion: "VENTA" | "RENTA" | "MIXTO";
+    requiereReceta: boolean;
+    imageUrl: string | null;
   };
 };
 

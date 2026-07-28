@@ -1,9 +1,13 @@
-import type { AdminPromotion, CreatePromotionPayload } from "@/services/admin";
+import type {
+  AdminPromotion,
+  CreatePromotionPayload,
+  PromotionImageStrategy,
+} from "@/services/admin";
 
 export type PromotionFormState = {
-  mode: CreatePromotionPayload["mode"];
-  productId: string;
-  clasificacion: string;
+  productIds: number[];
+  discountPercent: string;
+  imageStrategy: PromotionImageStrategy;
   startAt: string;
   endAt: string;
   descripcion: string;
@@ -19,38 +23,24 @@ export function mapPromotionToForm(
   if (end < start) end = start;
 
   return {
-    mode: "PRODUCT",
-    productId: String(item.productId),
-    clasificacion: "",
+    productIds: item.products.map((product) => product.id),
+    discountPercent: String(item.discountPercent),
+    imageStrategy: item.imageStrategy,
     startAt: start,
     endAt: end,
     descripcion: item.descripcion,
   };
 }
 
-export function mapFormToIsoDates(form: PromotionFormState) {
-  return {
-    startIso: new Date(`${form.startAt}T00:00:00`).toISOString(),
-    endIso: new Date(`${form.endAt}T23:59:59`).toISOString(),
-    descripcion: form.descripcion.trim(),
-    productId: Number(form.productId),
-  };
-}
-
-export function mapFormToCreatePayload(
+export function mapPromotionFormToPayload(
   form: PromotionFormState,
-  startIso: string,
-  endIso: string,
-  descripcion: string,
-  productId: number,
 ): CreatePromotionPayload {
   return {
-    mode: form.mode,
-    startAt: startIso,
-    endAt: endIso,
-    descripcion,
-    ...(form.mode === "PRODUCT"
-      ? { productId }
-      : { clasificacion: form.clasificacion.trim() }),
+    productIds: form.productIds,
+    discountPercent: Number(form.discountPercent),
+    imageStrategy: form.imageStrategy,
+    startAt: new Date(`${form.startAt}T00:00:00`).toISOString(),
+    endAt: new Date(`${form.endAt}T23:59:59`).toISOString(),
+    descripcion: form.descripcion.trim(),
   };
 }

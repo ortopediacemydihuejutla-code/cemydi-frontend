@@ -4,6 +4,7 @@ export * from "./products";
 export * from "./catalogs";
 export * from "./suppliers";
 export * from "./promotions";
+export * from "./coupons";
 export * from "./reviews";
 export * from "./rentals";
 export * from "./analytics";

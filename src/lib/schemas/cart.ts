@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/zod";
 
 const cartProductSchema = z.object({
   id: z.number(),
@@ -80,6 +80,21 @@ const shoppingCartSchema = z.object({
   id: z.string().nullable(),
   createdAt: z.string().nullable(),
   updatedAt: z.string().nullable(),
+  appliedCoupon: z
+    .object({
+      id: z.number(),
+      code: z.string(),
+      description: z.string(),
+      discountType: z.enum(["PERCENT", "FIXED"]),
+      discountValue: z.number(),
+      minimumPurchase: z.number(),
+      maximumDiscount: z.number().nullable(),
+      discountAmount: z.number(),
+      isValid: z.boolean(),
+      reason: z.string().nullable(),
+    })
+    .nullable()
+    .optional(),
   items: z.array(cartItemSchema),
   summary: z.object({
     distinctItems: z.number(),
@@ -91,6 +106,8 @@ const shoppingCartSchema = z.object({
     total: z.number().optional(),
     saleItems: z.number().optional(),
     rentalItems: z.number().optional(),
+    promotionDiscountTotal: z.number().optional(),
+    couponDiscountTotal: z.number().optional(),
     discountTotal: z.number().optional(),
     hasUnavailableItems: z.boolean(),
     hasUnconfiguredRentalItems: z.boolean().default(false),

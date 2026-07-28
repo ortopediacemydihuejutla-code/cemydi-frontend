@@ -1,10 +1,12 @@
 "use client";
 
+import { Plus } from "lucide-react";
+
 import { formatNumberEsMx } from "@/features/admin/lib/admin-list-utils";
 import { AdminMetricCard } from "@/features/admin/components/admin-metric-card";
-import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
 import { PageHeader } from "@/features/admin/components/page-header";
 import { Card, CardHeader } from "@/features/admin/components/ui/card";
+import { Button } from "@/features/admin/components/ui/button";
 import { PromotionDeleteDialog } from "./components/PromotionDeleteDialog";
 import { PromotionFilters } from "./components/PromotionFilters";
 import { PromotionFormDialog } from "./components/PromotionFormDialog";
@@ -17,17 +19,16 @@ export default function AdminPromotionsPage() {
   const { handleSubmit, handleDelete } = usePromotionMutations(state);
 
   const {
-    blockingFullPage,
+    initialLoading,
     stats,
     saving,
     editingId,
+    formOpen,
     form,
     todayStr,
     endDateMin,
     sortedProducts,
     classificationOptions,
-    formImagePreviewSrc,
-    previewIsLocalFile,
     startDateRef,
     endDateRef,
     statusFilter,
@@ -45,66 +46,50 @@ export default function AdminPromotionsPage() {
     deleteTarget,
     setDeleteTarget,
     resetForm,
-    setMode,
+    startCreate,
+    setProductIds,
+    setImageStrategy,
+    formImagePreviewSrc,
+    previewIsLocalFile,
+    applyPromotionImageFile,
+    clearLocalPromotionImage,
     onFieldChange,
     startEdit,
     openDatePicker,
-    applyPromotionImageFile,
-    clearLocalPromotionImage,
   } = state;
-
-  if (blockingFullPage) {
-    return <AdminPageLoading />;
-  }
 
   return (
     <>
       <PageHeader
         title="Promociones"
-        subtitle="Campañas por producto o por categoría. Las fechas deben ser hoy o posteriores."
-      />
+        subtitle="Crea campañas con productos específicos de una o varias categorías."
+      >
+        <Button type="button" onClick={startCreate} disabled={saving}>
+          <Plus className="mr-2 size-4" aria-hidden />
+          Nueva campaña
+        </Button>
+      </PageHeader>
 
-      <section className="grid gap-4 md:grid-cols-3">
+      <section className="grid gap-4 md:grid-cols-3" aria-busy={initialLoading}>
         <AdminMetricCard
           context="promotions-total"
           label="Total promociones"
-          value={formatNumberEsMx(stats.total)}
+          value={initialLoading ? "—" : formatNumberEsMx(stats.total)}
         />
         <AdminMetricCard
           context="promotions-active"
           label="Activas"
-          value={formatNumberEsMx(stats.activas)}
+          value={initialLoading ? "—" : formatNumberEsMx(stats.activas)}
         />
         <AdminMetricCard
           context="promotions-scheduled"
           label="Programadas"
-          value={formatNumberEsMx(stats.programadas)}
+          value={initialLoading ? "—" : formatNumberEsMx(stats.programadas)}
         />
       </section>
 
       <Card className="mt-4 w-full min-w-0 max-w-full rounded-xl border-[var(--border-soft)] shadow-sm">
-        <CardHeader className="min-w-0 gap-5 border-b border-[var(--border-soft)] bg-[var(--card)]">
-          <PromotionFormDialog
-            editingId={editingId}
-            form={form}
-            saving={saving}
-            todayStr={todayStr}
-            endDateMin={endDateMin}
-            sortedProducts={sortedProducts}
-            classificationOptions={classificationOptions}
-            formImagePreviewSrc={formImagePreviewSrc}
-            previewIsLocalFile={previewIsLocalFile}
-            startDateRef={startDateRef}
-            endDateRef={endDateRef}
-            onSubmit={handleSubmit}
-            onFieldChange={onFieldChange}
-            onModeChange={setMode}
-            onReset={resetForm}
-            onOpenDatePicker={openDatePicker}
-            onApplyImageFile={applyPromotionImageFile}
-            onClearLocalImage={clearLocalPromotionImage}
-          />
-
+        <CardHeader className="min-w-0 border-b border-[var(--border-soft)] bg-[var(--card)]">
           <PromotionFilters
             statusFilter={statusFilter}
             onStatusFilterChange={setStatusFilter}
@@ -115,6 +100,7 @@ export default function AdminPromotionsPage() {
         </CardHeader>
 
         <PromotionsTable
+          loading={initialLoading}
           filteredPromotions={filteredPromotions}
           paginatedPromotions={paginatedPromotions}
           search={search}
@@ -130,6 +116,29 @@ export default function AdminPromotionsPage() {
           onNextPage={() => setPage((p) => Math.min(totalPages, p + 1))}
         />
       </Card>
+
+      <PromotionFormDialog
+        open={formOpen}
+        editingId={editingId}
+        form={form}
+        saving={saving}
+        todayStr={todayStr}
+        endDateMin={endDateMin}
+        sortedProducts={sortedProducts}
+        classificationOptions={classificationOptions}
+        formImagePreviewSrc={formImagePreviewSrc}
+        previewIsLocalFile={previewIsLocalFile}
+        startDateRef={startDateRef}
+        endDateRef={endDateRef}
+        onSubmit={handleSubmit}
+        onFieldChange={onFieldChange}
+        onProductIdsChange={setProductIds}
+        onImageStrategyChange={setImageStrategy}
+        onReset={resetForm}
+        onOpenDatePicker={openDatePicker}
+        onApplyImageFile={applyPromotionImageFile}
+        onClearLocalImage={clearLocalPromotionImage}
+      />
 
       <PromotionDeleteDialog
         deleteTarget={deleteTarget}

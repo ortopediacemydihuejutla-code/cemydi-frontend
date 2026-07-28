@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { PackagePlus } from "lucide-react";
 
-import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
 import { AdminTablePagination } from "@/features/admin/components/admin-table-pagination";
 import { PageHeader } from "@/features/admin/components/page-header";
 import { useAdminRouteGate } from "@/features/admin/hooks/use-admin-route-gate";
@@ -20,16 +19,8 @@ import { ProductsTable } from "./components/ProductsTable";
 import { useProducts } from "./hooks/useProducts";
 
 export default function AdminProductsPage() {
-  const { user, blockingFullPage } = useAdminRouteGate();
+  const { user } = useAdminRouteGate();
   const state = useProducts(user);
-
-  if (blockingFullPage) {
-    return <AdminPageLoading layout="viewport" />;
-  }
-
-  if (state.initialLoading) {
-    return <AdminPageLoading layout="section" />;
-  }
 
   const {
     page,
@@ -47,7 +38,7 @@ export default function AdminProductsPage() {
         subtitle="Gestiona el inventario: busca, filtra, edita precios y existencias, e importa o exporta listados en CSV."
       />
 
-      <ProductsMetrics state={state} />
+      <ProductsMetrics state={state} loading={state.initialLoading} />
 
       <Card className="w-full min-w-0 max-w-full rounded-xl border-[var(--border-soft)] shadow-sm">
         <CardHeader className="min-w-0 gap-5 border-b border-[var(--border-soft)] bg-[var(--card)]">
@@ -70,7 +61,7 @@ export default function AdminProductsPage() {
         </CardHeader>
 
         <CardContent className="w-full min-w-0 max-w-full pb-2">
-          <ProductsTable state={state} />
+          <ProductsTable state={state} loading={state.initialLoading} />
         </CardContent>
 
         <CardFooter className="flex-col gap-4 border-t border-[var(--border-soft)] bg-[var(--card)] md:flex-row md:items-center md:justify-between">

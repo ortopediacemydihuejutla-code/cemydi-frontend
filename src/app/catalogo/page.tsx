@@ -27,7 +27,9 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
   };
   let availableClassifications = mergeAvailableClassifications();
   let availableBrands: string[] = [];
-  let promotedProductIds: number[] = [];
+  let promotions: Awaited<
+    ReturnType<typeof getActivePromotions>
+  >["promotions"] = [];
   let error = "";
 
   try {
@@ -49,9 +51,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       result.filters?.clasificaciones,
     );
     availableBrands = mergeAvailableBrands(result.filters?.marcas);
-    promotedProductIds = promotionsResult.promotions.map(
-      (promotion) => promotion.productId,
-    );
+    promotions = promotionsResult.promotions;
   } catch {
     error = "No pudimos cargar el catalogo. Intenta nuevamente en unos minutos.";
   }
@@ -75,7 +75,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       pagination={pagination}
       availableClassifications={availableClassifications}
       availableBrands={availableBrands}
-      promotedProductIds={promotedProductIds}
+      promotions={promotions}
       applied={applied}
       error={error}
     />

@@ -1,4 +1,4 @@
-import type { AdminPromotion, CreatePromotionPayload } from "@/services/admin";
+import type { AdminPromotion } from "@/services/admin";
 
 import type { PromotionFormState } from "./promotion-mappers";
 
@@ -19,9 +19,9 @@ export const STATUS_FILTERS: { id: StatusFilter; label: string }[] = [
 ];
 
 export const defaultPromotionForm: PromotionFormState = {
-  mode: "PRODUCT" as CreatePromotionPayload["mode"],
-  productId: "",
-  clasificacion: "",
+  productIds: [],
+  discountPercent: "15",
+  imageStrategy: "AUTO",
   startAt: "",
   endAt: "",
   descripcion: "",
@@ -35,15 +35,17 @@ export function localISODate(d: Date) {
 }
 
 export function validatePromotionForm(form: PromotionFormState, todayStr: string) {
-  if (form.mode === "PRODUCT") {
-    const productId = Number(form.productId);
-    if (!Number.isInteger(productId) || productId <= 0) {
-      return "Selecciona un producto para la promoción.";
-    }
+  if (form.productIds.length === 0 || form.productIds.length > 100) {
+    return "Selecciona entre 1 y 100 productos para la promoción.";
   }
 
-  if (form.mode === "CATEGORY" && !form.clasificacion.trim()) {
-    return "Selecciona una clasificación para aplicar promociones.";
+  const discountPercent = Number(form.discountPercent);
+  if (
+    !Number.isInteger(discountPercent) ||
+    discountPercent < 1 ||
+    discountPercent > 90
+  ) {
+    return "El descuento debe ser un porcentaje entero entre 1% y 90%.";
   }
 
   if (!form.startAt || !form.endAt) {
@@ -81,7 +83,7 @@ export function promotionStatus(item: AdminPromotion): { label: StatusLabel } {
   const starts = new Date(item.startAt).getTime();
   const ends = new Date(item.endAt).getTime();
   const label: StatusLabel =
-    !item.product.activo || item.product.stock <= 0
+    !item.products.some((product) => product.activo && product.stock > 0)
       ? "Producto sin disponibilidad"
       : now < starts
         ? "Programada"

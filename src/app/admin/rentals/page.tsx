@@ -40,7 +40,7 @@ import {
 } from "@/lib/formatters";
 import { AdminFilterTabs } from "@/features/admin/components/admin-filter-tabs";
 import { AdminMetricCard } from "@/features/admin/components/admin-metric-card";
-import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
+import { AdminTableSkeleton } from "@/features/admin/components/admin-content-skeletons";
 import { AdminSearchField } from "@/features/admin/components/admin-search-field";
 import { AdminTablePaginationNumbered } from "@/features/admin/components/admin-table-pagination-numbered";
 import { PageHeader } from "@/features/admin/components/page-header";
@@ -213,7 +213,7 @@ export default function AdminRentalsPage() {
     setPagination(result.pagination);
   }, [page, search, statusFilter]);
 
-  const { blockingFullPage } = useAdminDataBootstrap({
+  const { initLoading } = useAdminDataBootstrap({
     load,
     loadErrorFallback: "No se pudieron cargar las solicitudes de renta.",
   });
@@ -397,10 +397,6 @@ export default function AdminRentalsPage() {
     }
   };
 
-  if (blockingFullPage) {
-    return <AdminPageLoading layout="viewport" />;
-  }
-
   return (
     <div className="flex flex-col gap-8">
       <PageHeader
@@ -408,26 +404,29 @@ export default function AdminRentalsPage() {
         subtitle="Revisa solicitudes de renta, valida disponibilidad y mueve cada solicitud por su flujo operativo."
       />
 
-      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <section
+        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+        aria-busy={initLoading}
+      >
         <AdminMetricCard
           context="rentals-total"
           label="Solicitudes"
-          value={formatNumberEsMx(counts.total)}
+          value={initLoading ? "—" : formatNumberEsMx(counts.total)}
         />
         <AdminMetricCard
           context="rentals-pending"
           label="Pendientes"
-          value={formatNumberEsMx(counts.PENDING)}
+          value={initLoading ? "—" : formatNumberEsMx(counts.PENDING)}
         />
         <AdminMetricCard
           context="rentals-approved"
           label="Aprobadas"
-          value={formatNumberEsMx(counts.APPROVED)}
+          value={initLoading ? "—" : formatNumberEsMx(counts.APPROVED)}
         />
         <AdminMetricCard
           context="rentals-delivered"
           label="Entregadas"
-          value={formatNumberEsMx(counts.DELIVERED)}
+          value={initLoading ? "—" : formatNumberEsMx(counts.DELIVERED)}
         />
       </section>
 
@@ -468,7 +467,10 @@ export default function AdminRentalsPage() {
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="overflow-x-auto">
+          {initLoading ? (
+            <AdminTableSkeleton columns={7} rows={6} className="m-4 w-auto" />
+          ) : null}
+          <div className={initLoading ? "hidden" : "overflow-x-auto"}>
             <Table style={{ minWidth: "980px" }}>
               <TableHeader>
                 <TableRow>
@@ -624,7 +626,7 @@ export default function AdminRentalsPage() {
               </TableBody>
             </Table>
           </div>
-          {rentals.length === 0 ? (
+          {!initLoading && rentals.length === 0 ? (
             <div className="grid min-h-64 place-items-center px-6 py-10 text-center">
               <div>
                 <h2 className="text-xl font-semibold text-[var(--brand-900)]">

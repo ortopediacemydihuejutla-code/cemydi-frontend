@@ -23,7 +23,7 @@ export function PromotionDeleteDialog({
       title="Eliminar promoción"
       description={
         deleteTarget
-          ? `Se eliminará la campaña de «${deleteTarget.product.nombre}».`
+          ? `Se eliminará «${deleteTarget.descripcion}» y dejará de aplicarse a ${deleteTarget.productCount} producto${deleteTarget.productCount === 1 ? "" : "s"}.`
           : undefined
       }
       tone="danger"

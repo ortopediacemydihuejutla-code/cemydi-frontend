@@ -3,4 +3,5 @@ export const adminQueryKeys = {
   productReference: ["admin", "products", "reference"] as const,
   promotions: ["admin", "promotions"] as const,
   promotionCatalogs: ["admin", "promotions", "catalogs"] as const,
+  coupons: ["admin", "coupons"] as const,
 };

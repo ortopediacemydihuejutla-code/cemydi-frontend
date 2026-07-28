@@ -24,7 +24,12 @@ import {
   X,
 } from "lucide-react";
 import ProductShareMenu from "@/components/product/ProductShareMenu";
-import { getCatalogProducts, type CatalogProduct } from "@/services/catalog";
+import { PromotionBadge } from "@/components/product/PromotionBadge";
+import {
+  getCatalogProducts,
+  type ActivePromotion,
+  type CatalogProduct,
+} from "@/services/catalog";
 import { isOptimizableImageUrl } from "@/lib/cloudinary-image";
 import {
   MyProductReview,
@@ -42,6 +47,10 @@ import { ProductCard } from "@/app/catalogo/components/ProductGrid";
 import DemoRecommendations from "@/components/recommendations/DemoRecommendations";
 
 import { formatCurrencyMx } from "@/lib/formatters";
+import {
+  calculateDiscountedPrice,
+  getSavingsAmount,
+} from "@/lib/promotion-pricing";
 import { getClientSiteUrl } from "@/lib/site-config";
 import { buildProductShareData } from "@/lib/product-share";
 import {
@@ -55,6 +64,17 @@ import {
 
 function formatMoney(value: number) {
   return formatCurrencyMx(value, { fractionDigits: 0 });
+}
+
+function formatRentalMoney(value: number) {
+  return formatCurrencyMx(value, { fractionDigits: 2 });
+}
+
+function formatOfferEnd(value: string) {
+  return new Intl.DateTimeFormat("es-MX", {
+    day: "numeric",
+    month: "short",
+  }).format(new Date(value));
 }
 
 function getProductMonogram(nombre: string) {
@@ -148,11 +168,13 @@ function buildGalleryImages(product: CatalogProduct): GalleryImage[] {
 type ProductDetailClientProps = {
   product: CatalogProduct;
   productId: number;
+  promotion?: ActivePromotion | null;
 };
 
 export default function ProductDetailClient({
   product,
   productId,
+  promotion = null,
 }: ProductDetailClientProps) {
   const primaryButtonClassName =
     "cursor-pointer rounded-[14px] bg-[#1f6a67] px-[18px] py-[13px] text-base font-bold text-white disabled:cursor-not-allowed disabled:bg-[#d6dde0] disabled:text-[#6e8088]";
@@ -359,6 +381,17 @@ export default function ProductDetailClient({
   const maxCartQuantity = Math.max(1, Math.min(product.stock, 25));
   const rentalMinDays = Math.max(1, product.rentalMinDays ?? 1);
   const rentalDailyPrice = product.rentalDailyPrice ?? 0;
+  const activeBasePrice = showBuyAction ? product.precio : rentalDailyPrice;
+  const hasApplicablePromotion = Boolean(promotion && activeBasePrice > 0);
+  const activePrice =
+    promotion && hasApplicablePromotion
+      ? calculateDiscountedPrice(activeBasePrice, promotion.discountPercent)
+      : activeBasePrice;
+  const activeSavings = getSavingsAmount(activeBasePrice, activePrice);
+  const formatActivePrice = showRentAction ? formatRentalMoney : formatMoney;
+  const promotionEndLabel = promotion
+    ? formatOfferEnd(promotion.endAt)
+    : null;
   const productShareData = useMemo(
     () => buildProductShareData(product, getClientSiteUrl()),
     [product],
@@ -733,6 +766,7 @@ export default function ProductDetailClient({
                   productName={product.nombre}
                   className="absolute right-4 top-4 sm:right-5 sm:top-5"
                   menuClassName="bottom-auto right-0 top-[calc(100%+10px)]"
+                  triggerClassName="!bg-transparent !text-[#344850] shadow-none ring-0 hover:!bg-transparent hover:!text-[#0f6a67]"
                 />
               </div>
 
@@ -777,17 +811,6 @@ export default function ProductDetailClient({
                 <span className="hidden text-[#b6c3c8] sm:inline">|</span>
                 <span>Proveedor: <strong className="text-[#1b3141]">{product.proveedor}</strong></span>
               </div>
-            </div>
-
-            <div className="flex flex-wrap items-end gap-3">
-              <strong className="text-[2.1rem] leading-none text-[#1d6a67] sm:text-[2.45rem]">
-                {showBuyAction
-                  ? formatMoney(product.precio)
-                  : `${formatMoney(rentalDailyPrice)} / día`}
-              </strong>
-              <span className="rounded-full bg-[#edf2f3] px-3 py-1 text-sm font-bold text-[#6a7e87]">
-                {showBuyAction ? "MXN" : "MXN por día"}
-              </span>
             </div>
 
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm text-[#536774]">
@@ -856,9 +879,66 @@ export default function ProductDetailClient({
         <aside className="grid content-start gap-4 xl:sticky xl:top-24 xl:self-start">
           <div className="rounded-2xl border border-[#dbe4e6] bg-white p-5 shadow-[0_18px_38px_rgba(15,61,59,0.08)]">
             <div className="grid gap-2">
-              <strong className="text-[2rem] leading-none text-[#1d6a67]">
-                {showBuyAction ? formatMoney(product.precio) : `${formatMoney(rentalDailyPrice)} / día`}
-              </strong>
+              <div
+                className={`rounded-xl border p-3.5 ${
+                  hasApplicablePromotion
+                    ? "border-[#f0d2cf] bg-[#fff8f7]"
+                    : "border-[#e1e9eb] bg-[#f8fbfb]"
+                }`}
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-xs font-semibold uppercase tracking-[0.08em] text-[#667b84]">
+                    {hasApplicablePromotion
+                      ? showRentAction
+                        ? "Tarifa especial por día"
+                        : "Precio especial"
+                      : showRentAction
+                        ? "Tarifa por día"
+                        : "Precio de venta"}
+                  </span>
+                  {hasApplicablePromotion && promotion ? (
+                    <PromotionBadge
+                      percent={promotion.discountPercent}
+                      compact
+                    />
+                  ) : null}
+                </div>
+
+                <div className="mt-3 flex flex-wrap items-end gap-2">
+                  <strong
+                    className={`text-[2rem] leading-none ${
+                      hasApplicablePromotion
+                        ? "text-[#b42318]"
+                        : "text-[#1d6a67]"
+                    }`}
+                  >
+                    {formatActivePrice(activePrice)}
+                  </strong>
+                  <span className="pb-0.5 text-sm font-semibold text-[#6a7e87]">
+                    {showRentAction ? "MXN / día" : "MXN"}
+                  </span>
+                </div>
+
+                {hasApplicablePromotion && promotion ? (
+                  <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+                    <span className="text-[#809097]">
+                      Antes{" "}
+                      <span className="line-through">
+                        {formatActivePrice(activeBasePrice)}
+                      </span>
+                    </span>
+                    <span className="font-semibold text-[#157347]">
+                      Ahorras {formatActivePrice(activeSavings)}
+                      {showRentAction ? " por día" : ""}
+                    </span>
+                    {promotionEndLabel ? (
+                      <span className="text-xs font-semibold text-[#8f2922]">
+                        · Hasta {promotionEndLabel}
+                      </span>
+                    ) : null}
+                  </div>
+                ) : null}
+              </div>
               <p className={`text-sm font-medium ${isOutOfStock ? "text-[#b42318]" : "text-[#157347]"}`}>
                 {disponibilidad}
               </p>

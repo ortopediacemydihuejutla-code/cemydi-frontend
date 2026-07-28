@@ -29,7 +29,7 @@ import { formatNumberEsMx, getPaginationWindow } from "@/features/admin/lib/admi
 import { useAdminDataBootstrap } from "@/features/admin/hooks/use-admin-data-bootstrap";
 import { useClampPage, useResetPageOnChange } from "@/features/admin/hooks/use-admin-pagination";
 import { AdminFilterTabs } from "@/features/admin/components/admin-filter-tabs";
-import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
+import { AdminTableSkeleton } from "@/features/admin/components/admin-content-skeletons";
 import { AdminMetricCard } from "@/features/admin/components/admin-metric-card";
 import { AdminSearchField } from "@/features/admin/components/admin-search-field";
 import { AdminTablePagination } from "@/features/admin/components/admin-table-pagination";
@@ -182,7 +182,7 @@ export default function AdminReviewsPage() {
     setReviews(reviewsResult.reviews);
   }, []);
 
-  const { blockingFullPage } = useAdminDataBootstrap({
+  const { initLoading } = useAdminDataBootstrap({
     load,
     loadErrorFallback: "No se pudieron cargar las reseñas.",
   });
@@ -340,10 +340,6 @@ export default function AdminReviewsPage() {
     setVisibleColumns(DEFAULT_VISIBLE_COLUMNS);
   };
 
-  if (blockingFullPage) {
-    return <AdminPageLoading layout="viewport" />;
-  }
-
   return (
     <>
       <div className="flex flex-col gap-8">
@@ -352,29 +348,36 @@ export default function AdminReviewsPage() {
           subtitle="Revisa opiniones de clientes sobre productos: filtra por estado, aprueba las pendientes o elimina entradas que no deban mostrarse en la tienda."
         />
 
-        <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          aria-busy={initLoading}
+        >
           <AdminMetricCard
             context="reviews-total"
             label={"Rese\u00f1as registradas"}
-            value={formatNumberEsMx(counts.total)}
+            value={initLoading ? "—" : formatNumberEsMx(counts.total)}
           />
 
           <AdminMetricCard
             context="reviews-pending"
             label="Pendientes de moderar"
-            value={formatNumberEsMx(counts.pending)}
+            value={initLoading ? "—" : formatNumberEsMx(counts.pending)}
           />
 
           <AdminMetricCard
             context="reviews-approved"
             label="Aprobadas"
-            value={formatNumberEsMx(counts.approved)}
+            value={initLoading ? "—" : formatNumberEsMx(counts.approved)}
           />
 
           <AdminMetricCard
             context="reviews-featured"
             label="En inicio"
-            value={`${formatNumberEsMx(counts.featured)}/${HOME_TESTIMONIALS_MAX}`}
+            value={
+              initLoading
+                ? "—"
+                : `${formatNumberEsMx(counts.featured)}/${HOME_TESTIMONIALS_MAX}`
+            }
             helper={`Mínimo ${HOME_TESTIMONIALS_MIN} para publicar el slider.`}
           />
         </section>
@@ -454,7 +457,14 @@ export default function AdminReviewsPage() {
           </CardHeader>
 
           <CardContent className="w-full min-w-0 max-w-full pb-2">
-            {sorted.length === 0 ? (
+            {initLoading ? (
+              <AdminTableSkeleton
+                columns={Object.values(visibleColumns).filter(Boolean).length + 1}
+                rows={6}
+                showAvatar
+                className="my-2"
+              />
+            ) : sorted.length === 0 ? (
               <div className="grid min-h-72 place-items-center px-6 py-10 text-center">
                 <div className="max-w-md">
                   <h2 className="text-xl font-semibold text-[var(--brand-900)]">

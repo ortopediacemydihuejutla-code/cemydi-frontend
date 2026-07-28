@@ -10,7 +10,6 @@ import { loginUser, resendVerificationEmail } from "@/services/auth";
 import { useAuth } from "@/providers/AuthContext";
 import toast from "react-hot-toast";
 import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
-import { AuthRouteLoading } from "@/components/auth/auth-route-loading";
 import {
   AuthAlertBanner,
   AuthOrDivider,
@@ -60,8 +59,6 @@ export default function LoginPage() {
   });
 
   const [loading, setLoading] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
-  const [redirectRole, setRedirectRole] = useState<"ADMIN" | "USER" | null>(null);
   const [resendingVerification, setResendingVerification] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
   const [showResendVerification, setShowResendVerification] = useState(false);
@@ -98,8 +95,6 @@ export default function LoginPage() {
       return;
     }
 
-    setRedirectRole(user.rol === "ADMIN" ? "ADMIN" : "USER");
-    setRedirecting(true);
     router.replace(user.rol === "ADMIN" ? "/admin" : "/perfil");
   }, [authLoading, router, user]);
 
@@ -148,7 +143,7 @@ export default function LoginPage() {
       return;
     }
 
-    let shouldKeepRedirectLoader = false;
+    let shouldKeepSubmittingState = false;
 
     try {
       setLoading(true);
@@ -160,9 +155,7 @@ export default function LoginPage() {
       });
       const nextRole = result.user?.rol === "ADMIN" ? "ADMIN" : "USER";
 
-      shouldKeepRedirectLoader = true;
-      setRedirectRole(nextRole);
-      setRedirecting(true);
+      shouldKeepSubmittingState = true;
       login({ user: result.user });
 
       toast.success("Sesión iniciada correctamente.", { id: "auth-login-success" });
@@ -173,7 +166,7 @@ export default function LoginPage() {
       setSubmitError(message);
       setShowResendVerification(message.toLowerCase().includes("verificar tu correo"));
     } finally {
-      if (!shouldKeepRedirectLoader) {
+      if (!shouldKeepSubmittingState) {
         setLoading(false);
       }
     }
@@ -211,17 +204,8 @@ export default function LoginPage() {
     }
   };
 
-  if (authLoading || user || redirecting) {
-    return (
-      <AuthRouteLoading
-        title={redirectRole === "ADMIN" ? "Cargando panel" : "Cargando cuenta"}
-        description={
-          redirectRole === "ADMIN"
-            ? "Preparando el panel de administracion..."
-            : "Preparando tu perfil..."
-        }
-      />
-    );
+  if (authLoading || (user && !loading)) {
+    return null;
   }
 
   return (

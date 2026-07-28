@@ -32,7 +32,7 @@ import {
 import { useAdminDataBootstrap } from "@/features/admin/hooks/use-admin-data-bootstrap";
 import { useClampPage, useResetPageOnChange } from "@/features/admin/hooks/use-admin-pagination";
 import { AdminFilterTabs } from "./admin-filter-tabs";
-import { AdminPageLoading } from "./admin-page-loading";
+import { AdminTableSkeleton } from "./admin-content-skeletons";
 import { AdminSearchField } from "./admin-search-field";
 import { AdminTablePagination } from "./admin-table-pagination";
 import { AdminTableSortHeader } from "./admin-table-sort-header";
@@ -204,7 +204,7 @@ export function NameCatalogAdmin({ kind }: { kind: NameCatalogKind }) {
     setItems(rows);
   }, [kind]);
 
-  const { blockingFullPage } = useAdminDataBootstrap({
+  const { initLoading } = useAdminDataBootstrap({
     load,
     loadErrorFallback: "No se pudo cargar el catálogo.",
   });
@@ -366,10 +366,6 @@ export function NameCatalogAdmin({ kind }: { kind: NameCatalogKind }) {
     }
   };
 
-  if (blockingFullPage) {
-    return <AdminPageLoading />;
-  }
-
   return (
     <>
       <PageHeader title={cfg.title} subtitle={cfg.subtitle} />
@@ -448,7 +444,9 @@ export function NameCatalogAdmin({ kind }: { kind: NameCatalogKind }) {
         </CardHeader>
 
         <CardContent className="w-full min-w-0 max-w-full pb-2">
-          {processedRows.length === 0 ? (
+          {initLoading ? (
+            <AdminTableSkeleton columns={4} rows={6} className="my-2" />
+          ) : processedRows.length === 0 ? (
             <div className="py-12 text-center text-sm text-[var(--text-muted)]">
               {search.trim() ? cfg.emptySearch : cfg.emptyList}
             </div>

@@ -36,7 +36,7 @@ import {
   type CreateProductPayload,
 } from "@/services/admin";
 
-import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
+import { AdminFormSkeleton } from "@/features/admin/components/admin-content-skeletons";
 import { PageHeader } from "@/features/admin/components/page-header";
 import { Button } from "@/features/admin/components/ui/button";
 import {
@@ -81,7 +81,7 @@ export default function EditProductPage() {
         ? Number.parseInt(productIdParam[0] ?? "", 10)
         : NaN;
 
-  const { user, blockingFullPage } = useAdminRouteGate();
+  const { user } = useAdminRouteGate();
 
   const [initLoading, setInitLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -410,10 +410,6 @@ export default function EditProductPage() {
     }
   };
 
-  if (blockingFullPage) {
-    return <AdminPageLoading layout="viewport" />;
-  }
-
   return (
     <>
       <div className="flex flex-col gap-4">
@@ -438,10 +434,7 @@ export default function EditProductPage() {
 
       <div className="rounded-[28px] border border-border bg-card p-4 text-card-foreground shadow-[0_20px_44px_rgba(15,61,59,0.08)] dark:shadow-[0_20px_48px_rgba(0,0,0,0.55)] sm:p-6">
         {initLoading ? (
-          <div className="flex min-h-72 items-center justify-center gap-3 text-sm text-muted-foreground">
-            <LoaderCircle className="size-5 animate-spin" />
-            Cargando producto...
-          </div>
+          <AdminFormSkeleton className="border-0 p-0 shadow-none" />
         ) : (
           <form className="grid w-full min-w-0 gap-8" onSubmit={handleSubmit}>
             <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1fr)_minmax(260px,320px)] xl:items-start">

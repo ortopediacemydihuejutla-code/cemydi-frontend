@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import type { CatalogProduct } from "@/services/catalog";
+import type { ActivePromotion, CatalogProduct } from "@/services/catalog";
 import { normalizeClassificationKey } from "../utils/catalog-formatters";
 import {
   buildCatalogQueryParams,
@@ -33,7 +33,7 @@ type CatalogClientProps = {
   pagination: CatalogPaginationData;
   availableClassifications: string[];
   availableBrands: string[];
-  promotedProductIds: number[];
+  promotions: ActivePromotion[];
   applied: CatalogAppliedParams;
   error?: string;
 };
@@ -43,7 +43,7 @@ export default function CatalogClient({
   pagination,
   availableClassifications,
   availableBrands,
-  promotedProductIds,
+  promotions,
   applied,
   error = "",
 }: CatalogClientProps) {
@@ -53,7 +53,16 @@ export default function CatalogClient({
 
   const currentPage = Math.min(applied.page, pagination.totalPages);
   const activeFilterCount = countActiveFilters(applied);
-  const promotedSet = new Set(promotedProductIds);
+  const promotionsByProduct = useMemo(() => {
+    const result = new Map<number, ActivePromotion>();
+    for (const promotion of promotions) {
+      const current = result.get(promotion.productId);
+      if (!current || promotion.discountPercent > current.discountPercent) {
+        result.set(promotion.productId, promotion);
+      }
+    }
+    return result;
+  }, [promotions]);
 
   const navigateWithParams = (options: Partial<CatalogAppliedParams> & { page?: number }) => {
     const params = buildCatalogQueryParams({
@@ -241,7 +250,7 @@ export default function CatalogClient({
                 products={products}
                 view={applied.view}
                 searchQuery={applied.searchQuery}
-                promotedProductIds={promotedSet}
+                promotionsByProduct={promotionsByProduct}
                 isPending={isPending}
               />
             </section>

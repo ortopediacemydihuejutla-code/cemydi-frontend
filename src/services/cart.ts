@@ -97,3 +97,31 @@ export async function clearMyRentalItems() {
     cartMutationResponseSchema,
   );
 }
+
+export async function applyCartCoupon(code: string) {
+  const res = await apiFetch("/cart/coupon", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ code }),
+  });
+
+  return parseApiResponse(
+    res,
+    "No se pudo aplicar el cupón",
+    cartMutationResponseSchema,
+  );
+}
+
+export async function removeCartCoupon() {
+  const res = await apiFetch("/cart/coupon", {
+    method: "DELETE",
+  });
+
+  return parseApiResponse(
+    res,
+    "No se pudo quitar el cupón",
+    cartMutationResponseSchema,
+  );
+}

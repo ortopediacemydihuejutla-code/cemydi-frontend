@@ -13,7 +13,6 @@ import {
   Trash2,
 } from "lucide-react";
 import { AdminFilterTabs } from "@/features/admin/components/admin-filter-tabs";
-import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
 import { PageHeader } from "@/features/admin/components/page-header";
 import { PublicPageLinkButton } from "@/features/admin/components/public-page-link-button";
 import { RichTextEditor } from "@/features/admin/components/rich-text-editor";
@@ -284,7 +283,7 @@ export default function AdminLegalPage() {
   );
   const [selectedSectionId, setSelectedSectionId] = useState<string>();
 
-  const { data, isLoading } = useQuery({
+  const { data } = useQuery({
     queryKey: ["admin-legal-document", activeSlug],
     queryFn: () => getAdminLegalDocument(activeSlug),
   });
@@ -443,8 +442,6 @@ export default function AdminLegalPage() {
       },
     });
   };
-
-  if (isLoading && !data) return <AdminPageLoading />;
 
   return (
     <>

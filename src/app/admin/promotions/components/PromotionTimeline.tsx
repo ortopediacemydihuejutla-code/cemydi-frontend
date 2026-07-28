@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useSyncExternalStore } from "react";
 
 import { cn } from "@/features/admin/lib/utils";
 import { formatDate } from "../utils/promotion-formatters";
@@ -10,17 +10,26 @@ type PromotionTimelineProps = {
   endAt: string;
 };
 
+const clientSnapshot = Date.now();
+const subscribe = () => () => undefined;
+const getClientSnapshot = () => clientSnapshot;
+const getServerSnapshot = () => null;
+
 export function PromotionTimeline({ startAt, endAt }: PromotionTimelineProps) {
-  const [now] = useState(() => Date.now());
+  const now = useSyncExternalStore(
+    subscribe,
+    getClientSnapshot,
+    getServerSnapshot,
+  );
   const s = new Date(startAt).getTime();
   const e = new Date(endAt).getTime();
   const span = e - s;
   let pct = 0;
-  if (span > 0) {
+  if (now !== null && span > 0) {
     pct = Math.min(100, Math.max(0, ((now - s) / span) * 100));
   }
-  const past = now > e;
-  const future = now < s;
+  const past = now !== null && now > e;
+  const future = now !== null && now < s;
 
   return (
     <div

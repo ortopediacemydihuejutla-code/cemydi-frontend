@@ -2,7 +2,9 @@
 
 import { RefreshCw } from "lucide-react";
 
-import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
+import {
+  AdminTableSkeleton,
+} from "@/features/admin/components/admin-content-skeletons";
 import { AdminFilterTabs } from "@/features/admin/components/admin-filter-tabs";
 import { AdminMetricCard } from "@/features/admin/components/admin-metric-card";
 import { PageHeader } from "@/features/admin/components/page-header";
@@ -18,16 +20,8 @@ import { DatabaseSecurityTab } from "./database-security-tab";
 import { useDatabaseAdminState } from "./use-database-admin-state";
 
 export default function DatabaseMonitoringPage() {
-  const { user, blockingFullPage } = useAdminRouteGate();
+  const { user } = useAdminRouteGate();
   const state = useDatabaseAdminState(user);
-
-  if (blockingFullPage) {
-    return <AdminPageLoading layout="viewport" />;
-  }
-
-  if (state.initialLoading) {
-    return <AdminPageLoading layout="section" />;
-  }
 
   const {
     dbStatus,
@@ -53,31 +47,48 @@ export default function DatabaseMonitoringPage() {
       />
 
       <div className="flex flex-col gap-6">
-        <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <section
+          className="grid gap-4 md:grid-cols-2 xl:grid-cols-4"
+          aria-busy={state.initialLoading}
+        >
           <AdminMetricCard
             context="database-online"
             label="Estado de la base"
-            value={dbStatus?.isOnline ? "En línea" : "Sin respuesta"}
+            value={
+              state.initialLoading
+                ? "—"
+                : dbStatus?.isOnline
+                  ? "En línea"
+                  : "Sin respuesta"
+            }
             helper={dbStatus?.dbVersion || "Versión no disponible"}
           />
           <AdminMetricCard
             context="database-connections"
             label="Conexiones activas"
-            value={`${formatNumber(dbStatus?.connections.active ?? 0)} / ${formatNumber(
-              dbStatus?.connections.total ?? 0,
-            )}`}
+            value={
+              state.initialLoading
+                ? "—"
+                : `${formatNumber(dbStatus?.connections.active ?? 0)} / ${formatNumber(
+                    dbStatus?.connections.total ?? 0,
+                  )}`
+            }
             helper="Resumen de uso de conexiones"
           />
           <AdminMetricCard
             context="database-tables"
             label="Tablas detectadas"
-            value={formatNumber(dbTableItems.length)}
+            value={state.initialLoading ? "—" : formatNumber(dbTableItems.length)}
             helper={`${formatNumber(dbStatus?.tables.totalRows ?? 0)} registros estimados`}
           />
           <AdminMetricCard
             context="database-alerts"
             label="Intentos fallidos"
-            value={formatNumber(securitySummary?.failedAttempts ?? 0)}
+            value={
+              state.initialLoading
+                ? "—"
+                : formatNumber(securitySummary?.failedAttempts ?? 0)
+            }
             helper={`${formatNumber(
               securitySummary?.recentAttempts ?? 0,
             )} intentos recientes`}
@@ -126,10 +137,16 @@ export default function DatabaseMonitoringPage() {
           formatCount={formatNumber}
         />
 
-        {mainTab === "monitoreo" ? <DatabaseMonitoringTab state={state} /> : null}
-        {mainTab === "seguridad" ? <DatabaseSecurityTab state={state} /> : null}
-        {mainTab === "mantenimiento" ? <DatabaseMaintenanceTab state={state} /> : null}
-        {mainTab === "respaldos" ? <DatabaseBackupsTab state={state} /> : null}
+        {state.initialLoading ? (
+          <AdminTableSkeleton columns={5} rows={7} />
+        ) : (
+          <>
+            {mainTab === "monitoreo" ? <DatabaseMonitoringTab state={state} /> : null}
+            {mainTab === "seguridad" ? <DatabaseSecurityTab state={state} /> : null}
+            {mainTab === "mantenimiento" ? <DatabaseMaintenanceTab state={state} /> : null}
+            {mainTab === "respaldos" ? <DatabaseBackupsTab state={state} /> : null}
+          </>
+        )}
       </div>
     </>
   );

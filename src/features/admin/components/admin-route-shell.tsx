@@ -21,6 +21,13 @@ export function AdminRouteShell({
   const { user } = useAuth();
 
   useEffect(() => {
+    // El layout del servidor ya validó esta petición. Durante la primera
+    // hidratación el contexto todavía puede ser null durante un render; no
+    // debemos convertir ese instante en una redirección visible a /login.
+    if (serverAuthorized && user === null) {
+      return;
+    }
+
     if (!user) {
       router.replace("/login");
       return;
@@ -28,12 +35,12 @@ export function AdminRouteShell({
     if (user.rol !== "ADMIN") {
       router.replace("/perfil");
     }
-  }, [router, user]);
+  }, [router, serverAuthorized, user]);
 
   const showPanel = user?.rol === "ADMIN" || (user === null && serverAuthorized);
 
   if (!showPanel) {
-    return <AdminPageLoading layout="viewport" />;
+    return <AdminPageLoading variant="dashboard" />;
   }
 
   return <>{children}</>;

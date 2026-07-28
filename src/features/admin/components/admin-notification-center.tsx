@@ -2,7 +2,7 @@
 
 import * as React from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
   Bell,
@@ -21,8 +21,10 @@ import toast from "react-hot-toast";
 import { useAuth } from "@/providers/AuthContext";
 import {
   getAdminNotifications,
+  markAdminNotificationsAsRead,
   type AdminNotificationCategory,
   type AdminNotificationItem,
+  type AdminNotificationsResponse,
 } from "@/services/admin";
 import { formatNotificationTime } from "@/features/admin/lib/admin-header-data";
 import { cn } from "@/features/admin/lib/utils";
@@ -34,9 +36,6 @@ import {
   DropdownMenuTrigger,
 } from "./ui/dropdown-menu";
 
-const NOTIFICATIONS_QUERY_KEY = ["admin", "notifications"] as const;
-const READ_STORAGE_PREFIX = "cemydi:admin-notifications:read";
-const MAX_PERSISTED_READ_IDS = 250;
 const MAX_INDIVIDUAL_TOASTS = 3;
 
 type NotificationFilter = "all" | "unread";
@@ -70,19 +69,6 @@ const notificationStyles: Record<
     label: "Venta",
   },
 };
-
-function readStoredIds(storageKey: string) {
-  try {
-    const stored = JSON.parse(localStorage.getItem(storageKey) ?? "[]");
-    if (!Array.isArray(stored)) return new Set<string>();
-
-    return new Set(
-      stored.filter((value): value is string => typeof value === "string"),
-    );
-  } catch {
-    return new Set<string>();
-  }
-}
 
 function showNotificationToast(
   item: AdminNotificationItem,
@@ -142,16 +128,18 @@ function showNotificationToast(
 
 export function AdminNotificationCenter() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [open, setOpen] = React.useState(false);
   const [activeFilter, setActiveFilter] =
     React.useState<NotificationFilter>("all");
-  const [readIds, setReadIds] = React.useState<Set<string>>(() => new Set());
-  const [readStateReady, setReadStateReady] = React.useState(false);
   const observedIdsRef = React.useRef<Set<string> | null>(null);
-  const storageKey = `${READ_STORAGE_PREFIX}:${user?.id ?? "admin"}`;
+  const notificationsQueryKey = React.useMemo(
+    () => ["admin", "notifications", user?.id] as const,
+    [user?.id],
+  );
 
   const { data, isLoading, isFetching, error, refetch } = useQuery({
-    queryKey: NOTIFICATIONS_QUERY_KEY,
+    queryKey: notificationsQueryKey,
     queryFn: () => getAdminNotifications(40),
     enabled: user?.rol === "ADMIN",
     staleTime: 10_000,
@@ -162,37 +150,61 @@ export function AdminNotificationCenter() {
 
   const items = React.useMemo(() => data?.items ?? [], [data]);
 
-  React.useEffect(() => {
-    setReadStateReady(false);
-    observedIdsRef.current = null;
-    setReadIds(readStoredIds(storageKey));
-    setReadStateReady(true);
-  }, [storageKey]);
+  const { mutate: persistReadState } = useMutation({
+    mutationFn: markAdminNotificationsAsRead,
+    onMutate: async (ids) => {
+      await queryClient.cancelQueries({ queryKey: notificationsQueryKey });
 
-  React.useEffect(() => {
-    if (!readStateReady) return;
+      const previous =
+        queryClient.getQueryData<AdminNotificationsResponse>(
+          notificationsQueryKey,
+        );
+      const readIds = new Set(ids);
+      const readAt = new Date().toISOString();
 
-    try {
-      localStorage.setItem(
-        storageKey,
-        JSON.stringify([...readIds].slice(-MAX_PERSISTED_READ_IDS)),
+      queryClient.setQueryData<AdminNotificationsResponse>(
+        notificationsQueryKey,
+        (current) =>
+          current
+            ? {
+                ...current,
+                items: current.items.map((item) =>
+                  readIds.has(item.id) && item.readAt === null
+                    ? { ...item, readAt }
+                    : item,
+                ),
+              }
+            : current,
       );
-    } catch {
-      // La navegación sigue funcionando si el almacenamiento está restringido.
-    }
-  }, [readIds, readStateReady, storageKey]);
 
-  const markAsRead = React.useCallback((id: string) => {
-    setReadIds((current) => {
-      if (current.has(id)) return current;
-      const next = new Set(current);
-      next.add(id);
-      return next;
-    });
-  }, []);
+      return { previous };
+    },
+    onError: (_error, _ids, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(notificationsQueryKey, context.previous);
+      }
+      toast.error("No se pudo guardar el estado de las notificaciones.", {
+        id: "admin-notifications-read-error",
+      });
+    },
+    onSettled: () => {
+      void queryClient.invalidateQueries({ queryKey: notificationsQueryKey });
+    },
+  });
+
+  const markAsRead = React.useCallback(
+    (id: string) => {
+      persistReadState([id]);
+    },
+    [persistReadState],
+  );
 
   React.useEffect(() => {
-    if (!readStateReady || !data) return;
+    observedIdsRef.current = null;
+  }, [user?.id]);
+
+  React.useEffect(() => {
+    if (!data) return;
 
     const currentIds = new Set(items.map((item) => item.id));
     const previousIds = observedIdsRef.current;
@@ -203,12 +215,6 @@ export function AdminNotificationCenter() {
 
     const incoming = items.filter((item) => !previousIds.has(item.id));
     if (incoming.length === 0) return;
-
-    setReadIds((current) => {
-      const next = new Set(current);
-      for (const item of incoming) next.delete(item.id);
-      return next;
-    });
 
     for (const item of incoming.slice(0, MAX_INDIVIDUAL_TOASTS)) {
       showNotificationToast(item, () => markAsRead(item.id));
@@ -221,21 +227,18 @@ export function AdminNotificationCenter() {
         icon: <Bell className="size-4 text-[var(--brand-700)]" />,
       });
     }
-  }, [data, items, markAsRead, readStateReady]);
+  }, [data, items, markAsRead]);
 
   const unreadItems = React.useMemo(
-    () => items.filter((item) => !readIds.has(item.id)),
-    [items, readIds],
+    () => items.filter((item) => item.readAt === null),
+    [items],
   );
-  const unreadCount = readStateReady ? unreadItems.length : 0;
+  const unreadCount = unreadItems.length;
   const visibleItems = activeFilter === "unread" ? unreadItems : items;
 
   const markAllAsRead = () => {
-    setReadIds((current) => {
-      const next = new Set(current);
-      for (const item of items) next.add(item.id);
-      return next;
-    });
+    const ids = unreadItems.map((item) => item.id);
+    if (ids.length > 0) persistReadState(ids);
   };
 
   const closeAndRead = (id: string) => {
@@ -416,7 +419,7 @@ export function AdminNotificationCenter() {
               {visibleItems.map((item) => {
                 const styles = notificationStyles[item.category];
                 const Icon = styles.icon;
-                const unread = !readIds.has(item.id);
+                const unread = item.readAt === null;
 
                 return (
                   <div

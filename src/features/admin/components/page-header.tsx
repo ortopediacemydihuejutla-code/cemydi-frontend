@@ -30,6 +30,7 @@ const ADMIN_BREADCRUMB_CONFIG: Record<
   "/admin/brands": { label: "Marcas", parent: "/admin" },
   "/admin/suppliers": { label: "Proveedores", parent: "/admin" },
   "/admin/promotions": { label: "Promociones", parent: "/admin" },
+  "/admin/coupons": { label: "Cupones", parent: "/admin" },
   "/admin/about": { label: "Quiénes somos", parent: "/admin" },
   "/admin/legal": { label: "Páginas legales", parent: "/admin" },
   "/admin/analytics": { label: "Analytics", parent: "/admin" },

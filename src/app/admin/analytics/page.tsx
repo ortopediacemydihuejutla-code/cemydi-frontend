@@ -5,9 +5,8 @@ import { useEffect, useState } from "react";
 import { Calendar } from "lucide-react";
 
 import { AdminMetricCard } from "@/features/admin/components/admin-metric-card";
-import { AdminPageLoading } from "@/features/admin/components/admin-page-loading";
+import { AdminChartGridSkeleton } from "@/features/admin/components/admin-content-skeletons";
 import { PageHeader } from "@/features/admin/components/page-header";
-import { useAdminRouteGate } from "@/features/admin/hooks/use-admin-route-gate";
 import { getAnalyticsDashboard, type AnalyticsDashboardData } from "@/services/admin";
 import { Button } from "@/features/admin/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/features/admin/components/ui/card";
@@ -33,7 +32,7 @@ const GeneralActivityChart = dynamic(
   () =>
     import("./components/analytics-charts").then((mod) => mod.GeneralActivityChart),
   {
-    loading: () => <AdminPageLoading layout="section" />,
+    loading: () => <AdminChartGridSkeleton count={1} />,
   },
 );
 
@@ -43,7 +42,7 @@ const GeneralReviewsStatusChart = dynamic(
       (mod) => mod.GeneralReviewsStatusChart,
     ),
   {
-    loading: () => <AdminPageLoading layout="section" />,
+    loading: () => <AdminChartGridSkeleton count={1} />,
   },
 );
 
@@ -83,17 +82,12 @@ function DateRangeFilter({
 }
 
 export default function AnalyticsPage() {
-  const { blockingFullPage } = useAdminRouteGate();
   const [period, setPeriod] = useState<AnalyticsPeriod>("30d");
   const [dashboard, setDashboard] = useState<AnalyticsDashboardData | null>(null);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (blockingFullPage) {
-      return;
-    }
-
     let cancelled = false;
 
     const loadDashboard = async () => {
@@ -124,7 +118,7 @@ export default function AnalyticsPage() {
     return () => {
       cancelled = true;
     };
-  }, [blockingFullPage, period]);
+  }, [period]);
 
   const rangeLabel = dashboard ? getDashboardRangeLabel(dashboard) : getDateRangeLabel(period);
   const rangeTitle = dashboard
@@ -133,10 +127,6 @@ export default function AnalyticsPage() {
   const generalKpis = dashboard ? mapDashboardGeneralKpis(dashboard) : null;
   const generalActivity = dashboard ? mapDashboardToGeneralActivity(dashboard) : [];
   const reviewsStatus = dashboard ? mapDashboardToReviewsStatus(dashboard) : [];
-
-  if (blockingFullPage) {
-    return <AdminPageLoading layout="viewport" />;
-  }
 
   return (
     <div className="flex flex-col gap-8 pb-12">
@@ -166,41 +156,54 @@ export default function AnalyticsPage() {
         </div>
       ) : null}
 
+      <div
+        className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+        aria-busy={dashboardLoading}
+      >
+        <AdminMetricCard
+          context="analytics-sessions"
+          label="Nuevos usuarios"
+          value={generalKpis ? formatCompact(generalKpis.usuariosActivos) : "—"}
+          helper={
+            generalKpis
+              ? `${formatCompact(generalKpis.eventosSesion)} eventos de sesión`
+              : "Eventos de sesión del periodo"
+          }
+        />
+        <AdminMetricCard
+          context="reviews-total"
+          label="Reseñas en el periodo"
+          value={generalKpis ? String(generalKpis.resenasTotales) : "—"}
+          helper={
+            generalKpis
+              ? `${generalKpis.tasaAprobacionResenas}% de aprobación`
+              : "Tasa de aprobación del periodo"
+          }
+        />
+        <AdminMetricCard
+          context="promotions-active"
+          label="Promociones activas"
+          value={generalKpis ? String(generalKpis.promocionesActivas) : "—"}
+          helper="Campañas vigentes en catálogo"
+        />
+        <AdminMetricCard
+          context="products-active"
+          label="Productos activos"
+          value={generalKpis ? String(generalKpis.productosActivos) : "—"}
+          helper={
+            generalKpis
+              ? generalKpis.stockBajo > 0
+                ? `${generalKpis.stockBajo} con stock bajo`
+                : "Stock dentro de rangos normales"
+              : "Estado actual del inventario"
+          }
+        />
+      </div>
+
       {dashboardLoading || !generalKpis ? (
-        <AdminPageLoading layout="section" />
+        <AdminChartGridSkeleton count={2} />
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            <AdminMetricCard
-              context="analytics-sessions"
-              label="Nuevos usuarios"
-              value={formatCompact(generalKpis.usuariosActivos)}
-              helper={`${formatCompact(generalKpis.eventosSesion)} eventos de sesión`}
-            />
-            <AdminMetricCard
-              context="reviews-total"
-              label="Reseñas en el periodo"
-              value={String(generalKpis.resenasTotales)}
-              helper={`${generalKpis.tasaAprobacionResenas}% de aprobación`}
-            />
-            <AdminMetricCard
-              context="promotions-active"
-              label="Promociones activas"
-              value={String(generalKpis.promocionesActivas)}
-              helper="Campañas vigentes en catálogo"
-            />
-            <AdminMetricCard
-              context="products-active"
-              label="Productos activos"
-              value={String(generalKpis.productosActivos)}
-              helper={
-                generalKpis.stockBajo > 0
-                  ? `${generalKpis.stockBajo} con stock bajo`
-                  : "Stock dentro de rangos normales"
-              }
-            />
-          </div>
-
           <div className="grid grid-cols-1 gap-6 xl:grid-cols-12">
             <GeneralActivityChart
               data={generalActivity}

@@ -80,24 +80,48 @@ export type SupplierOption = {
   createdAt?: string;
 };
 
-export type PromotionMode = "PRODUCT" | "CATEGORY";
+export type PromotionImageStrategy = "AUTO" | "CUSTOM";
 
 export type AdminPromotion = {
   id: number;
-  productId: number;
+  discountPercent: number;
   descripcion: string;
   startAt: string;
   endAt: string;
+  imageStrategy: PromotionImageStrategy;
   imageUrl: string | null;
+  displayImageUrl: string | null;
+  productCount: number;
   createdAt?: string;
-  product: {
+  products: Array<{
     id: number;
+    slug?: string;
     nombre: string;
     clasificacion: string;
     precio: number;
     stock: number;
     activo: boolean;
-  };
+    imageUrl: string | null;
+  }>;
+};
+
+export type CouponDiscountType = "PERCENT" | "FIXED";
+
+export type AdminCoupon = {
+  id: number;
+  code: string;
+  description: string;
+  discountType: CouponDiscountType;
+  discountValue: number;
+  minimumPurchase: number;
+  maximumDiscount: number | null;
+  usageLimit: number | null;
+  usedCount: number;
+  startAt: string;
+  endAt: string;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export type ReviewStatus = "PENDING" | "APPROVED" | "REJECTED";
@@ -522,22 +546,30 @@ export type CreateSupplierPayload = {
 export type UpdateSupplierPayload = CreateSupplierPayload;
 
 export type CreatePromotionPayload = {
-  mode: PromotionMode;
-  productId?: number;
-  clasificacion?: string;
+  productIds: number[];
+  discountPercent: number;
+  imageStrategy: PromotionImageStrategy;
   startAt: string;
   endAt: string;
   descripcion: string;
-  imageUrl?: string;
 };
 
-export type UpdatePromotionPayload = {
-  productId?: number;
-  startAt?: string;
-  endAt?: string;
-  descripcion?: string;
-  imageUrl?: string;
+export type UpdatePromotionPayload = Partial<CreatePromotionPayload>;
+
+export type CreateCouponPayload = {
+  code: string;
+  description: string;
+  discountType: CouponDiscountType;
+  discountValue: number;
+  minimumPurchase: number;
+  maximumDiscount?: number | null;
+  usageLimit?: number | null;
+  startAt: string;
+  endAt: string;
+  active: boolean;
 };
+
+export type UpdateCouponPayload = Partial<CreateCouponPayload>;
 
 export type AdminActivityCategory =
   "product" | "user" | "review" | "promotion" | "supplier";
@@ -563,4 +595,5 @@ export type AdminNotificationItem = {
   description: string;
   occurredAt: string;
   href: string;
+  readAt: string | null;
 };

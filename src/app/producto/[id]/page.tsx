@@ -5,6 +5,7 @@ import {
   getCatalogProductById,
   getCatalogProductBySlug,
   getCatalogProducts,
+  getActivePromotions,
 } from "@/services/catalog";
 import { getSiteUrl } from "@/lib/site-config";
 import {
@@ -130,5 +131,19 @@ export default async function ProductDetailPage({
     redirect(`/producto/${encodeURIComponent(getProductSlug(product))}`);
   }
 
-  return <ProductDetailClient product={product} productId={product.id} />;
+  const activePromotions = await getActivePromotions()
+    .then((result) => result.promotions)
+    .catch(() => []);
+  const promotion =
+    activePromotions
+      .filter((item) => item.productId === product.id)
+      .sort((a, b) => b.discountPercent - a.discountPercent)[0] ?? null;
+
+  return (
+    <ProductDetailClient
+      product={product}
+      productId={product.id}
+      promotion={promotion}
+    />
+  );
 }

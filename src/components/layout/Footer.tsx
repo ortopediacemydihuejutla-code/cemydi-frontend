@@ -49,7 +49,6 @@ export default function Footer() {
               width={340}
               height={152}
               className="h-auto w-[15rem] object-contain sm:w-[17.5rem] md:w-[20rem]"
-              priority
             />
           </Link>
 
