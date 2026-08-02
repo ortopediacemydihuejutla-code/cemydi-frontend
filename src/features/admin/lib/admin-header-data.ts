@@ -19,9 +19,9 @@ export const ADMIN_SEARCH_DESTINATIONS: AdminSearchDestination[] = [
   { title: "Analytics", description: "Métricas operativas", href: "/admin/analytics", keywords: ["analiticas", "metrica", "reporte"] },
   {
     title: "Segmentación de clientes",
-    description: "Grupos de clientes según compras, rentas y consultas",
+    description: "Grupos de clientes según compras, rentas e interacciones",
     href: "/admin/analytics/product-segmentation",
-    keywords: ["segmentacion", "cluster", "clientes", "compras", "rentas", "consultas"],
+    keywords: ["segmentacion", "cluster", "clientes", "compras", "rentas", "interacciones"],
   },
   {
     title: "Predicción de demanda",

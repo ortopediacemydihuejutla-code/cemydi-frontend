@@ -3,6 +3,7 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import { FavoriteButton } from "@/components/account/FavoriteButton";
 import ProductShareMenu from "@/components/product/ProductShareMenu";
 import { PromotionBadge } from "@/components/product/PromotionBadge";
 import type { ActivePromotion, CatalogProduct } from "@/services/catalog";
@@ -88,10 +89,10 @@ export function ProductCard({
 
   return (
     <article
-      className={`group flex self-start overflow-visible rounded-lg border border-[#e7edef] bg-white text-inherit no-underline shadow-[0_12px_30px_rgba(18,39,49,0.055)] outline-none transition hover:border-[#d0dde0] hover:shadow-[0_16px_34px_rgba(18,39,49,0.08)] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2 ${
+      className={`group flex h-full flex-col overflow-visible rounded-lg border border-[#e7edef] bg-white text-inherit no-underline shadow-[0_12px_30px_rgba(18,39,49,0.055)] outline-none transition hover:border-[#d0dde0] hover:shadow-[0_16px_34px_rgba(18,39,49,0.08)] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2 ${
         view === "list"
-          ? "flex-col sm:grid sm:grid-cols-[220px_minmax(0,1fr)]"
-          : "flex-col"
+          ? "sm:grid sm:grid-cols-[220px_minmax(0,1fr)]"
+          : ""
       }`}
     >
       <div
@@ -106,20 +107,31 @@ export function ProductCard({
           className="absolute inset-0 z-[1] outline-none"
           aria-label={`Ver detalles de ${product.nombre}`}
         />
-        <div className="pointer-events-none absolute left-3 right-14 top-3 z-10 flex flex-wrap items-start gap-2">
-          {acquisitionBadges.map((badge) => (
-            <span
-              key={badge.label}
-              className={`rounded px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] ${badge.className}`}
-            >
-              {badge.label}
-            </span>
-          ))}
-          {product.requiereReceta ? (
-            <span className="rounded bg-[#f2f6f7] px-2.5 py-1 text-[0.68rem] font-semibold text-[#304853] ring-1 ring-inset ring-[#dce6e9]">
-              Receta requerida
-            </span>
-          ) : null}
+        <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+            {acquisitionBadges.map((badge) => (
+              <span
+                key={badge.label}
+                className={`inline-flex items-center rounded px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] ${badge.className}`}
+              >
+                {badge.label}
+              </span>
+            ))}
+            {product.requiereReceta ? (
+              <span className="inline-flex items-center rounded bg-[#f2f6f7] px-2.5 py-1 text-[0.68rem] font-semibold text-[#304853] ring-1 ring-inset ring-[#dce6e9]">
+                Receta requerida
+              </span>
+            ) : null}
+          </div>
+
+          <ProductShareMenu
+            shareData={shareData}
+            productName={product.nombre}
+            compact
+            className="pointer-events-auto shrink-0 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 sm:data-[open=true]:opacity-100"
+            menuClassName="bottom-auto right-0 top-[calc(100%+8px)]"
+            triggerClassName="!bg-transparent !text-[#176b67] shadow-none ring-0 hover:!bg-transparent hover:!text-[#0f4f4d] !size-7 flex items-center justify-center p-0"
+          />
         </div>
 
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-t-lg px-2 pb-1 pt-9 sm:px-3 sm:pt-10">
@@ -145,36 +157,37 @@ export function ProductCard({
           )}
           </div>
         </div>
-
-        <ProductShareMenu
-          shareData={shareData}
-          productName={product.nombre}
-          compact
-          className="absolute right-3 top-3 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 sm:data-[open=true]:opacity-100"
-          menuClassName="bottom-auto right-0 top-[calc(100%+8px)]"
-          triggerClassName="!bg-transparent !text-[#176b67] shadow-none ring-0 hover:!bg-transparent hover:!text-[#0f4f4d]"
-        />
       </div>
 
-      <div className="flex min-w-0 flex-1 flex-col p-4">
-        <div className="grid gap-1">
-          <span className="text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-[#667b84]">
-            {highlightMatch(product.marca, searchQuery)}
-          </span>
+      <div className="flex min-w-0 flex-1 flex-col justify-between p-4">
+        <div>
+          <div className="flex items-start justify-between gap-2">
+            <div className="grid min-w-0 flex-1 gap-1">
+              <span className="text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-[#667b84]">
+                {highlightMatch(product.marca, searchQuery)}
+              </span>
 
-          <h3 className="line-clamp-2 text-[1rem] font-semibold leading-6 text-[#142734] sm:text-[1.03rem]">
-            <Link
-              href={detailHref}
-              className="outline-none transition hover:text-[#0f6a67] focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
-            >
-              {highlightMatch(product.nombre, searchQuery)}
-            </Link>
-          </h3>
+              <h3 className="line-clamp-2 min-h-[3rem] text-[1rem] font-semibold leading-6 text-[#142734] sm:text-[1.03rem]">
+                <Link
+                  href={detailHref}
+                  className="outline-none transition hover:text-[#0f6a67] focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
+                >
+                  {highlightMatch(product.nombre, searchQuery)}
+                </Link>
+              </h3>
+            </div>
+
+            <FavoriteButton
+              product={product}
+              compact
+              className="shrink-0 z-10 opacity-100 transition duration-200 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 sm:data-[favorite=true]:opacity-100"
+            />
+          </div>
+
+          <p className="mt-1.5 text-sm text-[#5f7780]">
+            {product.modelo} · {formatTipo(product.tipoAdquisicion)}
+          </p>
         </div>
-
-        <p className="mt-1.5 text-sm text-[#5f7780]">
-          {product.modelo} · {formatTipo(product.tipoAdquisicion)}
-        </p>
 
         <div className="mt-3 grid gap-1.5">
           <div className="flex min-h-4 flex-wrap items-center gap-x-2 gap-y-1 text-xs">

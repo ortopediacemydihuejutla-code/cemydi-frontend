@@ -1,45 +1,54 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  demandForecast,
   getDemandDifference,
   getDemandStatus,
 } from "../demand-forecast";
+import type { DemandForecast } from "../demand-forecast";
+
+const forecast = (shortage: number): DemandForecast => ({
+  id: shortage,
+  productName: "Producto de prueba",
+  shortName: "Producto",
+  classification: "Prueba",
+  acquisitionType: "VENTA",
+  active: true,
+  price: 100,
+  currentStock: 20,
+  month: 8,
+  previousMonthSales: 5,
+  previousMonthRentals: 0,
+  previousMonthViews: 10,
+  activePromotion: false,
+  predictedDemand: 20 + shortage,
+  shortage,
+  recommendation: "Revisar inventario.",
+});
 
 describe("demandForecast", () => {
   it("calcula la diferencia sin modificar los registros", () => {
-    const forecast = demandForecast[0];
+    const item = forecast(10);
 
-    expect(getDemandDifference(forecast)).toBe(10);
-    expect(forecast.currentStock).toBe(8);
-    expect(forecast.predictedDemand).toBe(18);
+    expect(getDemandDifference(item)).toBe(10);
+    expect(item.currentStock).toBe(20);
+    expect(item.predictedDemand).toBe(30);
   });
 
   it.each([
-    [8, 18, "Alta demanda"],
+    [8, 18, "Faltante crítico"],
     [30, 38, "Posible faltante"],
-    [17, 17, "Revisar inventario"],
+    [17, 17, "Stock justo"],
     [24, 22, "Stock suficiente"],
   ] as const)("clasifica stock %i y demanda %i como %s", (stock, demand, status) => {
     expect(getDemandStatus(stock, demand)).toBe(status);
   });
 
-  it("mantiene los indicadores derivados en valores consistentes", () => {
-    const totalDemand = demandForecast.reduce(
-      (total, forecast) => total + forecast.predictedDemand,
-      0,
-    );
-    const shortages = demandForecast.filter(
-      (forecast) => getDemandDifference(forecast) > 0,
-    );
-    const highDemand = demandForecast.filter(
-      (forecast) =>
-        getDemandStatus(forecast.currentStock, forecast.predictedDemand) ===
-        "Alta demanda",
-    );
+  it("usa el faltante calculado por el API como diferencia", () => {
+    const item = forecast(-4);
 
-    expect(totalDemand).toBe(150);
-    expect(shortages).toHaveLength(5);
-    expect(highDemand).toHaveLength(2);
+    expect(getDemandDifference(item)).toBe(-4);
+    expect(getDemandStatus(item.currentStock, item.predictedDemand)).toBe(
+      "Stock suficiente",
+    );
   });
 });

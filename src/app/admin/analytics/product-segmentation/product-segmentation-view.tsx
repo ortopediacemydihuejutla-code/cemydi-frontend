@@ -40,7 +40,9 @@ import {
 import { getCustomerSegmentation } from "@/services/admin/analytics";
 import type {
   CustomerClusterCode,
+  CustomerSegment,
   CustomerSegmentationData,
+  SegmentedCustomer,
 } from "@/services/admin/types";
 
 const badgeByCluster: Record<
@@ -53,6 +55,104 @@ const currency = new Intl.NumberFormat("es-MX", {
   currency: "MXN",
   maximumFractionDigits: 0,
 });
+
+const decimal = new Intl.NumberFormat("es-MX", {
+  maximumFractionDigits: 1,
+});
+
+type ScatterTooltipProps = {
+  active?: boolean;
+  payload?: Array<{ payload?: SegmentedCustomer }>;
+};
+
+function CustomerScatterTooltip({ active, payload }: ScatterTooltipProps) {
+  const customer = payload?.[0]?.payload;
+  if (!active || !customer) return null;
+
+  return (
+    <div className="max-w-72 rounded-xl border border-border bg-card p-3 text-sm shadow-lg">
+      <p className="font-semibold text-foreground">{customer.name}</p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        Clúster {customer.cluster}
+      </p>
+      <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-1.5 text-xs">
+        <dt className="text-muted-foreground">Compras</dt>
+        <dd className="text-right font-medium text-foreground">
+          {customer.completedSales}
+        </dd>
+        <dt className="text-muted-foreground">Rentas</dt>
+        <dd className="text-right font-medium text-foreground">
+          {customer.validRentals}
+        </dd>
+        <dt className="text-muted-foreground">Interacciones</dt>
+        <dd className="text-right font-medium text-foreground">
+          {customer.totalInteractions}
+        </dd>
+        <dt className="text-muted-foreground">Gasto</dt>
+        <dd className="text-right font-medium text-foreground">
+          {currency.format(customer.totalSpend)}
+        </dd>
+      </dl>
+    </div>
+  );
+}
+
+function segmentMetrics(segment: CustomerSegment) {
+  switch (segment.code) {
+    case "C1":
+      return [
+        {
+          label: "compras prom.",
+          value: decimal.format(segment.averages.sales),
+        },
+        {
+          label: "gasto prom.",
+          value: currency.format(segment.averages.spend),
+        },
+      ];
+    case "C2":
+      return [
+        {
+          label: "rentas prom.",
+          value: decimal.format(segment.averages.rentals),
+        },
+        {
+          label: "duración prom.",
+          value: `${decimal.format(segment.averages.rentalDays)} días`,
+        },
+      ];
+    case "C3":
+      return [
+        {
+          label: "interacciones prom.",
+          value: decimal.format(segment.averages.interactions),
+        },
+        {
+          label: "productos distintos prom.",
+          value: decimal.format(segment.averages.distinctProducts),
+        },
+      ];
+    case "C4":
+      return [
+        {
+          label: "interacciones prom.",
+          value: decimal.format(segment.averages.interactions),
+        },
+        {
+          label: "días sin actividad prom.",
+          value: decimal.format(segment.averages.inactivityDays),
+        },
+      ];
+  }
+}
+
+function formatLastActivity(value: string | null) {
+  if (!value) return "Sin actividad registrada";
+  return new Intl.DateTimeFormat("es-MX", {
+    dateStyle: "medium",
+    timeZone: "America/Mexico_City",
+  }).format(new Date(value));
+}
 
 export function ProductSegmentationView() {
   const [data, setData] = useState<CustomerSegmentationData | null>(null);
@@ -109,7 +209,7 @@ export function ProductSegmentationView() {
       <div className="flex flex-col gap-8 pb-12">
         <PageHeader
           title="Segmentación de clientes"
-          subtitle="Analizando el comportamiento real de clientes…"
+          subtitle="Analizando el historial operacional del lote…"
         />
         <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
@@ -129,7 +229,7 @@ export function ProductSegmentationView() {
       <div className="flex flex-col gap-8 pb-12">
         <PageHeader
           title="Segmentación de clientes"
-          subtitle="Agrupación basada en compras, rentas y consultas."
+          subtitle="Agrupación basada en compras, rentas e interacciones."
         />
         <section className="rounded-2xl border border-red-500/20 bg-card p-8 text-center">
           <p className="font-medium text-foreground">
@@ -149,7 +249,7 @@ export function ProductSegmentationView() {
     <div className="flex flex-col gap-8 pb-12">
       <PageHeader
         title="Segmentación de clientes"
-        subtitle="Grupos calculados con compras, rentas, consultas, categorías de interés y gasto real."
+        subtitle="Grupos calculados con compras, rentas, interacciones y gasto del historial operacional del lote analizado."
       >
         <Button variant="outline" onClick={() => void load()}>
           <RefreshCw />
@@ -184,18 +284,22 @@ export function ProductSegmentationView() {
               {item.description}
             </p>
             <div className="mt-4 grid grid-cols-2 gap-2 border-t border-border pt-4 text-xs">
-              <span>
-                <strong className="block text-foreground">
-                  {item.averages.sales}
-                </strong>{" "}
-                compras prom.
-              </span>
-              <span>
-                <strong className="block text-foreground">
-                  {currency.format(item.averages.spend)}
-                </strong>{" "}
-                gasto prom.
-              </span>
+              {segmentMetrics(item).map((metric) => (
+                <span key={metric.label}>
+                  <strong className="block text-foreground">
+                    {metric.value}
+                  </strong>{" "}
+                  {metric.label}
+                </span>
+              ))}
+            </div>
+            <div className="mt-4 border-t border-border pt-4">
+              <p className="text-xs font-semibold text-foreground">
+                Acción sugerida
+              </p>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                {item.action}
+              </p>
             </div>
           </article>
         ))}
@@ -208,42 +312,55 @@ export function ProductSegmentationView() {
               Mapa de comportamiento
             </h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              Cada punto es un cliente; compara actividad con valor comercial.
+              Cada punto es un cliente; el tamaño representa sus interacciones
+              totales.
             </p>
           </div>
           <div className="mt-6 h-[360px] w-full">
             <ResponsiveContainer width="100%" height="100%">
               <ScatterChart
-                margin={{ top: 10, right: 12, bottom: 12, left: 0 }}
+                margin={{ top: 10, right: 12, bottom: 36, left: 24 }}
               >
                 <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                 <XAxis
                   type="number"
                   dataKey="engagementScore"
-                  name="Actividad"
+                  name="Nivel de interacción normalizado"
                   unit="%"
                   domain={[0, 100]}
                   tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+                  label={{
+                    value: "Nivel de interacción normalizado (%)",
+                    position: "insideBottom",
+                    offset: -24,
+                    fill: "var(--muted-foreground)",
+                    fontSize: 12,
+                  }}
                 />
                 <YAxis
                   type="number"
                   dataKey="valueScore"
-                  name="Valor"
+                  name="Valor comercial normalizado"
                   unit="%"
                   domain={[0, 100]}
                   tick={{ fill: "var(--muted-foreground)", fontSize: 12 }}
+                  label={{
+                    value: "Valor comercial normalizado (%)",
+                    angle: -90,
+                    position: "insideLeft",
+                    offset: -12,
+                    fill: "var(--muted-foreground)",
+                    fontSize: 12,
+                  }}
                 />
                 <ZAxis
                   type="number"
-                  dataKey="consultations"
+                  dataKey="totalInteractions"
                   range={[24, 180]}
                 />
                 <Tooltip
                   cursor={{ strokeDasharray: "3 3" }}
-                  formatter={(value, name) => [
-                    `${Number(value ?? 0)}`,
-                    String(name),
-                  ]}
+                  content={<CustomerScatterTooltip />}
                 />
                 <Legend />
                 {data.clusters.map((item) => (
@@ -270,7 +387,7 @@ export function ProductSegmentationView() {
             Resultado del modelo sobre {data.sourceRows.toLocaleString("es-MX")}{" "}
             registros.
           </p>
-          <div className="mt-5 h-[260px]">
+          <div className="relative mt-5 h-[300px]">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -291,8 +408,25 @@ export function ProductSegmentationView() {
                     "Total",
                   ]}
                 />
+                <Legend
+                  verticalAlign="bottom"
+                  iconType="circle"
+                  iconSize={8}
+                  wrapperStyle={{ fontSize: 12 }}
+                />
               </PieChart>
             </ResponsiveContainer>
+            <div
+              className="pointer-events-none absolute inset-x-0 top-[43%] -translate-y-1/2 text-center"
+              aria-hidden="true"
+            >
+              <strong className="block text-2xl text-foreground">
+                {data.customers.length.toLocaleString("es-MX")}
+              </strong>
+              <span className="text-xs text-muted-foreground">
+                clientes analizados
+              </span>
+            </div>
           </div>
           <p className="rounded-xl bg-muted/60 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
             Modelo:{" "}
@@ -349,10 +483,12 @@ export function ProductSegmentationView() {
               <TableHead>Segmento</TableHead>
               <TableHead className="text-right">Compras</TableHead>
               <TableHead className="text-right">Rentas</TableHead>
-              <TableHead className="text-right">Consultas</TableHead>
+              <TableHead className="text-right">Interacciones</TableHead>
               <TableHead className="text-right">Gasto total</TableHead>
               <TableHead>Intereses</TableHead>
-              <TableHead className="text-right">Última actividad</TableHead>
+              <TableHead className="text-right">
+                Última actividad registrada
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -377,7 +513,7 @@ export function ProductSegmentationView() {
                   {customer.validRentals}
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
-                  {customer.consultations}
+                  {customer.totalInteractions}
                 </TableCell>
                 <TableCell className="text-right font-medium tabular-nums">
                   {currency.format(customer.totalSpend)}
@@ -392,7 +528,7 @@ export function ProductSegmentationView() {
                   </div>
                 </TableCell>
                 <TableCell className="text-right tabular-nums">
-                  Hace {customer.daysSinceLastActivity} días
+                  {formatLastActivity(customer.lastActivity)}
                 </TableCell>
               </TableRow>
             ))}

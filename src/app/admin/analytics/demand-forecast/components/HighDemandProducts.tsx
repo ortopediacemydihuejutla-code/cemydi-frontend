@@ -11,7 +11,11 @@ export function HighDemandProducts({
   forecasts: DemandForecast[];
 }) {
   const prioritizedProducts = [...forecasts]
-    .sort((left, right) => right.predictedDemand - left.predictedDemand)
+    .filter((forecast) => getDemandDifference(forecast) >= 10)
+    .sort(
+      (left, right) =>
+        getDemandDifference(right) - getDemandDifference(left),
+    )
     .slice(0, 4);
 
   return (
@@ -25,10 +29,10 @@ export function HighDemandProducts({
         </span>
         <div>
           <h2 id="high-demand-title" className="text-lg font-semibold text-foreground">
-            Productos con mayor demanda
+            Productos con faltante crítico
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Prioridades ordenadas por unidades estimadas.
+            Faltante de 10 unidades o más, ordenado por diferencia contra stock.
           </p>
         </div>
       </div>
@@ -47,7 +51,7 @@ export function HighDemandProducts({
                   {forecast.productName}
                 </h3>
                 <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                  <span>Stock: {forecast.currentStock}</span>
+                  <span>Stock vigente: {forecast.currentStock}</span>
                   <span>Demanda: {forecast.predictedDemand}</span>
                   <span className={difference > 0 ? "font-semibold text-amber-700 dark:text-amber-200" : ""}>
                     Diferencia: {difference > 0 ? "+" : ""}{difference}
@@ -61,6 +65,11 @@ export function HighDemandProducts({
             </li>
           );
         })}
+        {prioritizedProducts.length === 0 ? (
+          <li className="py-8 text-center text-sm text-muted-foreground">
+            No hay productos con faltante crítico para este pronóstico.
+          </li>
+        ) : null}
       </ol>
     </section>
   );

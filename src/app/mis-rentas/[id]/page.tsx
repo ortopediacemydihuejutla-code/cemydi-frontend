@@ -22,6 +22,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+import { CustomerAccountShell } from "@/components/account/CustomerAccountShell";
 import { AuthRouteLoading } from "@/components/auth/auth-route-loading";
 import RentalCancellationDialog from "@/components/rentals/RentalCancellationDialog";
 import {
@@ -217,13 +218,16 @@ export default function RentalDetailPage() {
     if (authLoading) return;
     if (!user) {
       router.replace("/login");
-      return;
     }
-    if (user.rol !== "CLIENT") router.replace("/perfil");
   }, [authLoading, router, user]);
 
   useEffect(() => {
-    if (authLoading || !user || user.rol !== "CLIENT" || !rentalId) return;
+    if (authLoading || !user || !rentalId) return;
+    if (user.rol !== "CLIENT") {
+      setNotFound(true);
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
 
     void (async () => {
@@ -348,27 +352,27 @@ export default function RentalDetailPage() {
       />
     );
   }
-  if (!user || user.rol !== "CLIENT") return null;
+  if (!user) return null;
 
   if (notFound || !rental) {
     return (
-      <div className="min-h-[calc(100vh-120px)] bg-[#f3f6f6] px-4 py-12">
-        <div className="mx-auto max-w-[680px] rounded-[26px] border border-[#dae5e5] bg-white px-6 py-12 text-center shadow-[0_18px_36px_rgba(16,50,49,0.08)]">
-          <PackageCheck className="mx-auto size-11 text-[#71858c]" />
-          <h1 className="mt-4 text-2xl font-semibold text-[#17333f]">
+      <CustomerAccountShell>
+        <div className="py-12">
+          <PackageCheck className="size-9 text-[#829295]" />
+          <h1 className="mt-4 text-xl font-semibold text-[#17333f]">
             Solicitud no disponible
           </h1>
-          <p className="mt-2 text-[#607173]">
+          <p className="mt-2 text-sm text-[#607173]">
             No existe o no pertenece a tu cuenta.
           </p>
           <Link
             href="/mis-rentas"
-            className="mt-6 inline-flex rounded-full bg-[#1f6a67] px-5 py-3 font-bold text-white no-underline"
+            className="mt-6 inline-flex rounded-[8px] bg-[#1f6a67] px-4 py-2.5 text-sm font-semibold text-white no-underline"
           >
             Volver a mis rentas
           </Link>
         </div>
-      </div>
+      </CustomerAccountShell>
     );
   }
 
@@ -379,8 +383,8 @@ export default function RentalDetailPage() {
   const nextAction = getNextAction(rental);
 
   return (
-    <div className="min-h-[calc(100vh-120px)] bg-[#f3f6f6] px-4 py-9">
-      <main className="mx-auto max-w-[1080px]">
+    <CustomerAccountShell>
+      <div className="w-full">
         <Link
           href="/mis-rentas"
           className="inline-flex items-center gap-2 text-sm font-bold text-[#1f6a67] no-underline"
@@ -388,7 +392,7 @@ export default function RentalDetailPage() {
           <ArrowLeft className="size-4" /> Volver a mis rentas
         </Link>
 
-        <header className="mt-5 flex flex-col gap-4 border-b border-[#dbe5e7] pb-6 sm:flex-row sm:items-start sm:justify-between">
+        <header className="mt-5 flex flex-col gap-4 border-b border-[#deebeb] pb-6 sm:flex-row sm:items-start sm:justify-between">
           <div>
             <span
               className={
@@ -443,7 +447,7 @@ export default function RentalDetailPage() {
 
         <div className="mt-6 grid gap-5 lg:grid-cols-[minmax(0,1fr)_320px]">
           <div className="grid content-start gap-5">
-            <section className="rounded-[24px] border border-[#dae5e5] bg-white p-5 shadow-[0_18px_36px_rgba(16,50,49,0.07)]">
+            <section className="rounded-xl border border-[#dfe3e7] bg-white p-5">
               <h2 className="text-lg font-semibold text-[#17333f]">
                 Productos y documentos
               </h2>
@@ -625,7 +629,7 @@ export default function RentalDetailPage() {
               </div>
             </section>
 
-            <section className="rounded-[24px] border border-[#dae5e5] bg-white p-5 shadow-[0_18px_36px_rgba(16,50,49,0.07)]">
+            <section className="rounded-xl border border-[#dfe3e7] bg-white p-5">
               <h2 className="text-lg font-semibold text-[#17333f]">
                 Solicitante y entrega
               </h2>
@@ -705,7 +709,7 @@ export default function RentalDetailPage() {
           </div>
 
           <aside className="grid h-fit gap-5">
-            <section className="rounded-[24px] border border-[#dae5e5] bg-white p-5 shadow-[0_18px_36px_rgba(16,50,49,0.07)]">
+            <section className="rounded-xl border border-[#dfe3e7] bg-white p-5">
               <h2 className="text-lg font-semibold text-[#17333f]">
                 Seguimiento
               </h2>
@@ -720,7 +724,7 @@ export default function RentalDetailPage() {
               ) : null}
             </section>
 
-            <section className="rounded-[24px] border border-[#dae5e5] bg-white p-5 shadow-[0_18px_36px_rgba(16,50,49,0.07)]">
+            <section className="rounded-xl border border-[#dfe3e7] bg-white p-5">
               <h2 className="text-lg font-semibold text-[#17333f]">Resumen</h2>
               <div className="mt-4 grid gap-3 text-sm text-[#607173]">
                 <div className="flex justify-between gap-3">
@@ -789,7 +793,7 @@ export default function RentalDetailPage() {
             </section>
           </aside>
         </div>
-      </main>
+      </div>
 
       <RentalCancellationDialog
         open={cancelDialogOpen}
@@ -798,6 +802,6 @@ export default function RentalDetailPage() {
         onOpenChange={setCancelDialogOpen}
         onConfirm={handleCancel}
       />
-    </div>
+    </CustomerAccountShell>
   );
 }

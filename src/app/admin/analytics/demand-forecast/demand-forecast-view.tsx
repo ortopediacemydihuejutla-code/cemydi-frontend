@@ -52,7 +52,7 @@ export function DemandForecastView() {
       <div className="flex flex-col gap-8 pb-12">
         <PageHeader
           title="Predicción de demanda de productos"
-          subtitle="Calculando el modelo con el historial real…"
+          subtitle="Calculando el modelo con el historial operacional registrado…"
         />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {Array.from({ length: 4 }).map((_, index) => (
@@ -72,7 +72,7 @@ export function DemandForecastView() {
       <div className="flex flex-col gap-8 pb-12">
         <PageHeader
           title="Predicción de demanda de productos"
-          subtitle="Estimación mensual basada en ventas, rentas, consultas e inventario."
+          subtitle="Estimación mensual basada en ventas, rentas, interacciones e inventario."
         />
         <section className="rounded-2xl border border-red-500/20 bg-card p-8 text-center">
           <p className="font-medium text-foreground">
@@ -92,7 +92,7 @@ export function DemandForecastView() {
     <div className="flex flex-col gap-8 pb-12">
       <PageHeader
         title="Predicción de demanda de productos"
-        subtitle="Estimación mensual de ventas y rentas calculada con el historial real de la base de datos."
+        subtitle="Estimación mensual de ventas y rentas calculada con el historial operacional registrado."
       >
         <Button variant="outline" onClick={() => void load()}>
           <RefreshCw />
@@ -100,11 +100,15 @@ export function DemandForecastView() {
         </Button>
       </PageHeader>
 
-      <DemandForecastSummary forecasts={data.forecasts} />
+      <DemandForecastSummary
+        forecasts={data.forecasts}
+        model={data.model}
+        generatedAt={data.generatedAt}
+      />
 
       <div className="grid min-w-0 grid-cols-1 gap-6 xl:grid-cols-12">
         <div className="min-w-0 xl:col-span-7">
-          <DemandForecastChart forecasts={data.forecasts.slice(0, 12)} />
+          <DemandForecastChart forecasts={data.forecasts} />
         </div>
         <div className="min-w-0 xl:col-span-5">
           <HighDemandProducts forecasts={data.forecasts} />

@@ -39,6 +39,28 @@ function PageHeadingSkeleton() {
 }
 
 function PendingMetricCards({ variant }: { variant: AdminLoadingVariant }) {
+  if (variant === "rentals") {
+    return (
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-busy="true">
+        <AdminMetricCard context="rentals-total" label="Solicitudes" value="—" />
+        <AdminMetricCard context="rentals-pending" label="Pendientes" value="—" />
+        <AdminMetricCard context="rentals-approved" label="Aprobadas" value="—" />
+        <AdminMetricCard context="rentals-delivered" label="Entregadas" value="—" />
+      </section>
+    );
+  }
+
+  if (variant === "reviews") {
+    return (
+      <section className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4" aria-busy="true">
+        <AdminMetricCard context="reviews-total" label="Reseñas registradas" value="—" />
+        <AdminMetricCard context="reviews-pending" label="Pendientes de moderar" value="—" />
+        <AdminMetricCard context="reviews-approved" label="Aprobadas" value="—" />
+        <AdminMetricCard context="reviews-featured" label="En inicio" value="—" />
+      </section>
+    );
+  }
+
   if (variant === "products") {
     return (
       <section className="grid gap-4 md:grid-cols-3" aria-busy="true">
@@ -66,13 +88,13 @@ function PendingMetricCards({ variant }: { variant: AdminLoadingVariant }) {
           context="database-online"
           label="Estado de la base"
           value="—"
-          helper="Versión no disponible"
+          helper="Resumen de disponibilidad"
         />
         <AdminMetricCard
           context="database-connections"
           label="Conexiones activas"
           value="—"
-          helper="Resumen de uso de conexiones"
+          helper="Uso de conexiones"
         />
         <AdminMetricCard
           context="database-tables"
@@ -121,38 +143,38 @@ function PendingMetricCards({ variant }: { variant: AdminLoadingVariant }) {
     );
   }
 
-  if (variant !== "dashboard") {
-    return null;
+  if (variant === "dashboard") {
+    return (
+      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-busy="true">
+        <AdminMetricCard
+          context="analytics-sessions"
+          label="Nuevos usuarios"
+          value="—"
+          helper="Últimos 30 días"
+        />
+        <AdminMetricCard
+          context="analytics-sessions"
+          label="Actividad de sesión"
+          value="—"
+          helper="Eventos registrados en el periodo"
+        />
+        <AdminMetricCard
+          context="products-active"
+          label="Productos activos"
+          value="—"
+          helper="En catálogo y visibles"
+        />
+        <AdminMetricCard
+          context="reviews-pending"
+          label="Reseñas pendientes"
+          value="—"
+          helper="Esperando moderación"
+        />
+      </section>
+    );
   }
 
-  return (
-    <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4" aria-busy="true">
-      <AdminMetricCard
-        context="analytics-sessions"
-        label="Nuevos usuarios"
-        value="—"
-        helper="Últimos 30 días"
-      />
-      <AdminMetricCard
-        context="analytics-sessions"
-        label="Actividad de sesión"
-        value="—"
-        helper="Eventos registrados en el periodo"
-      />
-      <AdminMetricCard
-        context="products-active"
-        label="Productos activos"
-        value="—"
-        helper="En catálogo y visibles"
-      />
-      <AdminMetricCard
-        context="reviews-pending"
-        label="Reseñas pendientes"
-        value="—"
-        helper="Esperando moderación"
-      />
-    </section>
-  );
+  return null;
 }
 
 export function AdminPageLoading({
@@ -186,8 +208,8 @@ export function AdminPageLoading({
         <AdminCardListSkeleton />
       ) : (
         <AdminTableSkeleton
-          columns={variant === "users" ? 6 : 5}
-          showAvatar={variant === "users" || variant === "products"}
+          columns={variant === "users" ? 6 : variant === "rentals" ? 7 : 5}
+          showAvatar={variant === "users" || variant === "products" || variant === "reviews"}
         />
       )}
     </div>

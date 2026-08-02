@@ -10,6 +10,7 @@ import HeaderCart from "@/components/layout/header/HeaderCart";
 import HeaderSearch, {
   HeaderSearchSkeleton,
 } from "@/components/layout/header/HeaderSearch";
+import { cn } from "@/features/admin/lib/utils";
 
 const NAV_LINKS = [
   { href: "/catalogo", label: "Catálogo" },
@@ -32,7 +33,12 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 bg-[linear-gradient(90deg,#1e6260_0%,#2aa09d_100%)] px-4 py-3 shadow-[0_10px_30px_rgba(15,61,59,0.16)] lg:grid lg:grid-cols-[auto_1fr_auto] lg:items-center lg:gap-5 lg:px-[3.75rem] lg:py-5 lg:shadow-none">
+    <header
+      className={cn(
+        "z-50 overflow-hidden bg-[linear-gradient(90deg,#1e6260_0%,#2aa09d_100%)] px-4 py-3 shadow-[0_10px_30px_rgba(15,61,59,0.16)] lg:grid lg:grid-cols-[auto_1fr_auto] lg:items-center lg:gap-5 lg:px-[3.75rem] lg:py-5 lg:shadow-none",
+        "sticky top-0",
+      )}
+    >
       <div className="flex items-center justify-between gap-3 lg:contents">
         <Link href="/" className="flex min-h-0 min-w-0 items-center no-underline">
           <Image

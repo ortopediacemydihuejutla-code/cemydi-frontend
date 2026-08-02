@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
+import { FavoriteButton } from "@/components/account/FavoriteButton";
 import ProductShareMenu from "@/components/product/ProductShareMenu";
 import { PromotionBadge } from "@/components/product/PromotionBadge";
 import { isOptimizableImageUrl } from "@/lib/cloudinary-image";
@@ -223,7 +224,7 @@ export function PromotionsShowcase({ promotions }: Props) {
                 <article
                   key={`${promotion.id}:${promotion.productId}`}
                   data-promotion-card
-                  className="group flex snap-start flex-col self-start overflow-visible rounded-lg border border-[#e1e9eb] bg-white text-inherit no-underline shadow-[0_12px_30px_rgba(18,39,49,0.055)] outline-none transition duration-200 hover:border-[#c9d8db] hover:shadow-[0_16px_34px_rgba(18,39,49,0.09)] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
+                  className="group flex h-full snap-start flex-col overflow-visible rounded-lg border border-[#e1e9eb] bg-white text-inherit no-underline shadow-[0_12px_30px_rgba(18,39,49,0.055)] outline-none transition duration-200 hover:border-[#c9d8db] hover:shadow-[0_16px_34px_rgba(18,39,49,0.09)] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
                 >
                   <div className="relative aspect-[4/3] w-full overflow-visible border-b border-[#edf2f3] bg-[#fbfcfc]">
                     <Link
@@ -231,30 +232,32 @@ export function PromotionsShowcase({ promotions }: Props) {
                       aria-label={`Ver ${promotion.product.nombre} con ${promotion.discountPercent}% de descuento`}
                       className="absolute inset-0 z-[1] outline-none"
                     />
-                    <div className="pointer-events-none absolute left-3 right-14 top-3 z-10 flex flex-wrap items-start gap-2">
-                      {acquisitionBadges.map((badge) => (
-                        <span
-                          key={badge.label}
-                          className={`rounded px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] ${badge.className}`}
-                        >
-                          {badge.label}
-                        </span>
-                      ))}
-                      {promotion.product.requiereReceta ? (
-                        <span className="rounded bg-[#f2f6f7] px-2.5 py-1 text-[0.68rem] font-semibold text-[#304853] ring-1 ring-inset ring-[#dce6e9]">
-                          Receta requerida
-                        </span>
-                      ) : null}
-                    </div>
+                    <div className="pointer-events-none absolute inset-x-3 top-3 z-10 flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center gap-1.5 min-w-0">
+                        {acquisitionBadges.map((badge) => (
+                          <span
+                            key={badge.label}
+                            className={`inline-flex items-center rounded px-2.5 py-1 text-[0.68rem] font-semibold uppercase tracking-[0.08em] ${badge.className}`}
+                          >
+                            {badge.label}
+                          </span>
+                        ))}
+                        {promotion.product.requiereReceta ? (
+                          <span className="inline-flex items-center rounded bg-[#f2f6f7] px-2.5 py-1 text-[0.68rem] font-semibold text-[#304853] ring-1 ring-inset ring-[#dce6e9]">
+                            Receta requerida
+                          </span>
+                        ) : null}
+                      </div>
 
-                    <ProductShareMenu
-                      shareData={shareData}
-                      productName={promotion.product.nombre}
-                      compact
-                      className="absolute right-3 top-3 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 sm:data-[open=true]:opacity-100"
-                      menuClassName="bottom-auto right-0 top-[calc(100%+8px)]"
-                      triggerClassName="!bg-transparent !text-[#176b67] shadow-none ring-0 hover:!bg-transparent hover:!text-[#0f4f4d]"
-                    />
+                      <ProductShareMenu
+                        shareData={shareData}
+                        productName={promotion.product.nombre}
+                        compact
+                        className="pointer-events-auto shrink-0 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 sm:data-[open=true]:opacity-100"
+                        menuClassName="bottom-auto right-0 top-[calc(100%+8px)]"
+                        triggerClassName="!bg-transparent !text-[#176b67] shadow-none ring-0 hover:!bg-transparent hover:!text-[#0f4f4d] !size-7 flex items-center justify-center p-0"
+                      />
+                    </div>
 
                     {isOptimizableImageUrl(imageUrl) ? (
                       <div
@@ -287,34 +290,44 @@ export function PromotionsShowcase({ promotions }: Props) {
                     )}
                   </div>
 
-                  <div className="flex min-w-0 flex-col p-4">
-                    <div className="grid gap-1">
-                      <div className="flex min-w-0 items-center justify-between gap-2">
-                        <span className="truncate text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-[#667b84]">
-                          {promotion.product.marca}
-                        </span>
-                        {endLabel ? (
-                          <span className="shrink-0 text-[0.68rem] font-medium text-[#71858d]">
-                            Hasta {endLabel}
-                          </span>
-                        ) : null}
-                      </div>
-                      <h3 className="line-clamp-2 text-[1rem] font-semibold leading-6 text-[#142734] sm:text-[1.03rem]">
-                        <Link
-                          href={href}
-                          className="outline-none transition hover:text-[#0f6a67] focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
-                        >
-                          {promotion.product.nombre}
-                        </Link>
-                      </h3>
-                    </div>
+                  <div className="flex min-w-0 flex-1 flex-col justify-between p-4">
+                    <div>
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="grid min-w-0 flex-1 gap-1">
+                          <div className="flex min-w-0 items-center justify-between gap-2">
+                            <span className="truncate text-[0.72rem] font-semibold uppercase tracking-[0.08em] text-[#667b84]">
+                              {promotion.product.marca}
+                            </span>
+                            {endLabel ? (
+                              <span className="shrink-0 text-[0.68rem] font-medium text-[#71858d]">
+                                Hasta {endLabel}
+                              </span>
+                            ) : null}
+                          </div>
+                          <h3 className="line-clamp-2 min-h-[3rem] text-[1rem] font-semibold leading-6 text-[#142734] sm:text-[1.03rem]">
+                            <Link
+                              href={href}
+                              className="outline-none transition hover:text-[#0f6a67] focus-visible:rounded focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
+                            >
+                              {promotion.product.nombre}
+                            </Link>
+                          </h3>
+                        </div>
 
-                    <p className="mt-1.5 text-sm text-[#5f7780]">
-                      {promotion.product.modelo} ·{" "}
-                      {formatAcquisitionType(
-                        promotion.product.tipoAdquisicion,
-                      )}
-                    </p>
+                        <FavoriteButton
+                          product={promotion.product}
+                          compact
+                          className="shrink-0 z-10 opacity-100 transition duration-200 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 sm:data-[favorite=true]:opacity-100"
+                        />
+                      </div>
+
+                      <p className="mt-1.5 text-sm text-[#5f7780]">
+                        {promotion.product.modelo} ·{" "}
+                        {formatAcquisitionType(
+                          promotion.product.tipoAdquisicion,
+                        )}
+                      </p>
+                    </div>
 
                     <div className="mt-3 grid gap-1.5">
                       <div className="flex min-h-4 flex-wrap items-center gap-x-2 gap-y-1 text-xs">

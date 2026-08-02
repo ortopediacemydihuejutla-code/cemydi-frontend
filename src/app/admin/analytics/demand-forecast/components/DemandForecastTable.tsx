@@ -28,9 +28,9 @@ type SortOption =
 
 const statusOptions: DemandForecastStatus[] = [
   "Stock suficiente",
-  "Revisar inventario",
+  "Stock justo",
   "Posible faltante",
-  "Alta demanda",
+  "Faltante crítico",
 ];
 
 const statusBadgeVariants: Record<
@@ -38,9 +38,9 @@ const statusBadgeVariants: Record<
   "emerald" | "slate" | "amber" | "red"
 > = {
   "Stock suficiente": "emerald",
-  "Revisar inventario": "slate",
+  "Stock justo": "slate",
   "Posible faltante": "amber",
-  "Alta demanda": "red",
+  "Faltante crítico": "red",
 };
 
 const selectClassName =
@@ -209,13 +209,13 @@ export function DemandForecastTable({
           <TableRow className="hover:bg-transparent">
             <TableHead className="min-w-64">Producto</TableHead>
             <TableHead>Precio</TableHead>
-            <TableHead className="text-center">Stock actual</TableHead>
-            <TableHead className="text-right">Ventas anteriores</TableHead>
-            <TableHead className="text-right">Rentas anteriores</TableHead>
-            <TableHead className="text-right">Vistas anteriores</TableHead>
-            <TableHead>Promoción</TableHead>
+            <TableHead className="text-center">Stock vigente</TableHead>
+            <TableHead className="text-right">Ventas del último mes</TableHead>
+            <TableHead className="text-right">Rentas del último mes</TableHead>
+            <TableHead className="text-right">Vistas del último mes</TableHead>
+            <TableHead>Promoción prevista</TableHead>
             <TableHead className="text-right">Demanda estimada</TableHead>
-            <TableHead className="text-right">Diferencia</TableHead>
+            <TableHead className="text-right">Diferencia contra stock</TableHead>
             <TableHead>Estado</TableHead>
             <TableHead className="min-w-72">Acción sugerida</TableHead>
           </TableRow>
@@ -253,7 +253,9 @@ export function DemandForecastTable({
                     <Badge
                       variant={forecast.activePromotion ? "blue" : "slate"}
                     >
-                      {forecast.activePromotion ? "Activa" : "Sin promoción"}
+                      {forecast.activePromotion
+                        ? "Programada"
+                        : "No programada"}
                     </Badge>
                   </TableCell>
                   <TableCell className="text-right font-semibold tabular-nums text-foreground">

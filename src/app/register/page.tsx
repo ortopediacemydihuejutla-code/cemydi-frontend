@@ -8,10 +8,10 @@ import { useRouter } from "next/navigation";
 import { Lock, Mail, User, UserPlus } from "lucide-react";
 import { registerUser } from "@/services/auth";
 import toast from "react-hot-toast";
+import { ApiError } from "@/lib/api-error";
 import { useAuth } from "@/providers/AuthContext";
 import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
 import {
-  AuthAlertBanner,
   AuthOrDivider,
   AuthPasswordField,
   AuthPasswordRulesChecklist,
@@ -93,7 +93,6 @@ export default function RegisterPage() {
 
   const [acceptedTerms, setAcceptedTerms] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [submitError, setSubmitError] = useState<string | null>(null);
   const [passwordFocused, setPasswordFocused] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 
@@ -102,7 +101,7 @@ export default function RegisterPage() {
       return;
     }
 
-    router.replace(user.rol === "ADMIN" ? "/admin" : "/perfil");
+    router.replace(user.rol === "ADMIN" ? "/admin" : "/mi-cuenta");
   }, [authLoading, router, user]);
 
   const validateField = (name: keyof FormState, value: string, current: FormState): string => {
@@ -122,7 +121,6 @@ export default function RegisterPage() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setSubmitError(null);
 
     setForm((prev) => {
       const next = { ...prev, [name]: value } as FormState;
@@ -174,7 +172,6 @@ export default function RegisterPage() {
     e.preventDefault();
     if (loading || googleLoading) return;
 
-    setSubmitError(null);
     setTouched({
       nombre: true,
       correo: true,
@@ -185,6 +182,12 @@ export default function RegisterPage() {
     const nextErrors = validateAll(form, acceptedTerms);
     setErrors(nextErrors);
 
+    if (!acceptedTerms) {
+      toast.error("Debes aceptar los términos y condiciones para registrarte.", {
+        id: "auth-terms-required",
+      });
+    }
+
     const hasFieldErrors =
       nextErrors.nombre ||
       nextErrors.correo ||
@@ -194,9 +197,13 @@ export default function RegisterPage() {
 
     if (hasFieldErrors) {
       window.requestAnimationFrame(() => {
-        document
-          .querySelector<HTMLInputElement>("input[aria-invalid='true']")
-          ?.focus();
+        if (!acceptedTerms) {
+          document.getElementById("register-terms")?.focus();
+        } else {
+          document
+            .querySelector<HTMLInputElement>("input[aria-invalid='true']")
+            ?.focus();
+        }
       });
       return;
     }
@@ -213,7 +220,15 @@ export default function RegisterPage() {
       router.push(`/verify-email?correo=${encodeURIComponent(form.correo.trim())}`);
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : "No se pudo registrar la cuenta.";
-      setSubmitError(message);
+      const isRateLimit =
+        (err instanceof ApiError && err.status === 429) ||
+        /intentos|solicitudes|throttler|too many requests/i.test(message);
+
+      if (isRateLimit) {
+        toast.error(message, { id: "auth-rate-limit" });
+      } else {
+        toast.error(message, { id: "auth-register-error" });
+      }
     } finally {
       setLoading(false);
     }
@@ -221,7 +236,6 @@ export default function RegisterPage() {
 
   const handleGoogleLogin = () => {
     if (loading || googleLoading) return;
-    setSubmitError(null);
     setGoogleLoading(true);
     window.location.href = resolveApiUrl("/auth/google");
   };
@@ -238,7 +252,7 @@ export default function RegisterPage() {
       heroTitle="Comienza hoy con CEMYDI"
       heroDescription="Encuentra productos ortopédicos con seguimiento claro y asesoría cercana."
     >
-      <header className="mb-7">
+      <header className="mb-7 text-center">
         <p className="m-0 text-[11px] font-bold uppercase tracking-[0.19em] text-slate-500">
           Nueva cuenta
         </p>
@@ -257,7 +271,6 @@ export default function RegisterPage() {
           className="grid gap-4"
           aria-busy={loading}
         >
-          {submitError ? <AuthAlertBanner message={submitError} /> : null}
 
           <AuthTextField
             label="Nombre completo"
@@ -342,7 +355,6 @@ export default function RegisterPage() {
                 checked={acceptedTerms}
                 onChange={(e) => {
                   setAcceptedTerms(e.target.checked);
-                  setSubmitError(null);
                   if (e.target.checked) {
                     setErrors((prev) => ({ ...prev, terms: "" }));
                   }

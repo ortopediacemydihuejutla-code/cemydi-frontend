@@ -52,6 +52,17 @@ export type MyProductReview = {
   updatedAt: string;
 };
 
+export type MyReviewListItem = MyProductReview & {
+  product: {
+    id: number;
+    slug: string;
+    nombre: string;
+    marca: string;
+    modelo: string;
+    imageUrl: string | null;
+  };
+};
+
 export async function getApprovedProductReviews(productId: number) {
   const res = await fetch(resolveApiUrl(`/reviews/product/${productId}`), {
     cache: "no-store",
@@ -103,5 +114,17 @@ export async function getMyProductReview(productId: number) {
   return parseApiResponse<{ review: MyProductReview | null }>(
     res,
     "No se pudo cargar tu reseña",
+  );
+}
+
+export async function getMyReviews() {
+  const res = await apiFetch("/reviews/mine", {
+    method: "GET",
+    cache: "no-store",
+  });
+
+  return parseApiResponse<{ reviews: MyReviewListItem[] }>(
+    res,
+    "No se pudieron cargar tus reseñas",
   );
 }

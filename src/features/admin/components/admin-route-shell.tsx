@@ -33,7 +33,7 @@ export function AdminRouteShell({
       return;
     }
     if (user.rol !== "ADMIN") {
-      router.replace("/perfil");
+      router.replace("/mi-cuenta");
     }
   }, [router, serverAuthorized, user]);
 

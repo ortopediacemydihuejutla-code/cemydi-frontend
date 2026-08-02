@@ -117,7 +117,7 @@ export function ProductClusterTable({ products }: { products: ProductCluster[] }
             <TableHead>Adquisición</TableHead>
             <TableHead className="text-right">Vendidos</TableHead>
             <TableHead className="text-right">Rentados</TableHead>
-            <TableHead className="text-right">Consultas</TableHead>
+            <TableHead className="text-right">Interacciones</TableHead>
             <TableHead className="text-right">Ingresos</TableHead>
             <TableHead>Segmento</TableHead>
             <TableHead className="min-w-64">Acción sugerida</TableHead>

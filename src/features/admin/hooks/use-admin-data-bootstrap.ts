@@ -14,8 +14,9 @@ export type UseAdminDataBootstrapOptions = {
 };
 
 /**
- * Redirige a login o perfil si no hay sesión o el rol no es ADMIN,
- * ejecuta `load` para administradores y expone cuándo mostrar bloqueo de pantalla completa.
+ * Redirige a perfil si el rol no es ADMIN, ejecuta `load` para administradores
+ * y expone cuándo mostrar el estado de carga inicial.
+ * La protección principal de sesión vive en middleware y layout del servidor.
  */
 export function useAdminDataBootstrap({
   load,
@@ -26,13 +27,7 @@ export function useAdminDataBootstrap({
   const [initLoading, setInitLoading] = useState(true);
 
   useEffect(() => {
-    if (authLoading) return;
-
-    if (!user) {
-      setInitLoading(false);
-      router.replace("/login");
-      return;
-    }
+    if (authLoading || !user) return;
 
     if (user.rol !== "ADMIN") {
       router.replace("/perfil");

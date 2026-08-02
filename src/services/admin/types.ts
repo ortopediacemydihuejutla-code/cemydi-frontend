@@ -184,8 +184,11 @@ export type CustomerSegment = {
   averages: {
     sales: number;
     rentals: number;
-    consultations: number;
+    interactions: number;
     spend: number;
+    rentalDays: number;
+    distinctProducts: number;
+    inactivityDays: number;
   };
 };
 
@@ -196,7 +199,7 @@ export type SegmentedCustomer = {
   cluster: CustomerClusterCode;
   views: number;
   searches: number;
-  consultations: number;
+  totalInteractions: number;
   distinctProducts: number;
   completedSales: number;
   unitsPurchased: number;
@@ -206,6 +209,7 @@ export type SegmentedCustomer = {
   rentalSpend: number;
   totalSpend: number;
   averageRentalDays: number;
+  lastActivity: string | null;
   daysSinceLastActivity: number;
   averageMonthlyActivity: number;
   interests: string[];
@@ -227,6 +231,7 @@ export type DemandForecast = {
   shortName: string;
   classification: string;
   acquisitionType: "VENTA" | "RENTA" | "MIXTO";
+  active: boolean;
   price: number;
   currentStock: number;
   month: number;
@@ -235,6 +240,7 @@ export type DemandForecast = {
   previousMonthViews: number;
   activePromotion: boolean;
   predictedDemand: number;
+  shortage: number;
   recommendation: string;
 };
 
@@ -242,12 +248,20 @@ export type DemandForecastData = {
   generatedAt: string;
   model: {
     name: string;
+    historicalRows: number;
     trainingRows: number;
+    validationRows: number;
+    finalTrainingRows: number;
+    validationMonths: number;
     products: number;
     historicalMonths: number;
     r2: number;
     mae: number;
-    forecastMonth: string;
+    rmse: number;
+    forecastMonth: string | null;
+    historicalThrough: string | null;
+    validationFrom: string | null;
+    validationTo: string | null;
   };
   forecasts: DemandForecast[];
 };

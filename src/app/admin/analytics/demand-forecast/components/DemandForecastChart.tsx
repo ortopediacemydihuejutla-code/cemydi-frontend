@@ -24,6 +24,10 @@ export function DemandForecastChart({
 }: {
   forecasts: DemandForecast[];
 }) {
+  const chartForecasts = [...forecasts]
+    .sort((left, right) => right.predictedDemand - left.predictedDemand)
+    .slice(0, 12);
+
   return (
     <section
       aria-labelledby="forecast-chart-title"
@@ -34,7 +38,8 @@ export function DemandForecastChart({
           Stock actual vs. demanda estimada
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Comparación de unidades disponibles y requeridas por producto.
+          Los 12 productos con mayor demanda estimada, comparados contra su
+          stock vigente.
         </p>
       </div>
 
@@ -44,7 +49,7 @@ export function DemandForecastChart({
       >
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <BarChart
-            data={forecasts}
+            data={chartForecasts}
             layout="vertical"
             margin={{ top: 8, right: 10, left: 6, bottom: 0 }}
           >
@@ -83,7 +88,7 @@ export function DemandForecastChart({
             <Legend verticalAlign="top" height={36} iconType="circle" />
             <Bar
               dataKey="currentStock"
-              name="Stock actual"
+              name="Stock vigente"
               fill="#94a3b8"
               radius={[0, 5, 5, 0]}
               maxBarSize={14}

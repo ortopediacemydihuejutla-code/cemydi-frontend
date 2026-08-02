@@ -23,6 +23,7 @@ import {
   Weight,
   X,
 } from "lucide-react";
+import { FavoriteButton } from "@/components/account/FavoriteButton";
 import ProductShareMenu from "@/components/product/ProductShareMenu";
 import { PromotionBadge } from "@/components/product/PromotionBadge";
 import {
@@ -767,6 +768,10 @@ export default function ProductDetailClient({
                   className="absolute right-4 top-4 sm:right-5 sm:top-5"
                   menuClassName="bottom-auto right-0 top-[calc(100%+10px)]"
                   triggerClassName="!bg-transparent !text-[#344850] shadow-none ring-0 hover:!bg-transparent hover:!text-[#0f6a67]"
+                />
+                <FavoriteButton
+                  product={product}
+                  className="absolute right-[4.5rem] top-4 z-[5] !border-transparent !bg-white/90 !shadow-none backdrop-blur-sm sm:right-20 sm:top-5"
                 />
               </div>
 
