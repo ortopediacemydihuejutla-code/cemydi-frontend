@@ -1,8 +1,5 @@
 export type DemandForecastStatus =
-  | "Stock suficiente"
-  | "Stock justo"
-  | "Posible faltante"
-  | "Faltante crítico";
+  "Stock suficiente" | "Stock justo" | "Posible faltante" | "Faltante crítico";
 
 export type DemandForecast = {
   id: number;
@@ -18,6 +15,7 @@ export type DemandForecast = {
   previousMonthRentals: number;
   previousMonthViews: number;
   activePromotion: boolean;
+  predictedDemandDecimal: number;
   predictedDemand: number;
   shortage: number;
   recommendation: string;

@@ -220,6 +220,15 @@ export type SegmentedCustomer = {
 export type CustomerSegmentationData = {
   generatedAt: string;
   method: string;
+  model: {
+    version: string;
+    trainingRows: number;
+    trainedAt: string;
+    cutoffDate: string;
+    batchName: string;
+    silhouette: number;
+    daviesBouldin: number;
+  };
   sourceRows: number;
   clusters: CustomerSegment[];
   customers: SegmentedCustomer[];
@@ -239,6 +248,7 @@ export type DemandForecast = {
   previousMonthRentals: number;
   previousMonthViews: number;
   activePromotion: boolean;
+  predictedDemandDecimal: number;
   predictedDemand: number;
   shortage: number;
   recommendation: string;
@@ -248,6 +258,8 @@ export type DemandForecastData = {
   generatedAt: string;
   model: {
     name: string;
+    version: string;
+    artifact: string;
     historicalRows: number;
     trainingRows: number;
     validationRows: number;
@@ -597,10 +609,7 @@ export type AdminActivityItem = {
 };
 
 export type AdminNotificationCategory =
-  | "rental"
-  | "review"
-  | "inventory"
-  | "sale";
+  "rental" | "review" | "inventory" | "sale";
 
 export type AdminNotificationItem = {
   id: string;

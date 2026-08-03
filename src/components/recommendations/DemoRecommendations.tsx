@@ -7,6 +7,7 @@ import { ProductCard } from "@/app/catalogo/components/ProductGrid";
 import {
   getCatalogRecommendations,
   type CatalogProduct,
+  type RecommendedCatalogProduct,
 } from "@/services/catalog";
 
 type RecommendationSource = Pick<CatalogProduct, "id">;
@@ -32,7 +33,10 @@ export default function DemoRecommendations({
   sourceProducts,
 }: DemoRecommendationsProps) {
   const trackRef = useRef<HTMLDivElement | null>(null);
-  const [catalogProducts, setCatalogProducts] = useState<CatalogProduct[]>([]);
+  const [catalogProducts, setCatalogProducts] = useState<
+    RecommendedCatalogProduct[]
+  >([]);
+  const [modelMethod, setModelMethod] = useState("");
   const [loading, setLoading] = useState(false);
   const [canScrollPrevious, setCanScrollPrevious] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
@@ -48,12 +52,12 @@ export default function DemoRecommendations({
       try {
         setLoading(true);
         const results = await Promise.all(
-          sourceIds.slice(0, 4).map((productId) =>
-            getCatalogRecommendations(productId, 8),
-          ),
+          sourceIds
+            .slice(0, 4)
+            .map((productId) => getCatalogRecommendations(productId, 5)),
         );
         const excludedIds = new Set(sourceIds);
-        const unique = new Map<number, CatalogProduct>();
+        const unique = new Map<number, RecommendedCatalogProduct>();
         results.forEach((result) =>
           result.recommendations.forEach((product) => {
             if (!excludedIds.has(product.id) && !unique.has(product.id)) {
@@ -64,10 +68,12 @@ export default function DemoRecommendations({
 
         if (!cancelled) {
           setCatalogProducts([...unique.values()].slice(0, 12));
+          setModelMethod(results[0]?.method ?? "");
         }
       } catch {
         if (!cancelled) {
           setCatalogProducts([]);
+          setModelMethod("");
         }
       } finally {
         if (!cancelled) {
@@ -114,8 +120,12 @@ export default function DemoRecommendations({
     const track = trackRef.current;
     if (!track) return;
 
-    const card = track.querySelector<HTMLElement>("[data-recommendation-card='true']");
-    const scrollAmount = card ? card.offsetWidth + 20 : Math.max(track.clientWidth * 0.8, 280);
+    const card = track.querySelector<HTMLElement>(
+      "[data-recommendation-card='true']",
+    );
+    const scrollAmount = card
+      ? card.offsetWidth + 20
+      : Math.max(track.clientWidth * 0.8, 280);
     track.scrollBy({ left: direction * scrollAmount, behavior: "smooth" });
   };
 
@@ -144,12 +154,20 @@ export default function DemoRecommendations({
             <p className="mt-1 text-sm leading-5 text-[#617780]">
               {content.subtitle}
             </p>
+            {modelMethod ? (
+              <p className="mt-1 text-xs leading-5 text-[#768990]">
+                {modelMethod}
+              </p>
+            ) : null}
           </div>
         </div>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4" aria-label="Cargando recomendaciones">
+        <div
+          className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4"
+          aria-label="Cargando recomendaciones"
+        >
           {Array.from({ length: 4 }).map((_, index) => (
             <div
               key={index}
@@ -186,6 +204,9 @@ export default function DemoRecommendations({
                     isPromoted={false}
                     view="grid"
                   />
+                  <p className="mt-2 text-xs leading-5 text-[#617780]">
+                    {product.recommendationReasons.join(" · ")}
+                  </p>
                 </div>
               ))}
             </div>

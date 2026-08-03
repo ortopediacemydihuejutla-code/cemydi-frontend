@@ -96,7 +96,7 @@ export function DemandForecastView() {
       >
         <Button variant="outline" onClick={() => void load()}>
           <RefreshCw />
-          Recalcular
+          Actualizar pronóstico
         </Button>
       </PageHeader>
 

@@ -1,7 +1,4 @@
-import {
-  type DemandForecast,
-  getDemandStatus,
-} from "@/data/demand-forecast";
+import { type DemandForecast, getDemandStatus } from "@/data/demand-forecast";
 import { AdminMetricCard } from "@/features/admin/components/admin-metric-card";
 import type { DemandForecastData } from "@/services/admin/types";
 
@@ -75,6 +72,8 @@ export function DemandForecastSummary({
       value: formatForecastMonth(model.forecastMonth),
     },
     { label: "Modelo", value: model.name },
+    { label: "Versión del artefacto", value: model.version },
+    { label: "Archivo cargado", value: model.artifact },
     {
       label: "R² de validación",
       value: model.r2.toFixed(3),
@@ -140,13 +139,14 @@ export function DemandForecastSummary({
             Información del pronóstico
           </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Las métricas se calculan con los últimos {model.validationMonths}{" "}
-            meses, equivalentes a{" "}
+            El backend carga el artefacto entrenado y usa precio, inventario,
+            promoción e historial reciente para ejecutar cada predicción. Las
+            métricas corresponden a los últimos {model.validationMonths} meses
+            reservados durante el entrenamiento, equivalentes a{" "}
             {model.validationRows.toLocaleString("es-MX")} registros, que no
-            participaron en el entrenamiento de evaluación. Después de evaluar
-            el modelo, se realiza un ajuste final con los{" "}
-            {model.finalTrainingRows.toLocaleString("es-MX")} registros
-            históricos para generar el pronóstico.
+            participaron en el ajuste de evaluación. El artefacto final fue
+            entrenado con los {model.finalTrainingRows.toLocaleString("es-MX")}{" "}
+            registros históricos.
           </p>
           <div className="mt-3 space-y-1 text-sm text-muted-foreground">
             <p>

@@ -117,32 +117,51 @@ export async function getCatalogProducts(params: {
     searchParams.set("page", String(params.page));
   }
 
-  if (params.pageSize && Number.isInteger(params.pageSize) && params.pageSize > 0) {
+  if (
+    params.pageSize &&
+    Number.isInteger(params.pageSize) &&
+    params.pageSize > 0
+  ) {
     searchParams.set("pageSize", String(params.pageSize));
   }
 
   const query = searchParams.toString();
   const res = await publicFetch(`/products${query ? `?${query}` : ""}`);
 
-  return parseApiResponse(res, "No se pudo cargar el catalogo", catalogResponseSchema);
+  return parseApiResponse(
+    res,
+    "No se pudo cargar el catalogo",
+    catalogResponseSchema,
+  );
 }
 
 export async function getCatalogProductById(id: number) {
   const res = await publicFetch(`/products/${id}`);
 
-  return parseApiResponse(res, "No se pudo cargar el producto", catalogProductDetailSchema);
+  return parseApiResponse(
+    res,
+    "No se pudo cargar el producto",
+    catalogProductDetailSchema,
+  );
 }
 
 export async function getCatalogProductBySlug(slug: string) {
   const res = await publicFetch(`/products/slug/${encodeURIComponent(slug)}`);
 
-  return parseApiResponse(res, "No se pudo cargar el producto", catalogProductDetailSchema);
+  return parseApiResponse(
+    res,
+    "No se pudo cargar el producto",
+    catalogProductDetailSchema,
+  );
 }
 
-export async function getCatalogRecommendations(productId: number, limit = 8) {
-  const res = await publicFetch(`/products/${productId}/recommendations?limit=${limit}`, {
-    cache: "no-store",
-  });
+export async function getCatalogRecommendations(productId: number, limit = 5) {
+  const res = await publicFetch(
+    `/products/${productId}/recommendations?limit=${limit}`,
+    {
+      cache: "no-store",
+    },
+  );
 
   return parseApiResponse<{
     method: string;

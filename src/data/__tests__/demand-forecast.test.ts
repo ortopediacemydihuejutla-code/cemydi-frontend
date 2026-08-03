@@ -20,6 +20,7 @@ const forecast = (shortage: number): DemandForecast => ({
   previousMonthRentals: 0,
   previousMonthViews: 10,
   activePromotion: false,
+  predictedDemandDecimal: 20 + shortage,
   predictedDemand: 20 + shortage,
   shortage,
   recommendation: "Revisar inventario.",

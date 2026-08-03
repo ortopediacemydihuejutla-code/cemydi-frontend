@@ -430,7 +430,10 @@ export function ProductSegmentationView() {
           </div>
           <p className="rounded-xl bg-muted/60 px-4 py-3 text-xs leading-relaxed text-muted-foreground">
             Modelo:{" "}
-            <span className="font-medium text-foreground">{data.method}</span>
+            <span className="font-medium text-foreground">{data.method}</span>{" "}
+            Entrenado con {data.model.trainingRows.toLocaleString("es-MX")}{" "}
+            clientes; silhouette {data.model.silhouette.toFixed(3)} y
+            Davies-Bouldin {data.model.daviesBouldin.toFixed(3)}.
           </p>
         </section>
       </div>
