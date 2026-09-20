@@ -4,7 +4,8 @@ import "./globals.css";
 import { headers } from "next/headers";
 import { AuthProvider } from "@/providers/AuthContext";
 import { CartProvider } from "@/providers/CartContext";
-import ToasterClient from "@/components/providers/ToasterClient";
+import ToasterClient from "@/providers/ToasterClient";
+import { ErrorMonitoringClient } from "@/providers/ErrorMonitoringClient";
 import AppShell from "@/components/layout/AppShell";
 import { getSiteUrl } from "@/lib/site-config";
 
@@ -44,7 +45,7 @@ export default async function RootLayout({
   const pathname = requestHeaders.get("x-pathname") ?? "";
 
   return (
-    <html lang="es">
+    <html lang="es" suppressHydrationWarning>
       <head>
         <link
           rel="icon"
@@ -85,6 +86,7 @@ export default async function RootLayout({
         <AuthProvider>
           <CartProvider>
             <ToasterClient />
+            <ErrorMonitoringClient />
             <AppShell initialPathname={pathname}>{children}</AppShell>
           </CartProvider>
         </AuthProvider>

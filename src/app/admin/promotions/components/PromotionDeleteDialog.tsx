@@ -2,7 +2,7 @@
 
 import type { AdminPromotion } from "@/services/admin";
 
-import { ConfirmDialog } from "@/components/feedback";
+import { ConfirmDialog } from "@/features/admin/components/confirm-dialog";
 
 type PromotionDeleteDialogProps = {
   deleteTarget: AdminPromotion | null;

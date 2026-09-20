@@ -18,7 +18,6 @@ import {
   TicketPercent,
   FileText,
   ClipboardCheck,
-  TrendingUp,
 } from "lucide-react"
 
 import { NavMain } from "./nav-main"
@@ -95,25 +94,8 @@ const data = {
     },
     {
       title: "Analytics",
-      url: "#",
+      url: "/admin/analytics",
       icon: BarChart3,
-      items: [
-        {
-          icon: BarChart3,
-          title: "Resumen general",
-          url: "/admin/analytics",
-        },
-        {
-          icon: LayersPlus,
-          title: "Segmentación de clientes",
-          url: "/admin/analytics/product-segmentation",
-        },
-        {
-          icon: TrendingUp,
-          title: "Predicción de demanda",
-          url: "/admin/analytics/demand-forecast",
-        },
-      ],
     },
     {
       title: "Reseñas",
@@ -130,16 +112,16 @@ const data = {
           title: "Monitoreo de BD",
           url: "/admin/database",
         },
-         {
-           icon: FileText,
-           title: "Quiénes somos",
-           url: "/admin/about",
-         },
-         {
-           icon: ClipboardCheck,
-           title: "Páginas legales",
-           url: "/admin/legal",
-         }
+        {
+          icon: FileText,
+          title: "Quiénes somos",
+          url: "/admin/about",
+        },
+        {
+          icon: ClipboardCheck,
+          title: "Páginas legales",
+          url: "/admin/legal",
+        },
       ],
     },
   ],

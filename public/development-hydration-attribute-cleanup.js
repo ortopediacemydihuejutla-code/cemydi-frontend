@@ -1,13 +1,21 @@
 (() => {
-  const attributeName = "bis_skin_checked";
+  const extensionAttributes = [
+    "bis_skin_checked",
+    "data-mbtss-nonce",
+    "data-lt-installed",
+  ];
 
   const cleanElement = (element) => {
     if (!(element instanceof Element)) return;
 
-    element.removeAttribute(attributeName);
-    element.querySelectorAll(`[${attributeName}]`).forEach((child) => {
-      child.removeAttribute(attributeName);
-    });
+    for (const attr of extensionAttributes) {
+      if (element.hasAttribute(attr)) {
+        element.removeAttribute(attr);
+      }
+      element.querySelectorAll(`[${attr}]`).forEach((child) => {
+        child.removeAttribute(attr);
+      });
+    }
   };
 
   cleanElement(document.documentElement);
@@ -25,7 +33,7 @@
 
   observer.observe(document.documentElement, {
     attributes: true,
-    attributeFilter: [attributeName],
+    attributeFilter: extensionAttributes,
     childList: true,
     subtree: true,
   });
