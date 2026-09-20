@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { ConfirmDialog } from "@/components/feedback";
+import { ConfirmDialog } from "@/features/admin/components/confirm-dialog";
 import { AdminFilterTabs } from "@/features/admin/components/admin-filter-tabs";
 import { AdminMetricCard } from "@/features/admin/components/admin-metric-card";
 import { AdminSearchField } from "@/features/admin/components/admin-search-field";

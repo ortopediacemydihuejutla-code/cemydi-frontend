@@ -1,6 +1,6 @@
 "use client";
 
-import { ConfirmDialog } from "@/components/feedback";
+import { ConfirmDialog } from "@/features/admin/components/confirm-dialog";
 
 import type { ProductsAdminState } from "../hooks/useProducts";
 

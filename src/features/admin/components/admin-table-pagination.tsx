@@ -42,6 +42,7 @@ export function AdminTablePagination({
         <PaginationContent>
           <PaginationItem>
             <PaginationPrevious
+              aria-label="Página anterior"
               disabled={page === 1 || navDisabled}
               onClick={onPrev}
             />
@@ -55,6 +56,7 @@ export function AdminTablePagination({
           </PaginationItem>
           <PaginationItem>
             <PaginationNext
+              aria-label="Página siguiente"
               disabled={page === totalPages || navDisabled}
               onClick={onNext}
             />

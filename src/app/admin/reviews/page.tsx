@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { ConfirmDialog } from "@/components/feedback";
+import { ConfirmDialog } from "@/features/admin/components/confirm-dialog";
 import {
   approveReview,
   deleteReview,

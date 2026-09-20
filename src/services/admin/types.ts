@@ -171,87 +171,6 @@ export type AnalyticsDashboardData = {
   }>;
 };
 
-export type CustomerClusterCode = "C1" | "C2" | "C3" | "C4";
-
-export type CustomerSegment = {
-  code: CustomerClusterCode;
-  name: string;
-  description: string;
-  action: string;
-  color: string;
-  count: number;
-  percentage: number;
-  averages: {
-    sales: number;
-    rentals: number;
-    consultations: number;
-    spend: number;
-  };
-};
-
-export type SegmentedCustomer = {
-  id: number;
-  name: string;
-  email: string;
-  cluster: CustomerClusterCode;
-  views: number;
-  searches: number;
-  consultations: number;
-  distinctProducts: number;
-  completedSales: number;
-  unitsPurchased: number;
-  validRentals: number;
-  unitsRented: number;
-  salesSpend: number;
-  rentalSpend: number;
-  totalSpend: number;
-  averageRentalDays: number;
-  daysSinceLastActivity: number;
-  averageMonthlyActivity: number;
-  interests: string[];
-  engagementScore: number;
-  valueScore: number;
-};
-
-export type CustomerSegmentationData = {
-  generatedAt: string;
-  method: string;
-  sourceRows: number;
-  clusters: CustomerSegment[];
-  customers: SegmentedCustomer[];
-};
-
-export type DemandForecast = {
-  id: number;
-  productName: string;
-  shortName: string;
-  classification: string;
-  acquisitionType: "VENTA" | "RENTA" | "MIXTO";
-  price: number;
-  currentStock: number;
-  month: number;
-  previousMonthSales: number;
-  previousMonthRentals: number;
-  previousMonthViews: number;
-  activePromotion: boolean;
-  predictedDemand: number;
-  recommendation: string;
-};
-
-export type DemandForecastData = {
-  generatedAt: string;
-  model: {
-    name: string;
-    trainingRows: number;
-    products: number;
-    historicalMonths: number;
-    r2: number;
-    mae: number;
-    forecastMonth: string;
-  };
-  forecasts: DemandForecast[];
-};
-
 export type AdminReview = {
   id: number;
   productId: number;
@@ -583,10 +502,7 @@ export type AdminActivityItem = {
 };
 
 export type AdminNotificationCategory =
-  | "rental"
-  | "review"
-  | "inventory"
-  | "sale";
+  "rental" | "review" | "inventory" | "sale";
 
 export type AdminNotificationItem = {
   id: string;

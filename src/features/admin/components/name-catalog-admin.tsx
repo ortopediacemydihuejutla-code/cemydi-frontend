@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
-import { ConfirmDialog } from "@/components/feedback";
+import { ConfirmDialog } from "./confirm-dialog";
 import {
   createBrand,
   createClassification,

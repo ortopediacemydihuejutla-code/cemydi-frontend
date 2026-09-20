@@ -1,12 +1,29 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
-import { useAuth } from "@/providers/AuthContext";
-import { AuthRouteLoading } from "@/components/auth/auth-route-loading";
-import { logoutUser } from "@/services/auth";
-import { updateMyProfile } from "@/services/users";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Mail,
+  MapPin,
+  Pencil,
+  Phone,
+  Save,
+  UserRound,
+  X,
+} from "lucide-react";
+import { useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import toast from "react-hot-toast";
+
+import {
+  AccountPageHeader,
+  accountInputClassName,
+} from "@/components/account/AccountPageHeader";
+import { CustomerAccountShell } from "@/components/account/CustomerAccountShell";
+import { AuthRouteLoading } from "@/components/auth/auth-route-loading";
+import { useAuth } from "@/providers/AuthContext";
+import { isProfileComplete } from "@/lib/profile-completion";
+import { updateMyProfile } from "@/services/users";
 
 type ProfileForm = {
   nombre: string;
@@ -24,66 +41,35 @@ function toForm(user: Record<string, unknown>): ProfileForm {
   };
 }
 
-const inputClassName =
-  "w-full rounded-[14px] border border-[#d6dee2] bg-white px-4 py-[14px] text-[1.06rem] text-[#1f3b4d] transition-[border-color,box-shadow] focus:border-[#2b9f9b] focus:shadow-[0_0_0_3px_rgba(43,159,155,0.18)] focus:outline-none disabled:border-dashed disabled:bg-[#f5f8f9] disabled:text-[#49596c]";
-
 export default function PerfilPage() {
   const router = useRouter();
-  const { user, loading, updateUser, logout } = useAuth();
-
-  useEffect(() => {
-    if (!loading && !user) {
-      router.replace("/login");
-    }
-  }, [loading, router, user]);
-
+  const searchParams = useSearchParams();
+  const { user, loading, updateUser } = useAuth();
+  const requestedCompletion = searchParams.get("completar") === "1";
   const [form, setForm] = useState<ProfileForm>({
     nombre: "",
     correo: "",
     telefono: "",
     direccion: "",
   });
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(requestedCompletion);
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!user) return;
-    setForm(toForm(user as Record<string, unknown>));
+    if (!loading && !user) router.replace("/login");
+  }, [loading, router, user]);
+
+  useEffect(() => {
+    if (user) setForm(toForm(user as Record<string, unknown>));
   }, [user]);
 
-  const initials = useMemo(() => {
-    const fullName = form.nombre.trim();
-    if (!fullName) return "U";
-    const letters = fullName
-      .split(" ")
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part[0]?.toUpperCase() ?? "");
-    return letters.join("");
-  }, [form.nombre]);
-
-  const handleChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-  ) => {
-    const { name, value } = e.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const startEdit = () => {
-    if (!user) return;
-    setForm(toForm(user as Record<string, unknown>));
-    setIsEditing(true);
-  };
-
   const cancelEdit = () => {
-    if (!user) return;
-    setForm(toForm(user as Record<string, unknown>));
+    if (user) setForm(toForm(user as Record<string, unknown>));
     setIsEditing(false);
   };
 
-  const saveProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-
+  const saveProfile = async (event: React.FormEvent) => {
+    event.preventDefault();
     const nombre = form.nombre.trim();
     const correo = form.correo.trim();
 
@@ -91,7 +77,6 @@ export default function PerfilPage() {
       toast.error("El nombre es obligatorio.");
       return;
     }
-
     if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
       toast.error("Ingresa un correo válido.");
       return;
@@ -99,180 +84,247 @@ export default function PerfilPage() {
 
     try {
       setIsSaving(true);
-
       const result = await updateMyProfile({
         nombre,
         correo,
         telefono: form.telefono.trim(),
         direccion: form.direccion.trim(),
       });
-
       updateUser(result.user);
       setForm(toForm(result.user as Record<string, unknown>));
-      toast.success("Perfil actualizado correctamente.");
       setIsEditing(false);
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "No se pudo actualizar el perfil.";
-      toast.error(message);
+      toast.success("Perfil actualizado correctamente.");
+
+      if (requestedCompletion && isProfileComplete(result.user)) {
+        router.push("/catalogo");
+      }
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No se pudo actualizar el perfil.",
+      );
     } finally {
       setIsSaving(false);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logoutUser();
-    } catch {
-      // Si la sesión ya expiró, igual limpiamos el estado local.
-    } finally {
-      logout();
-      toast.success("Sesión cerrada correctamente");
-      router.push("/login");
     }
   };
 
   if (loading) {
     return (
       <AuthRouteLoading
-        title="Cargando cuenta"
-        description="Preparando tu perfil..."
+        title="Cargando perfil"
+        description="Preparando tus datos..."
       />
     );
   }
+  if (!user) return null;
 
-  if (!user) {
-    return null;
-  }
+  const profileComplete = isProfileComplete(user);
+  const showCompletionNotice = !profileComplete;
 
   return (
-    <div className="min-h-[calc(100vh-120px)] bg-[#f3f6f6] px-4 py-9">
-      <div className="mx-auto grid max-w-[1080px] gap-6">
-      <div className="grid overflow-hidden rounded-[28px] border border-[#dae5e5] bg-white shadow-[0_20px_44px_rgba(16,50,49,0.12)] min-[981px]:grid-cols-[340px_1fr]">
-        <aside className="flex flex-col gap-[14px] bg-[#1f6a67] px-[34px] py-11 text-white max-[980px]:px-[22px] max-[980px]:py-[30px]">
-          <div className="grid size-[120px] place-items-center rounded-full bg-white/14 text-[2.6rem] font-extrabold">
-            {initials}
-          </div>
-          <h2 className="mt-1 text-[2rem] leading-[1.15]">{form.nombre || "Usuario"}</h2>
-          <p className="m-0 opacity-95">{form.correo || "Sin correo"}</p>
-          <div className="mt-auto flex flex-col gap-1 rounded-[14px] border border-white/12 bg-[rgba(12,48,46,0.55)] p-4 text-[0.8rem] uppercase tracking-[0.05em]">
-            <span>{user.rol === "ADMIN" ? "Rol" : "Estado"}</span>
-            <strong className="text-[1.15rem] normal-case tracking-normal">
-              {user.rol === "ADMIN" ? "Administrador" : "Cuenta activa"}
-            </strong>
-          </div>
-        </aside>
+    <CustomerAccountShell>
+      <div>
+        <AccountPageHeader
+          title="Información personal"
+          description="Mantén actualizados los datos que usamos para tus solicitudes y entregas."
+          actions={
+            !isEditing ? (
+              <button
+                type="button"
+                onClick={() => setIsEditing(true)}
+                className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-[#1f6a67] px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-[#154f4d]"
+              >
+                <Pencil className="size-4" />
+                Editar información
+              </button>
+            ) : null
+          }
+        />
 
-        <section className="px-5 pt-7 pb-8 min-[981px]:px-[46px] min-[981px]:pt-10 min-[981px]:pb-8">
-          <div className="mb-[18px] flex flex-col gap-4 border-b border-[#d4dbdc] pb-[18px] min-[981px]:flex-row min-[981px]:items-start min-[981px]:justify-between">
+        <form onSubmit={saveProfile} className="py-10">
+          {showCompletionNotice ? (
+            <div
+              role="status"
+              className="mb-10 flex items-start gap-4 rounded-2xl border border-[#f4c27a]/60 bg-gradient-to-r from-[#fff8ed] to-[#fff4e3] p-5 text-[#8a4b0f] shadow-sm"
+            >
+              <span className="grid size-10 shrink-0 place-items-center rounded-full bg-[#fdecd3] text-[#d97706]">
+                <AlertTriangle className="size-5" aria-hidden="true" />
+              </span>
+              <div>
+                <p className="text-sm font-bold text-[#8a4b0f]">
+                  Aún debes completar tu perfil
+                </p>
+                <p className="mt-1 text-sm leading-6 text-[#9a5d2c]">
+                  Agrega tu teléfono y dirección para continuar al catálogo y
+                  gestionar entregas o solicitudes de renta.
+                </p>
+              </div>
+            </div>
+          ) : null}
+
+          <div className="grid gap-8 border-b border-[#e2ecec] pb-10 lg:grid-cols-[280px_1fr] lg:gap-16">
             <div>
-              <h3 className="m-0 text-[2rem] text-[#0f3231]">Información personal</h3>
-              <p className="mt-2 text-[1.02rem] text-[#607173]">
-                Mantén tus datos actualizados para agilizar tus compras.
+              <h3 className="text-lg font-bold text-[#0f3d3b]">
+                Información de contacto
+              </h3>
+              <p className="mt-2 text-sm leading-6 text-[#5e7472]">
+                Actualiza tu nombre completo, correo electrónico y la dirección predeterminada que usamos para tus entregas.
               </p>
             </div>
 
-            {!isEditing ? (
+            <div className="grid gap-x-6 gap-y-6 sm:grid-cols-2">
+              <div className="mb-6 flex items-center gap-5 sm:col-span-2">
+                <span className="grid size-16 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#1f6a67] to-[#0f3d3b] text-white shadow-md ring-4 ring-[#eef7f6]">
+                  <UserRound className="size-7" strokeWidth={1.8} />
+                </span>
+                <div>
+                  <p className="text-lg font-bold text-[#0f3d3b]">
+                    {form.nombre || "Cliente"}
+                  </p>
+                  <p className="text-sm font-medium text-[#5e7472]">
+                    {user.emailVerified ? "Cuenta verificada" : "Correo por verificar"}
+                  </p>
+                </div>
+              </div>
+
+              <label className="grid gap-2 text-sm font-bold text-[#0f3d3b]">
+                Nombre completo
+                <span className="relative">
+                  <UserRound className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#718184]" />
+                  <input
+                    name="nombre"
+                    value={form.nombre}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        nombre: event.target.value,
+                      }))
+                    }
+                    disabled={!isEditing}
+                    className={`${accountInputClassName} pl-11`}
+                    required
+                  />
+                </span>
+              </label>
+
+              <label className="grid gap-2 text-sm font-bold text-[#0f3d3b]">
+                Correo electrónico
+                <span className="relative">
+                  <Mail className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#718184]" />
+                  <input
+                    name="correo"
+                    type="email"
+                    value={form.correo}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        correo: event.target.value,
+                      }))
+                    }
+                    disabled={!isEditing}
+                    className={`${accountInputClassName} pl-11`}
+                    required
+                  />
+                </span>
+              </label>
+
+              <label className="grid gap-2 text-sm font-bold text-[#0f3d3b]">
+                Teléfono
+                <span className="relative">
+                  <Phone className="pointer-events-none absolute left-4 top-1/2 size-4 -translate-y-1/2 text-[#718184]" />
+                  <input
+                    name="telefono"
+                    type="tel"
+                    value={form.telefono}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        telefono: event.target.value,
+                      }))
+                    }
+                    disabled={!isEditing}
+                    placeholder="Agrega tu teléfono"
+                    className={`${accountInputClassName} pl-11`}
+                  />
+                </span>
+              </label>
+
+              <label className="grid gap-2 text-sm font-bold text-[#0f3d3b] sm:col-span-2">
+                Dirección
+                <span className="relative">
+                  <MapPin className="pointer-events-none absolute left-4 top-4 size-4 text-[#718184]" />
+                  <textarea
+                    name="direccion"
+                    value={form.direccion}
+                    onChange={(event) =>
+                      setForm((current) => ({
+                        ...current,
+                        direccion: event.target.value,
+                      }))
+                    }
+                    disabled={!isEditing}
+                    rows={3}
+                    placeholder="Agrega una dirección de entrega"
+                    className={`${accountInputClassName} h-auto min-h-[100px] resize-y py-3.5 pl-11`}
+                  />
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {isEditing ? (
+            <div className="mt-8 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
               <button
                 type="button"
-                className="rounded-xl bg-[#2f9e9a] px-5 py-3 text-base font-bold text-white disabled:cursor-not-allowed disabled:opacity-70"
-                onClick={startEdit}
+                onClick={cancelEdit}
+                disabled={isSaving}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-[#cfdedd] bg-white px-5 text-sm font-bold text-[#405b65] shadow-sm transition hover:bg-[#f4f8f8] hover:text-[#0f3d3b]"
               >
-                Editar
+                <X className="size-4" />
+                Cancelar
               </button>
-            ) : null}
+              <button
+                type="submit"
+                disabled={isSaving}
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#1f6a67] px-6 text-sm font-bold text-white shadow-sm transition hover:bg-[#154f4d] hover:shadow-md disabled:opacity-60"
+              >
+                <Save className="size-4" />
+                {isSaving ? "Guardando..." : "Guardar cambios"}
+              </button>
+            </div>
+          ) : null}
+        </form>
+
+        <div className="mt-10 grid gap-8 lg:grid-cols-[280px_1fr] lg:gap-16">
+          <div>
+            <h3 className="text-lg font-bold text-[#0f3d3b]">
+              Seguridad
+            </h3>
+            <p className="mt-2 text-sm leading-6 text-[#5e7472]">
+              Configuración de privacidad y seguridad de tu cuenta.
+            </p>
           </div>
-
-          <form onSubmit={saveProfile} className="grid gap-3">
-            <label htmlFor="nombre" className="text-[0.86rem] font-bold uppercase tracking-[0.03em] text-[#7c8a93]">
-              Nombre
-            </label>
-            <input
-              id="nombre"
-              name="nombre"
-              value={form.nombre}
-              onChange={handleChange}
-              disabled={!isEditing}
-              placeholder="Nombre completo"
-              required
-              className={inputClassName}
+          
+          <div className="flex items-start gap-4">
+            <CheckCircle2
+              className={`mt-0.5 size-5 shrink-0 ${
+                user.emailVerified ? "text-[#1f6a67]" : "text-[#d97706]"
+              }`}
             />
-
-            <label htmlFor="correo" className="text-[0.86rem] font-bold uppercase tracking-[0.03em] text-[#7c8a93]">
-              Correo electrónico
-            </label>
-            <input
-              id="correo"
-              name="correo"
-              type="email"
-              value={form.correo}
-              onChange={handleChange}
-              disabled={!isEditing}
-              placeholder="correo@ejemplo.com"
-              required
-              className={inputClassName}
-            />
-
-            <label htmlFor="telefono" className="text-[0.86rem] font-bold uppercase tracking-[0.03em] text-[#7c8a93]">
-              Teléfono
-            </label>
-            <input
-              id="telefono"
-              name="telefono"
-              value={form.telefono}
-              onChange={handleChange}
-              disabled={!isEditing}
-              placeholder="No registrado"
-              className={inputClassName}
-            />
-
-            <label htmlFor="direccion" className="text-[0.86rem] font-bold uppercase tracking-[0.03em] text-[#7c8a93]">
-              Dirección
-            </label>
-            <textarea
-              id="direccion"
-              name="direccion"
-              value={form.direccion}
-              onChange={handleChange}
-              disabled={!isEditing}
-              placeholder="No registrada"
-              rows={3}
-              className={`${inputClassName} min-h-[90px] resize-y`}
-            />
-
-            {isEditing ? (
-              <div className="mt-[14px] flex flex-col gap-3 min-[981px]:flex-row min-[981px]:justify-end max-[980px]:[&>button]:flex-1">
-                <button
-                  type="button"
-                  className="rounded-xl bg-[#e9eff0] px-5 py-3 text-base font-bold text-[#274045]"
-                  onClick={cancelEdit}
-                  disabled={isSaving}
-                >
-                  Cancelar
-                </button>
-                <button
-                  type="submit"
-                  className="rounded-xl bg-[#2f9e9a] px-5 py-3 text-base font-bold text-white disabled:cursor-not-allowed disabled:opacity-70"
-                  disabled={isSaving}
-                >
-                  {isSaving ? "Guardando..." : "Guardar cambios"}
-                </button>
-              </div>
-            ) : null}
-          </form>
-
-          <div className="mt-[22px] flex justify-center min-[981px]:justify-end">
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="border-0 bg-transparent p-0 text-base font-bold text-[#d51717] hover:underline"
-            >
-              Cerrar sesión
-            </button>
+            <div>
+              <p className="text-sm font-bold text-[#0f3d3b]">
+                {user.emailVerified
+                  ? "Correo electrónico verificado"
+                  : "Verificación de correo pendiente"}
+              </p>
+              <p className="mt-1 text-sm font-medium leading-6 text-[#5e7472]">
+                Tus datos solo se usan para gestionar tu cuenta y tus solicitudes.
+              </p>
+            </div>
           </div>
-        </section>
+        </div>
       </div>
-      </div>
-    </div>
+    </CustomerAccountShell>
   );
 }

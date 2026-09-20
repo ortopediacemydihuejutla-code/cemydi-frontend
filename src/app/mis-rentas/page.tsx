@@ -13,6 +13,13 @@ import {
 } from "lucide-react";
 import toast from "react-hot-toast";
 
+import {
+  AccountPageHeader,
+  accountInputClassName,
+} from "@/components/account/AccountPageHeader";
+import { AccountEmptyState } from "@/components/account/AccountEmptyState";
+import { AccountPagination } from "@/components/account/AccountPagination";
+import { CustomerAccountShell } from "@/components/account/CustomerAccountShell";
 import { AuthRouteLoading } from "@/components/auth/auth-route-loading";
 import RentalCancellationDialog from "@/components/rentals/RentalCancellationDialog";
 import {
@@ -84,13 +91,34 @@ export default function MisRentasPage() {
     if (authLoading) return;
     if (!user) {
       router.replace("/login");
-      return;
     }
-    if (user.rol !== "CLIENT") router.replace("/perfil");
   }, [authLoading, router, user]);
 
   useEffect(() => {
-    if (authLoading || !user || user.rol !== "CLIENT") return;
+    if (authLoading || !user) return;
+    if (user.rol !== "CLIENT") {
+      setRentals([]);
+      setCounts({
+        all: 0,
+        pending: 0,
+        documentationPending: 0,
+        scheduled: 0,
+        active: 0,
+        dueSoon: 0,
+        finalized: 0,
+        rejected: 0,
+        cancelled: 0,
+      });
+      setPagination({
+        page: 1,
+        pageSize: 8,
+        total: 0,
+        totalPages: 1,
+      });
+      setLoadError(null);
+      setLoading(false);
+      return;
+    }
     let cancelled = false;
 
     setLoading(true);
@@ -160,41 +188,37 @@ export default function MisRentasPage() {
       />
     );
   }
-  if (!user || user.rol !== "CLIENT") return null;
+  if (!user) return null;
 
   return (
-    <div className="min-h-[calc(100vh-120px)] bg-[#f3f6f6] px-4 py-9">
-      <main className="mx-auto max-w-[1080px]">
-        <header className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <div>
-            <h1 className="text-[2rem] font-semibold leading-tight text-[#0f3231] sm:text-[2.35rem]">
-              Mis rentas
-            </h1>
-            <p className="mt-2 max-w-2xl text-[1rem] leading-7 text-[#607173]">
-              Consulta tus solicitudes, documentos y fechas de devolución.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2 text-sm font-bold">
-            <span className="rounded-full bg-white px-4 py-2 text-[#405b65] shadow-[0_10px_22px_rgba(16,50,49,0.07)]">
+    <CustomerAccountShell>
+      <div>
+        <AccountPageHeader
+          title="Mis rentas"
+          description="Consulta tus solicitudes, documentos y fechas de devolución."
+          actions={
+          <div className="flex flex-wrap gap-2 text-xs font-semibold">
+            <span className="rounded-full border border-[#cfdedd] bg-[#f4f8f8] px-3 py-1.5 text-[#405b65]">
               {counts.all} solicitud{counts.all === 1 ? "" : "es"}
             </span>
-            <span className="rounded-full bg-[#fff7e8] px-4 py-2 text-[#845b12]">
+            <span className="rounded-full border border-[#665940] px-3 py-1.5 text-[#cdb07b]">
               {counts.pending} pendiente{counts.pending === 1 ? "" : "s"}
             </span>
             {counts.documentationPending > 0 ? (
-              <span className="rounded-full bg-[#fff1f1] px-4 py-2 text-[#9b2c25]">
+              <span className="rounded-full border border-[#68494c] px-3 py-1.5 text-[#d9a0a5]">
                 {counts.documentationPending} con documentos pendientes
               </span>
             ) : null}
             {counts.dueSoon > 0 ? (
-              <span className="rounded-full bg-[#fff1df] px-4 py-2 text-[#a15c08]">
+              <span className="rounded-full border border-[#665940] px-3 py-1.5 text-[#cdb07b]">
                 {counts.dueSoon} próxima{counts.dueSoon === 1 ? "" : "s"} a vencer
               </span>
             ) : null}
           </div>
-        </header>
+          }
+        />
 
-        <section className="mb-5 grid gap-3 rounded-[22px] border border-[#dae5e5] bg-white p-4 shadow-[0_14px_28px_rgba(16,50,49,0.06)] sm:grid-cols-[minmax(0,1fr)_240px]">
+        <section className="grid gap-3 border-b border-[#deebeb] py-5 sm:grid-cols-[minmax(0,1fr)_240px]">
           <label className="relative">
             <span className="sr-only">Buscar rentas</span>
             <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-[#71858c]" />
@@ -206,7 +230,7 @@ export default function MisRentasPage() {
                 setPage(1);
               }}
               placeholder="Buscar por folio o producto"
-              className="h-11 w-full rounded-xl border border-[#d4dfe2] bg-white pl-10 pr-3 text-sm text-[#193844] outline-none focus:border-[#1f6a67]"
+              className={`${accountInputClassName} pl-10`}
             />
           </label>
           <label>
@@ -217,7 +241,7 @@ export default function MisRentasPage() {
                   setStatusFilter(event.target.value as MyRentalFilter);
                   setPage(1);
               }}
-              className="h-11 w-full rounded-xl border border-[#d4dfe2] bg-white px-3 text-sm font-semibold text-[#405b65] outline-none focus:border-[#1f6a67]"
+              className={accountInputClassName}
             >
               {STATUS_FILTERS.map((option) => (
                 <option key={option.value} value={option.value}>
@@ -229,62 +253,60 @@ export default function MisRentasPage() {
         </section>
 
         {loading ? (
-          <div className="rounded-[24px] border border-[#dae5e5] bg-white p-6 shadow-[0_18px_36px_rgba(16,50,49,0.08)]">
-            <p className="bg-[#edf4f5] px-4 py-3 font-semibold text-[#3d5d66]">
-              Cargando solicitudes...
-            </p>
+          <div className="py-10">
+            <p className="text-sm text-[#607173]">Cargando solicitudes...</p>
           </div>
         ) : loadError ? (
-          <div className="rounded-[24px] border border-[#f3c7c2] bg-white px-5 py-10 text-center shadow-[0_18px_36px_rgba(16,50,49,0.08)]">
-            <XCircle className="mx-auto size-10 text-[#b42318]" />
-            <h2 className="mt-3 text-lg font-semibold text-[#17333f]">
+          <div className="py-12">
+            <XCircle className="size-8 text-[#d9a0a5]" />
+            <h2 className="mt-4 text-lg font-semibold text-[#17333f]">
               No pudimos cargar tus rentas
             </h2>
-            <p className="mt-2 text-[#607173]">{loadError}</p>
+            <p className="mt-2 text-sm text-[#607173]">{loadError}</p>
             <button
               type="button"
               onClick={() => setReloadKey((current) => current + 1)}
-              className="mt-5 rounded-full bg-[#1f6a67] px-5 py-2.5 font-bold text-white"
+              className="mt-5 rounded-[8px] bg-[#1f6a67] px-4 py-2.5 text-sm font-semibold text-white"
             >
               Reintentar
             </button>
           </div>
         ) : counts.all === 0 ? (
-          <div className="rounded-[28px] border border-[#dae5e5] bg-white px-5 py-14 text-center shadow-[0_18px_36px_rgba(16,50,49,0.08)]">
-            <PackageCheck className="mx-auto size-12 text-[#1f6a67]" />
-            <h2 className="mt-4 text-[1.35rem] font-semibold text-[#17333f]">
-              Aún no tienes solicitudes de renta
-            </h2>
-            <p className="mx-auto mt-2 max-w-[520px] text-[#607173]">
-              Agrega productos de renta al carrito y envía tu solicitud para
-              revisión.
-            </p>
-            <Link
-              href="/catalogo"
-              className="mt-6 inline-flex rounded-full bg-[#1f6a67] px-6 py-3 font-bold text-white no-underline"
-            >
-              Ver catálogo
-            </Link>
-          </div>
+          <AccountEmptyState
+            icon={PackageCheck}
+            title="Aún no tienes solicitudes de renta"
+            description="Agrega productos de renta al carrito y envía tu solicitud para revisión."
+            action={
+              <Link
+                href="/catalogo"
+                className="inline-flex rounded-[8px] bg-[#1f6a67] px-4 py-2.5 text-sm font-semibold text-white no-underline hover:bg-[#154f4d]"
+              >
+                Ver catálogo
+              </Link>
+            }
+          />
         ) : rentals.length === 0 ? (
-          <div className="rounded-[24px] border border-[#dae5e5] bg-white px-5 py-10 text-center shadow-[0_18px_36px_rgba(16,50,49,0.08)]">
-            <h2 className="text-lg font-semibold text-[#17333f]">
-              No encontramos rentas con esos filtros
-            </h2>
-            <button
-              type="button"
-              onClick={() => {
-                setSearch("");
-                setStatusFilter("ALL");
-                setPage(1);
-              }}
-              className="mt-4 font-bold text-[#1f6a67]"
-            >
-              Limpiar filtros
-            </button>
-          </div>
+          <AccountEmptyState
+            icon={Search}
+            title="No encontramos rentas con esos filtros"
+            description="Prueba con otro folio, producto o estado."
+            compact
+            action={
+              <button
+                type="button"
+                onClick={() => {
+                  setSearch("");
+                  setStatusFilter("ALL");
+                  setPage(1);
+                }}
+                className="text-sm font-semibold text-[#1f6a67]"
+              >
+                Limpiar filtros
+              </button>
+            }
+          />
         ) : (
-          <div className="grid gap-5">
+          <div className="overflow-hidden rounded-xl border border-[#deebeb] bg-white">
             {rentals.map((rental) => {
               const presentation = getRentalStatusPresentation(rental);
               const dueDate = getRentalDueDate(rental);
@@ -294,7 +316,7 @@ export default function MisRentasPage() {
               return (
                 <article
                   key={rental.id}
-                  className="rounded-[24px] border border-[#dae5e5] bg-white p-5 shadow-[0_18px_36px_rgba(16,50,49,0.08)]"
+                  className="border-b border-[#deebeb] px-5 py-5 transition-colors last:border-b-0 hover:bg-[#f9fbfb]"
                 >
                   <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <div>
@@ -306,33 +328,33 @@ export default function MisRentasPage() {
                       >
                         {presentation.label}
                       </span>
-                      <h2 className="mt-3 text-[1.2rem] font-semibold text-[#17333f]">
+                      <h2 className="mt-3 text-[1.05rem] font-semibold text-[#17333f]">
                         {rentalDisplayFolio(rental)}
                       </h2>
-                      <p className="mt-1 text-sm text-[#607173]">
+                      <p className="mt-1 text-xs text-[#718184]">
                         Enviada:{" "}
                         {formatDateEsMx(rental.createdAt, { style: "short" })}
                       </p>
                     </div>
                     <div className="text-left sm:text-right">
-                      <strong className="text-[1.45rem] text-[#1f6a67]">
+                      <strong className="text-lg text-[#17333f]">
                         {formatCurrencyMx(rental.total, { fractionDigits: 0 })}
                       </strong>
-                      <p className="text-sm text-[#607173]">Total estimado</p>
+                      <p className="mt-1 text-xs text-[#718184]">Total estimado</p>
                     </div>
                   </div>
 
-                  <div className="mt-4 border-y border-[#e4ecee] py-2">
+                  <div className="mt-4 border-y border-[#deebeb] py-2">
                     {rental.items.map((item) => (
                       <div
                         key={item.id}
-                        className="flex flex-col gap-2 border-b border-[#edf2f3] py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
+                        className="flex flex-col gap-2 border-b border-[#deebeb] py-3 last:border-b-0 sm:flex-row sm:items-center sm:justify-between"
                       >
                         <div className="min-w-0">
-                          <p className="font-semibold text-[#17333f]">
+                          <p className="text-sm font-semibold text-[#17333f]">
                             {item.quantity} × {item.product.nombre}
                           </p>
-                          <p className="mt-1 flex items-center gap-2 text-sm text-[#607173]">
+                          <p className="mt-1 flex items-center gap-2 text-xs text-[#607173]">
                             <CalendarDays className="size-4 shrink-0 text-[#1f6a67]" />
                             {formatDateOnlyEsMx(item.startDate, { style: "short" })}{" "}
                             – {formatDateOnlyEsMx(item.endDate, { style: "short" })}
@@ -340,7 +362,7 @@ export default function MisRentasPage() {
                         </div>
                         <div className="flex items-center gap-3 text-sm">
                           {item.prescription ? (
-                            <span className="inline-flex items-center gap-1 font-semibold text-[#176c83]">
+                            <span className="inline-flex items-center gap-1 font-semibold text-[#1f6a67]">
                               <FileText className="size-4" /> Receta
                             </span>
                           ) : null}
@@ -354,7 +376,7 @@ export default function MisRentasPage() {
                     ))}
                   </div>
 
-                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-[#607173]">
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-xs text-[#607173]">
                     <div className="flex flex-wrap gap-x-4 gap-y-1">
                       <span>
                         {rental.items.length} producto
@@ -378,14 +400,14 @@ export default function MisRentasPage() {
                         <button
                           type="button"
                           onClick={() => setCancellationTarget(rental)}
-                          className="inline-flex items-center gap-2 rounded-xl border border-[#d7b1aa] px-4 py-2.5 font-bold text-[#b42318] transition hover:bg-[#fff1f1]"
+                          className="inline-flex items-center gap-2 rounded-[8px] border border-[#e4b9b5] px-3.5 py-2.5 text-sm font-semibold text-[#b42318] transition hover:bg-[#fff1f1]"
                         >
                           <XCircle className="size-4" /> Cancelar
                         </button>
                       ) : null}
                       <Link
                         href={"/mis-rentas/" + encodeURIComponent(rental.id)}
-                        className="inline-flex items-center gap-2 rounded-xl bg-[#1f6a67] px-4 py-2.5 font-bold text-white no-underline transition hover:bg-[#185856]"
+                        className="inline-flex items-center gap-2 rounded-[8px] border border-[#bdd5d4] px-3.5 py-2.5 text-sm font-semibold text-[#1f6a67] no-underline transition hover:bg-[#f0f8f7]"
                       >
                         <Eye className="size-4" /> Ver detalle
                       </Link>
@@ -394,36 +416,16 @@ export default function MisRentasPage() {
                 </article>
               );
             })}
-            {pagination.totalPages > 1 ? (
-              <nav className="flex items-center justify-center gap-3" aria-label="Paginación de rentas">
-                <button
-                  type="button"
-                  disabled={page <= 1 || loading}
-                  onClick={() => setPage((current) => Math.max(1, current - 1))}
-                  className="rounded-xl border border-[#d4dfe2] bg-white px-4 py-2 text-sm font-bold text-[#405b65] disabled:opacity-50"
-                >
-                  Anterior
-                </button>
-                <span className="text-sm font-semibold text-[#607173]">
-                  Página {pagination.page} de {pagination.totalPages}
-                </span>
-                <button
-                  type="button"
-                  disabled={page >= pagination.totalPages || loading}
-                  onClick={() =>
-                    setPage((current) =>
-                      Math.min(pagination.totalPages, current + 1),
-                    )
-                  }
-                  className="rounded-xl border border-[#d4dfe2] bg-white px-4 py-2 text-sm font-bold text-[#405b65] disabled:opacity-50"
-                >
-                  Siguiente
-                </button>
-              </nav>
-            ) : null}
+            <AccountPagination
+              page={pagination.page}
+              pageSize={pagination.pageSize}
+              total={pagination.total}
+              totalPages={pagination.totalPages}
+              onPageChange={setPage}
+            />
           </div>
         )}
-      </main>
+      </div>
 
       <RentalCancellationDialog
         open={Boolean(cancellationTarget)}
@@ -434,6 +436,6 @@ export default function MisRentasPage() {
         }}
         onConfirm={handleCancelRental}
       />
-    </div>
+    </CustomerAccountShell>
   );
 }

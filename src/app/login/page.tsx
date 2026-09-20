@@ -1,5 +1,7 @@
 // src/app/login/page.tsx
 
+// src/app/login/page.tsx
+
 "use client";
 
 import Link from "next/link";
@@ -7,11 +9,13 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Lock, LogIn, Mail } from "lucide-react";
 import { loginUser, resendVerificationEmail } from "@/services/auth";
-import { useAuth } from "@/providers/AuthContext";
+import { getMyProfile } from "@/services/users";
+import { isProfileComplete } from "@/lib/profile-completion";
+import { useAuth, type AuthUserProfile } from "@/providers/AuthContext";
 import toast from "react-hot-toast";
+import { ApiError } from "@/lib/api-error";
 import { AuthSplitLayout } from "@/components/auth/auth-split-layout";
 import {
-  AuthAlertBanner,
   AuthOrDivider,
   AuthPasswordField,
   AuthTextField,
@@ -95,7 +99,12 @@ export default function LoginPage() {
       return;
     }
 
-    router.replace(user.rol === "ADMIN" ? "/admin" : "/perfil");
+    const nextRole = user.rol === "ADMIN" ? "ADMIN" : "USER";
+    if (nextRole === "ADMIN") {
+      router.replace("/admin");
+    } else {
+      router.replace(isProfileComplete(user) ? "/catalogo" : "/mi-cuenta");
+    }
   }, [authLoading, router, user]);
 
   const runFieldValidation = (name: LoginField, value: string) => {
@@ -156,14 +165,41 @@ export default function LoginPage() {
       const nextRole = result.user?.rol === "ADMIN" ? "ADMIN" : "USER";
 
       shouldKeepSubmittingState = true;
-      login({ user: result.user });
+      
+      let nextPath = nextRole === "ADMIN" ? "/admin" : "/mi-cuenta";
+      let loggedUser: AuthUserProfile = result.user;
+
+      if (nextRole !== "ADMIN") {
+        try {
+          const profileResult = await getMyProfile();
+          if (profileResult.user) {
+            loggedUser = profileResult.user;
+            if (isProfileComplete(profileResult.user)) {
+              nextPath = "/catalogo";
+            }
+          }
+        } catch {
+          // Si falla, se queda con el path por defecto
+        }
+      }
+
+      login({ user: loggedUser });
 
       toast.success("Sesión iniciada correctamente.", { id: "auth-login-success" });
-      router.replace(nextRole === "ADMIN" ? "/admin" : "/perfil");
+      router.replace(nextPath);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "No se pudo iniciar sesión. Verifica tus datos.";
-      setSubmitError(message);
+      const isRateLimit =
+        (err instanceof ApiError && err.status === 429) ||
+        /intentos|solicitudes|throttler|too many requests/i.test(message);
+
+      if (isRateLimit) {
+        toast.error(message, { id: "auth-rate-limit" });
+      } else {
+        toast.error(message, { id: "auth-login-error" });
+      }
+      setSubmitError(null);
       setShowResendVerification(message.toLowerCase().includes("verificar tu correo"));
     } finally {
       if (!shouldKeepSubmittingState) {
@@ -198,7 +234,7 @@ export default function LoginPage() {
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "No se pudo reenviar el enlace de verificación.";
-      setSubmitError(message);
+      toast.error(message, { id: "auth-resend-error" });
     } finally {
       setResendingVerification(false);
     }
@@ -214,7 +250,7 @@ export default function LoginPage() {
       heroTitle="Bienvenido de vuelta"
       heroDescription="Gestiona tus compras, rentas y perfil en un solo lugar, con el respaldo de nuestro equipo."
     >
-      <header className="mb-7">
+      <header className="mb-7 text-center">
         <p className="m-0 text-[11px] font-bold uppercase tracking-[0.19em] text-slate-500">
           Tu espacio personal
         </p>
@@ -227,14 +263,21 @@ export default function LoginPage() {
       </header>
 
       <div className="grid gap-4">
+        {submitError ? (
+          <p
+            role="alert"
+            className="m-0 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+          >
+            {submitError}
+          </p>
+        ) : null}
+
         <form
           onSubmit={handleSubmit}
           noValidate
           className="grid gap-4"
           aria-busy={loading}
         >
-          {submitError ? <AuthAlertBanner message={submitError} /> : null}
-
           <AuthTextField
             label="Correo electrónico"
             name="correo"

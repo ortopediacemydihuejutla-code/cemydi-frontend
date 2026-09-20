@@ -34,14 +34,6 @@ const ADMIN_BREADCRUMB_CONFIG: Record<
   "/admin/about": { label: "Quiénes somos", parent: "/admin" },
   "/admin/legal": { label: "Páginas legales", parent: "/admin" },
   "/admin/analytics": { label: "Analytics", parent: "/admin" },
-  "/admin/analytics/product-segmentation": {
-    label: "Segmentación de clientes",
-    parent: "/admin/analytics",
-  },
-  "/admin/analytics/demand-forecast": {
-    label: "Predicción de demanda",
-    parent: "/admin/analytics",
-  },
   "/admin/database": { label: "Monitoreo BD", parent: "/admin" },
   "/admin/users": { label: "Usuarios", parent: "/admin" },
   "/admin/rentals": { label: "Rentas", parent: "/admin" },

@@ -6,8 +6,11 @@ import { useRouter } from "next/navigation";
 import {
   CircleUserRound,
   ClipboardList,
+  Heart,
   LayoutDashboard,
   LogOut,
+  MessageSquareText,
+  Settings,
   UserRound,
 } from "lucide-react";
 import toast from "react-hot-toast";
@@ -95,27 +98,61 @@ export default function HeaderAuth() {
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
-          <DropdownMenuItem asChild>
-            <Link href="/perfil">
-              <UserRound aria-hidden="true" />
-              Mi perfil
-            </Link>
-          </DropdownMenuItem>
           {user.rol === "CLIENT" ? (
-            <DropdownMenuItem asChild>
-              <Link href="/mis-rentas">
-                <ClipboardList aria-hidden="true" />
-                Mis rentas
-              </Link>
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuItem asChild>
+                <Link href="/mi-cuenta">
+                  <LayoutDashboard aria-hidden="true" />
+                  Mi cuenta
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/perfil">
+                  <UserRound aria-hidden="true" />
+                  Mi perfil
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/mis-rentas">
+                  <ClipboardList aria-hidden="true" />
+                  Mis rentas
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/favoritos">
+                  <Heart aria-hidden="true" />
+                  Favoritos
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/mis-resenas">
+                  <MessageSquareText aria-hidden="true" />
+                  Mis reseñas
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/configuracion">
+                  <Settings aria-hidden="true" />
+                  Configuración
+                </Link>
+              </DropdownMenuItem>
+            </>
           ) : null}
           {user.rol === "ADMIN" ? (
-            <DropdownMenuItem asChild>
-              <Link href="/admin">
-                <LayoutDashboard aria-hidden="true" />
-                Panel Admin
-              </Link>
-            </DropdownMenuItem>
+            <>
+              <DropdownMenuItem asChild>
+                <Link href="/perfil">
+                  <UserRound aria-hidden="true" />
+                  Ver perfil
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/admin">
+                  <LayoutDashboard aria-hidden="true" />
+                  Panel Admin
+                </Link>
+              </DropdownMenuItem>
+            </>
           ) : null}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

@@ -63,8 +63,8 @@ export function GeneralActivityChart({
         </p>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[300px] w-full min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <ComposedChart data={data} margin={{ top: 10, right: 16, left: -10, bottom: 0 }}>
               <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="var(--border-soft)" opacity={0.5} />
               <XAxis dataKey="periodo" axisLine={false} tickLine={false} tick={{ fontSize: 12, fill: "var(--text-muted)" }} dy={8} />
@@ -103,8 +103,8 @@ export function GeneralReviewsStatusChart({ data }: { data: ReviewsStatusPoint[]
         <CardTitle className="text-lg font-semibold">Estado de reseñas</CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="h-[300px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
+        <div className="h-[300px] w-full min-w-0">
+          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
             <PieChart>
               <Tooltip contentStyle={tooltipStyle} formatter={(value) => [`${asNumber(value)}%`, "Participación"]} />
               <Pie
