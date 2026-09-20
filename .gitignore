@@ -10,9 +10,6 @@
 !.yarn/releases
 !.yarn/versions
 
-#agentes
-/.agents
-skills-lock.json
 
 # testing
 /coverage
