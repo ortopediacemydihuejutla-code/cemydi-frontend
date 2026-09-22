@@ -8,7 +8,7 @@ import { useCart } from "@/providers/CartContext";
 export function HeaderCartSkeleton() {
   return (
     <div
-      className="inline-flex size-11 shrink-0 animate-pulse rounded-full bg-white/15"
+      className="inline-flex size-10 shrink-0 animate-pulse rounded-full bg-white/15"
       aria-hidden="true"
     />
   );
@@ -32,7 +32,7 @@ export default function HeaderCart() {
   return (
     <Link
       href={href}
-      className="relative inline-flex size-11 shrink-0 items-center justify-center rounded-full text-white no-underline transition hover:bg-white/12 hover:text-white"
+      className="relative inline-flex size-10 shrink-0 items-center justify-center rounded-full text-white no-underline transition hover:bg-white/12 hover:text-white"
       aria-label={
         user && !cartLoading
           ? `Abrir carrito con ${itemCount} producto${itemCount === 1 ? "" : "s"}`
@@ -41,9 +41,9 @@ export default function HeaderCart() {
           : "Inicia sesión para usar el carrito"
       }
     >
-      <ShoppingCart className="size-6" aria-hidden="true" />
+      <ShoppingCart className="size-5" aria-hidden="true" />
       {user && itemCount > 0 ? (
-        <span className="absolute -top-1.5 -right-1.5 inline-flex min-h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-[0.68rem] font-extrabold leading-none text-[#1e6260] shadow-[0_4px_10px_rgba(0,0,0,0.18)] ring-2 ring-[#2aa09d]">
+        <span className="absolute -top-1 -right-1 inline-flex min-h-4.5 min-w-4.5 items-center justify-center rounded-full bg-white px-1 text-[0.65rem] font-extrabold leading-none text-[#258e8b] shadow-[0_2px_8px_rgba(0,0,0,0.2)] ring-1.5 ring-[#258e8b]">
           {itemCount > 99 ? "99+" : itemCount}
         </span>
       ) : null}

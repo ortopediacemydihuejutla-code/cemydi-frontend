@@ -169,7 +169,7 @@ export default function TestimonialsSection({ testimonials }: Props) {
           transition={{ duration: 0.6 }}
           className="mb-8 text-center sm:mb-12 md:mb-16"
         >
-          <span className="inline-block rounded-full bg-[#2ba2a1]/10 px-3 py-1 text-xs font-semibold tracking-[0.18em] text-[#1e6260] uppercase">
+          <span className="inline-block rounded-full bg-[#258e8b]/10 px-3 py-1 text-xs font-semibold tracking-[0.18em] text-[#258e8b] uppercase">
             Testimonios
           </span>
           <h2
@@ -182,7 +182,7 @@ export default function TestimonialsSection({ testimonials }: Props) {
             Cada comentario viene de reseñas reales moderadas por nuestro equipo. Aquí reunimos
             experiencias de compra, renta y asesoría para que puedas elegir con más confianza.
           </p>
-          <div className="mx-auto mt-4 h-1 w-16 rounded-full bg-gradient-to-r from-[#1e6260] to-[#2ba2a1] sm:mt-6 sm:w-24" />
+          <div className="mx-auto mt-4 h-1 w-16 rounded-full bg-[#258e8b] sm:mt-6 sm:w-24" />
         </motion.div>
 
         <div className="relative" ref={containerRef}>
@@ -195,7 +195,7 @@ export default function TestimonialsSection({ testimonials }: Props) {
               disabled={!canGoPrev}
               className={
                 canGoPrev
-                  ? "grid size-11 place-items-center rounded-full bg-white text-[#1e6260] shadow-md transition hover:bg-[#f0f7f7]"
+                  ? "grid size-11 place-items-center rounded-full bg-white text-[#258e8b] shadow-md transition hover:bg-[#f0f7f7]"
                   : "grid size-11 cursor-not-allowed place-items-center rounded-full bg-[#e8f0f1] text-[#94a8ad]"
               }
               aria-label="Testimonio anterior"
@@ -210,7 +210,7 @@ export default function TestimonialsSection({ testimonials }: Props) {
               disabled={!canGoNext}
               className={
                 canGoNext
-                  ? "grid size-11 place-items-center rounded-full bg-white text-[#1e6260] shadow-md transition hover:bg-[#f0f7f7]"
+                  ? "grid size-11 place-items-center rounded-full bg-white text-[#258e8b] shadow-md transition hover:bg-[#f0f7f7]"
                   : "grid size-11 cursor-not-allowed place-items-center rounded-full bg-[#e8f0f1] text-[#94a8ad]"
               }
               aria-label="Siguiente testimonio"
@@ -245,14 +245,14 @@ export default function TestimonialsSection({ testimonials }: Props) {
                   style={{ cursor: "grab" }}
                 >
                   <motion.article
-                    className="relative flex h-full min-h-[280px] flex-col overflow-hidden rounded-2xl border border-[#d4e4e7] bg-white p-5 shadow-lg shadow-[#1e6260]/5 sm:p-6"
+                    className="relative flex h-full min-h-[280px] flex-col overflow-hidden rounded-2xl border border-[#d4e4e7] bg-white p-5 shadow-lg shadow-[#258e8b]/5 sm:p-6"
                     whileHover={{
                       boxShadow:
                         "0 18px 36px rgba(19, 78, 74, 0.11), 0 8px 16px rgba(19, 78, 74, 0.07)",
                     }}
                   >
                     <div className="absolute -top-4 -left-4 opacity-10">
-                      <Quote className="size-14 text-[#1e6260] sm:size-16" aria-hidden />
+                      <Quote className="size-14 text-[#258e8b] sm:size-16" aria-hidden />
                     </div>
 
                     <div className="relative flex h-full flex-col">
@@ -316,7 +316,7 @@ export default function TestimonialsSection({ testimonials }: Props) {
                 <motion.div
                   className={
                     index === activeIndex
-                      ? "size-2 rounded-full bg-[#1e6260]"
+                      ? "size-2 rounded-full bg-[#258e8b]"
                       : "size-2 rounded-full bg-[#c8d9dd]"
                   }
                   animate={{

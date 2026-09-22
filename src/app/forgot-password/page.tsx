@@ -68,7 +68,7 @@ export default function ForgotPasswordPage() {
       ]}
     >
       <div>
-        <p className="m-0 text-[11px] font-bold uppercase tracking-[0.18em] text-[#1e6260]">
+        <p className="m-0 text-[11px] font-bold uppercase tracking-[0.18em] text-[#258e8b]">
           Paso 1 de 2
         </p>
         <h1 className="mt-3 text-[2rem] font-semibold leading-tight tracking-[-0.03em] text-slate-950 sm:text-[2.25rem]">

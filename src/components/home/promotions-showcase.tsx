@@ -283,7 +283,7 @@ export function PromotionsShowcase({ promotions }: Props) {
                       </div>
                     ) : (
                       <div className="pointer-events-none absolute inset-0 flex items-center justify-center pt-8">
-                        <div className="grid size-20 place-items-center rounded-lg border border-[#d6e2e4] bg-white text-xl font-bold text-[#1e6260] shadow-sm">
+                        <div className="grid size-20 place-items-center rounded-lg border border-[#d6e2e4] bg-white text-xl font-bold text-[#258e8b] shadow-sm">
                           {getProductMonogram(promotion.product.nombre)}
                         </div>
                       </div>

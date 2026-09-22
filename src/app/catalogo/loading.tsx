@@ -69,9 +69,9 @@ export default function CatalogLoading() {
           <section className="flex min-h-[320px] items-center justify-center rounded-2xl border border-[#e5ecee] bg-[#fbfdfd]">
             <div className="flex flex-col items-center gap-4 text-center">
               <div className="relative grid size-14 place-items-center">
-                <div className="absolute inset-0 rounded-full border-4 border-[rgba(42,160,157,0.16)]" />
-                <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-[#1e6260] border-r-[#2aa09d]" />
-                <div className="size-5 rounded-full bg-[#1e6260] shadow-[0_0_0_6px_rgba(42,160,157,0.14)]" />
+                <div className="absolute inset-0 rounded-full border-4 border-[#258e8b]/20" />
+                <div className="absolute inset-0 animate-spin rounded-full border-4 border-transparent border-t-[#258e8b] border-r-[#258e8b]/70" />
+                <div className="size-5 rounded-full bg-[#258e8b] shadow-[0_0_0_6px_rgba(37,142,139,0.14)]" />
               </div>
               <div className="grid gap-1">
                 <p className="m-0 text-sm font-bold text-[#142734]">

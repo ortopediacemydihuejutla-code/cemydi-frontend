@@ -7,21 +7,30 @@ import { getPasswordRulesStatus } from "@/lib/password-validation";
 
 /* ── Estilos base de los campos ── */
 const inputShell =
-  "flex h-12 w-full items-center gap-3 rounded-[14px] border bg-white px-3.5 outline-none transition-[border-color,box-shadow,background-color] duration-150 focus-within:border-[#1e6260] focus-within:shadow-[0_0_0_3px_rgba(30,98,96,0.1)] focus-within:ring-0";
+  "flex h-12 w-full items-center gap-3 rounded-[14px] border bg-white px-3.5 outline-none transition-[border-color,box-shadow,background-color] duration-150 focus-within:border-[#258e8b] focus-within:shadow-[0_0_0_3px_rgba(37,142,139,0.12)] focus-within:ring-0";
+const inputShellCompact =
+  "flex h-10 sm:h-10.5 w-full items-center gap-2.5 rounded-xl border bg-white px-3 outline-none transition-[border-color,box-shadow,background-color] duration-150 focus-within:border-[#258e8b] focus-within:shadow-[0_0_0_3px_rgba(37,142,139,0.12)] focus-within:ring-0";
 const inputShellError =
   "border-red-400 bg-red-50/30 focus-within:border-red-500 focus-within:shadow-[0_0_0_3px_rgba(239,68,68,0.1)]";
 const inputShellOk = "border-slate-200/90 hover:border-slate-300";
 const fieldClass =
   "w-full min-w-0 border-0 bg-transparent py-1 text-[14px] text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:text-slate-400";
+const fieldClassCompact =
+  "w-full min-w-0 border-0 bg-transparent py-0.5 text-[13px] text-slate-900 outline-none placeholder:text-slate-400 disabled:cursor-not-allowed disabled:text-slate-400";
 const labelClass =
-  "mb-2 block text-[13px] font-semibold text-slate-700";
+  "mb-1.5 block text-xs font-semibold uppercase tracking-wider text-slate-700";
+const labelClassCompact =
+  "mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-700";
 const errorClass =
   "mt-1.5 flex items-start gap-1.5 text-[12px] font-medium leading-5 text-red-600";
+const errorClassCompact =
+  "mt-1 flex items-start gap-1 text-[11px] font-medium leading-4 text-red-600";
 
 /* ── Campo de texto ── */
 type TextFieldProps = {
   id?: string;
-  label: string;
+  label?: string;
+  cornerAction?: React.ReactNode;
   name: string;
   type?: "text" | "email";
   autoComplete?: string;
@@ -30,14 +39,16 @@ type TextFieldProps = {
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   error?: string;
   placeholder?: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   disabled?: boolean;
   required?: boolean;
+  size?: "default" | "compact";
 };
 
 export function AuthTextField({
   id,
   label,
+  cornerAction,
   name,
   type = "text",
   autoComplete,
@@ -49,22 +60,35 @@ export function AuthTextField({
   icon: Icon,
   disabled,
   required = true,
+  size = "default",
 }: TextFieldProps) {
   const genId = useId();
   const fieldId = id ?? `${name}-${genId}`;
   const errorId = `${fieldId}-error`;
   const hasError = Boolean(error);
+  const isCompact = size === "compact";
 
   return (
     <div className="w-full">
-      <label htmlFor={fieldId} className={labelClass}>
-        {label}
-      </label>
-      <div className={`${inputShell} ${hasError ? inputShellError : inputShellOk}`}>
-        <Icon
-          className={`size-[17px] shrink-0 transition-colors ${hasError ? "text-red-400" : "text-slate-400"}`}
-          aria-hidden
-        />
+      {label || cornerAction ? (
+        <div className="mb-1 flex items-center justify-between">
+          {label ? (
+            <label htmlFor={fieldId} className={isCompact ? labelClassCompact : labelClass}>
+              {label}
+            </label>
+          ) : (
+            <span />
+          )}
+          {cornerAction}
+        </div>
+      ) : null}
+      <div className={`${isCompact ? inputShellCompact : inputShell} ${hasError ? inputShellError : inputShellOk}`}>
+        {Icon ? (
+          <Icon
+            className={`${isCompact ? "size-4" : "size-[17px]"} shrink-0 transition-colors ${hasError ? "text-red-400" : "text-slate-400"}`}
+            aria-hidden
+          />
+        ) : null}
         <input
           id={fieldId}
           name={name}
@@ -78,11 +102,11 @@ export function AuthTextField({
           required={required}
           aria-invalid={hasError}
           aria-describedby={hasError ? errorId : undefined}
-          className={fieldClass}
+          className={isCompact ? fieldClassCompact : fieldClass}
         />
       </div>
       {hasError ? (
-        <p id={errorId} role="alert" className={errorClass}>
+        <p id={errorId} role="alert" className={isCompact ? errorClassCompact : errorClass}>
           <AlertCircle className="size-[13px] shrink-0" aria-hidden />
           {error}
         </p>
@@ -94,7 +118,8 @@ export function AuthTextField({
 /* ── Campo de contraseña ── */
 type PasswordFieldProps = {
   id?: string;
-  label: string;
+  label?: string;
+  cornerAction?: React.ReactNode;
   name: string;
   value: string;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
@@ -102,16 +127,18 @@ type PasswordFieldProps = {
   onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   error?: string;
   placeholder?: string;
-  icon: LucideIcon;
+  icon?: LucideIcon;
   autoComplete?: string;
   disabled?: boolean;
   auxiliaryDescribedBy?: string;
   required?: boolean;
+  size?: "default" | "compact";
 };
 
 export function AuthPasswordField({
   id,
   label,
+  cornerAction,
   name,
   value,
   onChange,
@@ -124,26 +151,39 @@ export function AuthPasswordField({
   disabled,
   auxiliaryDescribedBy,
   required = true,
+  size = "default",
 }: PasswordFieldProps) {
   const genId = useId();
   const fieldId = id ?? `${name}-${genId}`;
   const errorId = `${fieldId}-error`;
   const [visible, setVisible] = useState(false);
   const hasError = Boolean(error);
+  const isCompact = size === "compact";
   const describedBy = [hasError ? errorId : null, auxiliaryDescribedBy]
     .filter(Boolean)
     .join(" ");
 
   return (
     <div className="w-full">
-      <label htmlFor={fieldId} className={labelClass}>
-        {label}
-      </label>
-      <div className={`${inputShell} ${hasError ? inputShellError : inputShellOk}`}>
-        <Icon
-          className={`size-[17px] shrink-0 transition-colors ${hasError ? "text-red-400" : "text-slate-400"}`}
-          aria-hidden
-        />
+      {label || cornerAction ? (
+        <div className="mb-1 flex items-center justify-between">
+          {label ? (
+            <label htmlFor={fieldId} className={isCompact ? labelClassCompact : labelClass}>
+              {label}
+            </label>
+          ) : (
+            <span />
+          )}
+          {cornerAction}
+        </div>
+      ) : null}
+      <div className={`${isCompact ? inputShellCompact : inputShell} ${hasError ? inputShellError : inputShellOk}`}>
+        {Icon ? (
+          <Icon
+            className={`${isCompact ? "size-4" : "size-[17px]"} shrink-0 transition-colors ${hasError ? "text-red-400" : "text-slate-400"}`}
+            aria-hidden
+          />
+        ) : null}
         <input
           id={fieldId}
           name={name}
@@ -158,21 +198,21 @@ export function AuthPasswordField({
           required={required}
           aria-invalid={hasError}
           aria-describedby={describedBy || undefined}
-          className={`${fieldClass} pr-1`}
+          className={`${isCompact ? fieldClassCompact : fieldClass} pr-1`}
         />
         <button
           type="button"
-          className="flex size-9 shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700"
+          className={`flex ${isCompact ? "size-7" : "size-8"} shrink-0 items-center justify-center rounded-lg text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700`}
           onClick={() => setVisible((v) => !v)}
           aria-label={visible ? "Ocultar contraseña" : "Mostrar contraseña"}
         >
           {visible
-            ? <EyeOff className="size-[15px]" />
-            : <Eye className="size-[15px]" />}
+            ? <EyeOff className={isCompact ? "size-3.5" : "size-[15px]"} />
+            : <Eye className={isCompact ? "size-3.5" : "size-[15px]"} />}
         </button>
       </div>
       {hasError ? (
-        <p id={errorId} role="alert" className={errorClass}>
+        <p id={errorId} role="alert" className={isCompact ? errorClassCompact : errorClass}>
           <AlertCircle className="size-[13px] shrink-0" aria-hidden />
           {error}
         </p>
@@ -225,7 +265,7 @@ export function AuthPasswordRulesChecklist({
             <span
               className={`flex shrink-0 items-center justify-center rounded-full transition-all ${compact ? "size-4" : "size-[18px]"} ${
                 item.met
-                  ? "bg-[#1e6260]"
+                  ? "bg-[#258e8b]"
                   : "border-2 border-slate-300 bg-transparent"
               }`}
               aria-hidden
@@ -254,20 +294,26 @@ export function GoogleAuthButton({
   disabled,
   loading,
   onClick,
+  size = "default",
+  text = "Continuar con Google",
 }: {
   disabled?: boolean;
   loading?: boolean;
   onClick: () => void;
+  size?: "default" | "compact";
+  text?: string;
 }) {
+  const isCompact = size === "compact";
+
   return (
     <button
       type="button"
       disabled={disabled || loading}
       onClick={onClick}
-      className="flex h-12 w-full items-center justify-center gap-2.5 rounded-[14px] border border-slate-200 bg-white text-[13px] font-semibold text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#1e6260]/20 disabled:cursor-not-allowed disabled:opacity-60"
-      aria-label="Continuar con Google"
+      className={`flex ${isCompact ? "h-10 text-xs rounded-xl gap-2 tracking-wide" : "h-12 text-xs sm:text-[13px] rounded-[14px] gap-2.5 tracking-wider"} w-full items-center justify-center border border-slate-200 bg-white font-semibold uppercase text-slate-700 transition-colors hover:border-slate-300 hover:bg-slate-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#258e8b]/25 disabled:cursor-not-allowed disabled:opacity-60 shadow-xs`}
+      aria-label={text}
     >
-      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden>
+      <svg width={isCompact ? 16 : 18} height={isCompact ? 16 : 18} viewBox="0 0 18 18" aria-hidden>
         <path
           fill="#4285F4"
           d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z"
@@ -285,21 +331,32 @@ export function GoogleAuthButton({
           d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0 5.482 0 2.438 2.017.957 4.956L3.964 7.288C4.672 5.163 6.656 3.58 9 3.58z"
         />
       </svg>
-      {loading ? "Conectando con Google..." : "Continuar con Google"}
+      {loading ? "Conectando con Google..." : text}
     </button>
   );
 }
 
 /* ── Divisor "o" ── */
-export function AuthOrDivider() {
+export function AuthOrDivider({
+  size = "default",
+  label = "o",
+}: {
+  size?: "default" | "compact";
+  label?: string;
+} = {}) {
+  const isCompact = size === "compact";
   return (
-    <div className="relative py-1">
+    <div className={`relative ${isCompact ? "py-0.5" : "py-1.5"}`}>
       <div className="absolute inset-0 flex items-center" aria-hidden>
         <span className="w-full border-t border-slate-200" />
       </div>
       <div className="relative flex justify-center">
-        <span className="bg-white px-3 text-[11px] font-semibold uppercase tracking-widest text-slate-400">
-          o
+        <span
+          className={`bg-white px-3.5 ${
+            isCompact ? "text-[10px]" : "text-[11px]"
+          } font-semibold uppercase tracking-[0.2em] text-slate-400`}
+        >
+          {label}
         </span>
       </div>
     </div>

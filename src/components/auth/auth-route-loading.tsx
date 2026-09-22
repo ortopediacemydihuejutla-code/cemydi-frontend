@@ -19,7 +19,7 @@ export function AuthRouteLoading({
         aria-live="polite"
         aria-busy="true"
       >
-        <div className="grid size-14 place-items-center rounded-full bg-[#1e6260]/10 text-[#1e6260]">
+        <div className="grid size-14 place-items-center rounded-full bg-[#258e8b]/10 text-[#258e8b]">
           <LoaderCircle className="size-7 animate-spin" aria-hidden="true" />
         </div>
         <div className="grid gap-1">

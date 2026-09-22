@@ -225,7 +225,7 @@ function VerifyEmailContent() {
                 ? "bg-emerald-50 text-emerald-700"
                 : status === "error"
                   ? "bg-red-50 text-red-600"
-                  : "bg-slate-100 text-[#1e6260]"
+                  : "bg-[#258e8b]/10 text-[#258e8b]"
             }`}
           >
             {status === "loading" ? (
@@ -238,7 +238,7 @@ function VerifyEmailContent() {
               <Mail className="size-5" aria-hidden />
             )}
           </span>
-          <p className="m-0 text-[11px] font-bold uppercase tracking-[0.18em] text-[#1e6260]">
+          <p className="m-0 text-[11px] font-bold uppercase tracking-[0.18em] text-[#258e8b]">
             {stateCopy.eyebrow}
           </p>
         </div>
@@ -256,7 +256,7 @@ function VerifyEmailContent() {
           className="mt-8 h-1.5 overflow-hidden rounded-full bg-slate-100"
           aria-hidden
         >
-          <div className="h-full w-1/2 animate-pulse rounded-full bg-[#1e6260]" />
+          <div className="h-full w-1/2 animate-pulse rounded-full bg-[#258e8b]" />
         </div>
       ) : null}
 
@@ -352,7 +352,7 @@ function VerifyEmailContent() {
                     onPaste={handleOtpPaste}
                     disabled={verifyingCode}
                     aria-label={`Dígito ${index + 1} del código`}
-                    className={`h-12 min-w-0 rounded-lg border bg-slate-50 text-center text-lg font-bold text-slate-900 outline-none transition focus:border-[#1e6260] focus:bg-white focus:shadow-[0_0_0_3px_rgba(30,98,96,0.12)] ${
+                    className={`h-12 min-w-0 rounded-lg border bg-slate-50 text-center text-lg font-bold text-slate-900 outline-none transition focus:border-[#258e8b] focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,142,139,0.15)] ${
                       codeAttempted && codeError
                         ? "border-red-300"
                         : "border-slate-200"
@@ -373,7 +373,7 @@ function VerifyEmailContent() {
             {resendFeedback ? (
               <p className="mt-4 flex items-start gap-2 text-[13px] leading-6 text-slate-600">
                 <AlertCircle
-                  className="mt-1 size-3.5 shrink-0 text-[#1e6260]"
+                  className="mt-1 size-3.5 shrink-0 text-[#258e8b]"
                   aria-hidden
                 />
                 {resendFeedback}

@@ -284,10 +284,10 @@ function ResetPasswordContent() {
           aria-live="polite"
         >
           <div>
-            <span className="mx-auto grid size-12 place-items-center rounded-full bg-[#e8f2f1] text-[#1e6260]">
+            <span className="mx-auto grid size-12 place-items-center rounded-full bg-[#258e8b]/10 text-[#258e8b]">
               <LoaderCircle className="size-5 animate-spin" aria-hidden />
             </span>
-            <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#1e6260]">
+            <p className="mt-5 text-[11px] font-bold uppercase tracking-[0.18em] text-[#258e8b]">
               Validando enlace
             </p>
             <h1 className="mt-3 text-[2rem] font-semibold leading-tight tracking-[-0.03em] text-slate-950">
@@ -302,7 +302,7 @@ function ResetPasswordContent() {
         <>
           <div>
             <div className="flex items-center justify-between gap-4">
-              <p className="m-0 text-[11px] font-bold uppercase tracking-[0.18em] text-[#1e6260]">
+              <p className="m-0 text-[11px] font-bold uppercase tracking-[0.18em] text-[#258e8b]">
                 Paso 2 de 2
               </p>
               <p className="m-0 text-xs font-medium text-slate-400">
@@ -310,9 +310,9 @@ function ResetPasswordContent() {
               </p>
             </div>
             <div className="mt-3 grid grid-cols-2 gap-2" aria-hidden>
-              <span className="h-1 rounded-full bg-[#1e6260]" />
+              <span className="h-1 rounded-full bg-[#258e8b]" />
               <span
-                className={`h-1 rounded-full ${codeVerified ? "bg-[#1e6260]" : "bg-slate-200"}`}
+                className={`h-1 rounded-full ${codeVerified ? "bg-[#258e8b]" : "bg-slate-200"}`}
               />
             </div>
 
@@ -398,7 +398,7 @@ function ResetPasswordContent() {
                       onPaste={handleOtpPaste}
                       disabled={verifying}
                       aria-label={`Dígito ${index + 1} del código`}
-                      className={`h-12 min-w-0 rounded-lg border bg-slate-50 text-center text-lg font-bold text-slate-900 outline-none transition focus:border-[#1e6260] focus:bg-white focus:shadow-[0_0_0_3px_rgba(30,98,96,0.12)] sm:h-13 sm:text-xl ${
+                      className={`h-12 min-w-0 rounded-lg border bg-slate-50 text-center text-lg font-bold text-slate-900 outline-none transition focus:border-[#258e8b] focus:bg-white focus:shadow-[0_0_0_3px_rgba(37,142,139,0.15)] sm:h-13 sm:text-xl ${
                         verifyAttempted && codeError
                           ? "border-red-300"
                           : "border-slate-200"
@@ -433,7 +433,7 @@ function ResetPasswordContent() {
                   type="button"
                   onClick={handleResendCode}
                   disabled={resending || cooldown > 0}
-                  className="inline-flex min-h-0 min-w-0 items-center gap-1.5 border-0 bg-transparent p-0 font-semibold text-[#1e6260] underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:text-slate-400"
+                  className="inline-flex min-h-0 min-w-0 items-center gap-1.5 border-0 bg-transparent p-0 font-semibold text-[#258e8b] underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:text-slate-400"
                 >
                   <RotateCcw className="size-3.5" aria-hidden />
                   {resending
@@ -481,7 +481,7 @@ function ResetPasswordContent() {
                     <span
                       className={`grid size-4 shrink-0 place-items-center rounded-full ${
                         rule.met
-                          ? "bg-[#1e6260] text-white"
+                          ? "bg-[#258e8b] text-white"
                           : "border border-slate-300"
                       }`}
                       aria-hidden

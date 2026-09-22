@@ -31,7 +31,7 @@ import { logoutUser } from "@/services/auth";
 export function HeaderAuthSkeleton() {
   return (
     <div
-      className="inline-flex size-11 shrink-0 animate-pulse rounded-full bg-white/15"
+      className="inline-flex size-10 shrink-0 animate-pulse rounded-full bg-white/15"
       aria-hidden="true"
     />
   );
@@ -51,13 +51,13 @@ export default function HeaderAuth() {
       <>
         <Link
           href="/login"
-          className="rounded-full border-2 border-white px-[22px] py-2.5 font-bold text-white no-underline hover:bg-white/10"
+          className="inline-flex h-10 items-center justify-center rounded-full border border-white/80 bg-transparent px-4 text-sm font-semibold text-white no-underline transition hover:border-white hover:bg-white/12 focus-visible:outline-2 focus-visible:outline-white"
         >
           Iniciar sesión
         </Link>
         <Link
           href="/register"
-          className="rounded-full bg-white px-[22px] py-2.5 font-extrabold text-[#1e6260] no-underline shadow-[0_4px_12px_rgba(0,0,0,0.2)] transition-transform hover:-translate-y-px"
+          className="inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-sm font-bold text-[#258e8b] no-underline shadow-sm transition hover:bg-[#e8f2f2] focus-visible:outline-2 focus-visible:outline-white"
         >
           Crear cuenta
         </Link>
@@ -85,10 +85,10 @@ export default function HeaderAuth() {
         <Button
           size="icon"
           variant="ghost"
-          className="size-11 shrink-0 rounded-full bg-transparent p-0 text-white shadow-none hover:bg-white/12 hover:text-white"
+          className="size-10 shrink-0 rounded-full bg-transparent p-0 text-white shadow-none hover:bg-white/12 hover:text-white"
           aria-label="Abrir menú de cuenta"
         >
-          <CircleUserRound className="size-6" aria-hidden="true" />
+          <CircleUserRound className="size-5.5" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-64">

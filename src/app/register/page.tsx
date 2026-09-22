@@ -5,7 +5,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, Mail, User, UserPlus } from "lucide-react";
+import { ArrowRight, Lock, Mail, User } from "lucide-react";
 import { registerUser } from "@/services/auth";
 import toast from "react-hot-toast";
 import { ApiError } from "@/lib/api-error";
@@ -22,11 +22,9 @@ import { validatePasswordPolicy } from "@/lib/password-validation";
 import { resolveApiUrl } from "@/lib/api-config";
 
 const authBrandLinkClassName =
-  "font-semibold text-[#1e6260] underline decoration-[#1e6260]/35 underline-offset-4 transition-colors hover:text-[#144d4b] hover:decoration-[#144d4b]";
+  "font-semibold text-[#258e8b] underline decoration-[#258e8b]/35 underline-offset-4 transition-colors hover:text-[#134e4c] hover:decoration-[#134e4c]";
 const primaryButtonClassName =
-  "flex h-12 w-full items-center justify-center gap-2 rounded-[14px] border-0 bg-[#1e6260] px-4 text-[14px] font-bold text-white shadow-[0_10px_22px_-12px_rgba(30,98,96,0.75)] transition-[background-color,transform,box-shadow] hover:bg-[#185452] hover:shadow-[0_14px_26px_-12px_rgba(30,98,96,0.75)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60";
-const checkboxRowClassName =
-  "flex items-start gap-3 text-sm leading-snug text-slate-600";
+  "mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-xl border-0 bg-[#258e8b] px-4 text-xs sm:text-sm font-bold uppercase tracking-wider text-white shadow-[0_10px_22px_-12px_rgba(37,142,139,0.35)] transition-[background-color,transform,box-shadow] hover:bg-[#1d7370] hover:shadow-[0_14px_26px_-12px_rgba(37,142,139,0.4)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60";
 
 type FormState = {
   nombre: string;
@@ -248,31 +246,37 @@ export default function RegisterPage() {
 
   return (
     <AuthSplitLayout
-      heroBadge="Crea tu cuenta"
-      heroTitle="Comienza hoy con CEMYDI"
-      heroDescription="Encuentra productos ortopédicos con seguimiento claro y asesoría cercana."
+      heroTitle="El bienestar de tu salud comienza con la elección y el soporte adecuados."
     >
-      <header className="mb-7 text-center">
-        <p className="m-0 text-[11px] font-bold uppercase tracking-[0.19em] text-slate-500">
-          Nueva cuenta
-        </p>
-        <h1 className="mt-3 text-3xl font-bold tracking-[-0.035em] text-slate-950 sm:text-[2.15rem]">
-          Crear cuenta
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
-          Regístrate para administrar tus compras y rentas con facilidad.
-        </p>
-      </header>
+      <div className="w-full space-y-2.5 sm:space-y-3">
+        <header className="space-y-0.5 text-center sm:text-left">
+          <h1 className="text-xl font-bold uppercase tracking-[0.06em] text-slate-950 sm:text-2xl">
+            Crear cuenta
+          </h1>
+          <p className="text-[11px] sm:text-xs text-slate-500 font-normal leading-snug">
+            Regístrate para administrar tus compras y contratos de renta de equipo médico.
+          </p>
+        </header>
 
-      <div className="grid gap-4">
+        {/* Botón de Google One-Click al inicio */}
+        <GoogleAuthButton
+          size="compact"
+          onClick={handleGoogleLogin}
+          loading={googleLoading}
+          disabled={loading}
+          text="Continuar con Google"
+        />
+
+        <AuthOrDivider size="compact" label="O completa el formulario" />
+
         <form
           onSubmit={handleSubmit}
           noValidate
-          className="grid gap-4"
+          className="space-y-2 sm:space-y-2.5"
           aria-busy={loading}
         >
-
           <AuthTextField
+            size="compact"
             label="Nombre completo"
             name="nombre"
             type="text"
@@ -281,12 +285,13 @@ export default function RegisterPage() {
             onChange={handleChange}
             onBlur={handleBlur}
             error={errors.nombre}
-            placeholder="Ej. María García"
+            placeholder="Valeria Méndez"
             icon={User}
             disabled={loading}
           />
 
           <AuthTextField
+            size="compact"
             label="Correo electrónico"
             name="correo"
             type="email"
@@ -295,14 +300,15 @@ export default function RegisterPage() {
             onChange={handleChange}
             onBlur={handleBlur}
             error={errors.correo}
-            placeholder="tu@correo.com"
+            placeholder="valeria@ejemplo.com"
             icon={Mail}
             disabled={loading}
           />
 
-          <div className="grid gap-1.5">
+          <div className="grid gap-0.5">
             <AuthPasswordField
-              label="Contraseña"
+              size="compact"
+              label="Contraseña (mínimo 10 caracteres)"
               name="password"
               autoComplete="new-password"
               value={form.password}
@@ -313,6 +319,7 @@ export default function RegisterPage() {
                 handleBlur(event);
               }}
               error={errors.password}
+              placeholder="••••••••••••"
               icon={Lock}
               disabled={loading}
               auxiliaryDescribedBy="register-password-rules"
@@ -325,7 +332,7 @@ export default function RegisterPage() {
                   : "grid-rows-[0fr] opacity-0"
               }`}
             >
-              <div className="overflow-hidden">
+              <div className="overflow-hidden pt-0.5">
                 <AuthPasswordRulesChecklist
                   id="register-password-rules"
                   password={form.password}
@@ -336,6 +343,7 @@ export default function RegisterPage() {
           </div>
 
           <AuthPasswordField
+            size="compact"
             label="Confirmar contraseña"
             name="confirmPassword"
             autoComplete="new-password"
@@ -343,12 +351,13 @@ export default function RegisterPage() {
             onChange={handleChange}
             onBlur={handleBlur}
             error={errors.confirmPassword}
+            placeholder="••••••••••••"
             icon={Lock}
             disabled={loading}
           />
 
-          <div className="grid gap-1.5">
-            <div className={`${checkboxRowClassName} text-[13px] leading-snug sm:text-sm`}>
+          <div className="grid gap-0.5 pt-0.5">
+            <div className="flex items-start gap-2 text-[11px] leading-tight text-slate-600 sm:text-xs">
               <input
                 id="register-terms"
                 type="checkbox"
@@ -359,26 +368,24 @@ export default function RegisterPage() {
                     setErrors((prev) => ({ ...prev, terms: "" }));
                   }
                 }}
-                className="mt-0.5 size-4 shrink-0 cursor-pointer rounded-[4px] border-slate-300 accent-[#1e6260]"
+                className="mt-0.5 size-3.5 shrink-0 cursor-pointer rounded border-slate-300 accent-[#258e8b]"
                 aria-invalid={Boolean(errors.terms)}
                 aria-describedby={errors.terms ? termsErrorId : undefined}
               />
-              <span>
-                <label htmlFor="register-terms" className="cursor-pointer select-none">
-                  He leído y acepto los{" "}
-                </label>
+              <label htmlFor="register-terms" className="cursor-pointer select-none">
+                Acepto los{" "}
                 <Link href="/terminos-y-condiciones" className={authBrandLinkClassName}>
-                  términos y condiciones
+                  Términos y Condiciones
                 </Link>{" "}
                 y la{" "}
                 <Link href="/politicas-de-privacidad" className={authBrandLinkClassName}>
-                  política de privacidad
+                  Política de Privacidad
                 </Link>{" "}
-                del servicio.
-              </span>
+                de Ortopedia CEMYDI.
+              </label>
             </div>
             {errors.terms ? (
-              <p id={termsErrorId} role="alert" className="text-xs font-medium text-red-600">
+              <p id={termsErrorId} role="alert" className="text-[11px] font-medium text-red-600 leading-tight">
                 {errors.terms}
               </p>
             ) : null}
@@ -393,27 +400,21 @@ export default function RegisterPage() {
               "Creando cuenta…"
             ) : (
               <>
-                Crear mi cuenta
-                <UserPlus className="size-4" aria-hidden />
+                <span>Crear mi cuenta</span>
+                <ArrowRight className="size-4" aria-hidden />
               </>
             )}
           </button>
         </form>
 
-        <AuthOrDivider />
-
-        <GoogleAuthButton
-          onClick={handleGoogleLogin}
-          loading={googleLoading}
-          disabled={loading}
-        />
-
-        <p className="m-0 pt-1 text-center text-sm text-slate-500">
-          ¿Ya tienes cuenta?{" "}
-          <Link href="/login" className={authBrandLinkClassName}>
-            Iniciar sesión
-          </Link>
-        </p>
+        <div className="border-t border-slate-200 pt-2 text-center">
+          <p className="text-xs text-slate-500">
+            ¿Ya tienes cuenta?{" "}
+            <Link href="/login" className="font-semibold text-slate-900 underline underline-offset-4 hover:text-[#258e8b] transition-colors">
+              Iniciar Sesión
+            </Link>
+          </p>
+        </div>
       </div>
     </AuthSplitLayout>
   );

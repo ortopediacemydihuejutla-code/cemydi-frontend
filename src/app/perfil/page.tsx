@@ -175,7 +175,7 @@ export default function PerfilPage() {
 
             <div className="grid gap-x-6 gap-y-6 sm:grid-cols-2">
               <div className="mb-6 flex items-center gap-5 sm:col-span-2">
-                <span className="grid size-16 shrink-0 place-items-center rounded-full bg-gradient-to-br from-[#1f6a67] to-[#0f3d3b] text-white shadow-md ring-4 ring-[#eef7f6]">
+                <span className="grid size-16 shrink-0 place-items-center rounded-full bg-[#258e8b] text-white shadow-md ring-4 ring-[#258e8b]/15">
                   <UserRound className="size-7" strokeWidth={1.8} />
                 </span>
                 <div>

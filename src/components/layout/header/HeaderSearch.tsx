@@ -108,7 +108,7 @@ export function buildCatalogSearchPath(
 export function HeaderSearchSkeleton() {
   return (
     <div
-      className="relative h-12 w-full max-w-full animate-pulse rounded-full bg-white/15 lg:max-w-[35rem]"
+      className="relative h-11 w-full max-w-full animate-pulse rounded-full bg-white/15 lg:max-w-[35rem]"
       aria-hidden="true"
     />
   );
@@ -139,13 +139,16 @@ export default function HeaderSearch({ inputId = "header-search" }: HeaderSearch
   };
 
   return (
-    <form className="relative w-full max-w-full lg:max-w-[35rem]" onSubmit={onSearchSubmit}>
+    <form
+      className="relative flex h-10 w-full max-w-full items-center overflow-hidden rounded-full border border-white/35 bg-white/15 pl-3.5 shadow-inner transition-colors focus-within:border-white focus-within:bg-white/20 lg:max-w-[35rem]"
+      onSubmit={onSearchSubmit}
+    >
       <label htmlFor={inputId} className="sr-only">
         Buscar productos
       </label>
       <span
         aria-hidden="true"
-        className="pointer-events-none absolute top-1/2 left-4 size-4 -translate-y-1/2"
+        className="pointer-events-none text-white/80 shrink-0"
       >
         <svg viewBox="0 0 16 16" className="size-4">
           <circle
@@ -153,13 +156,13 @@ export default function HeaderSearch({ inputId = "header-search" }: HeaderSearch
             cy="6.5"
             r="4.5"
             fill="none"
-            stroke="rgba(255,255,255,0.8)"
+            stroke="currentColor"
             strokeWidth="2"
           />
           <path
             d="M10.2 10.2 14 14"
             fill="none"
-            stroke="rgba(255,255,255,0.8)"
+            stroke="currentColor"
             strokeLinecap="round"
             strokeWidth="2"
           />
@@ -174,14 +177,14 @@ export default function HeaderSearch({ inputId = "header-search" }: HeaderSearch
         enterKeyHint="search"
         autoComplete="off"
         placeholder={animatedPlaceholder}
-        className="h-12 w-full rounded-full border border-white/25 bg-white/15 py-0 pr-[6.5rem] pl-11 text-[0.95rem] text-white outline-none placeholder:text-white/82 focus:border-white/55"
+        className="h-full w-full min-w-0 bg-transparent px-3 text-sm text-white outline-none placeholder:text-white/80"
         defaultValue={pathname === "/catalogo" ? (searchParams.get("q") ?? "") : ""}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
       />
       <button
         type="submit"
-        className="absolute top-1/2 right-[0.375rem] h-9 -translate-y-1/2 rounded-full border-0 bg-white/92 px-[0.875rem] font-extrabold text-[#1e6260]"
+        className="inline-flex h-full shrink-0 items-center justify-center bg-white px-5 text-xs font-bold text-[#258e8b] transition hover:bg-slate-100 focus-visible:outline-none"
       >
         Buscar
       </button>

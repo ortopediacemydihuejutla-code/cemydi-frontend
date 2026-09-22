@@ -1,112 +1,49 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
-import { Check, MoveLeft } from "lucide-react";
 
 export type AuthSplitLayoutProps = {
   children: ReactNode;
-  heroBadge: string;
   heroTitle: string;
-  heroDescription: string;
+  heroBadge?: string;
+  heroDescription?: string;
   heroItems?: readonly string[];
+  heroStats?: readonly unknown[];
+  variant?: string;
 };
-
-const defaultBenefitItems = [
-  "Compra y renta en un solo lugar",
-  "Seguimiento claro de tus solicitudes",
-  "Atención cercana cuando la necesites",
-];
 
 export function AuthSplitLayout({
   children,
-  heroBadge,
   heroTitle,
-  heroDescription,
-  heroItems = defaultBenefitItems,
 }: AuthSplitLayoutProps) {
   return (
-    <section className="relative isolate overflow-hidden bg-[#f8f7f3]">
-      <div
-        aria-hidden
-        className="absolute -right-32 top-24 size-80 rounded-full bg-[#e7dfcf]/55 blur-3xl"
-      />
-      <div
-        aria-hidden
-        className="absolute -bottom-36 -left-28 size-96 rounded-full bg-[#dce9e7]/55 blur-3xl"
-      />
+    <section className="relative flex min-h-[calc(100dvh-5.25rem)] w-full flex-1 flex-col bg-white lg:h-[calc(100dvh-5.25rem)] lg:overflow-hidden">
+      <div className="flex h-full min-h-0 w-full flex-1 flex-col lg:flex-row">
+        {/* Columna izquierda: Imagen con blur bajo y texto único en blanco centrado en medio */}
+        <div className="relative hidden items-center justify-center overflow-hidden border-r border-slate-200 bg-[#0c3634] p-8 lg:flex lg:w-1/2 lg:p-12 xl:p-16 text-white">
+          {/* Imagen de fondo generada por IA con blur bajo */}
+          <div
+            className="absolute inset-0 bg-cover bg-top blur-[2px] scale-105"
+            style={{ backgroundImage: "url('/auth_hero.jpg')" }}
+            role="img"
+            aria-label="CEMYDI Clínica Ortopédica y Rehabilitación"
+          />
+          {/* Velo sutil homogéneo para permitir excelente legibilidad del texto en el centro */}
+          <div
+            className="absolute inset-0 bg-[#061e1c]/45"
+            aria-hidden="true"
+          />
 
-      <div className="relative mx-auto flex min-h-dvh w-full max-w-[1220px] items-center px-4 py-8 sm:px-8 sm:py-10 lg:px-10">
-        <div className="grid w-full overflow-hidden rounded-[32px] border border-slate-200/80 bg-white shadow-[0_30px_80px_-42px_rgba(15,23,42,0.42)] lg:grid-cols-[minmax(0,1.06fr)_minmax(440px,0.94fr)]">
-          <aside className="relative hidden min-h-[720px] overflow-hidden bg-[#dfe7e5] lg:block">
-            <div
-              aria-hidden
-              className="absolute inset-0 bg-[url('/rehabilitacion.webp')] bg-cover bg-center"
-            />
-            <Link
-              href="/"
-              className="group absolute left-7 top-7 z-10 inline-flex min-h-11 items-center gap-2 rounded-full bg-slate-950/35 px-2 pr-4 text-sm font-semibold text-white no-underline shadow-sm backdrop-blur-md transition-colors hover:bg-slate-950/50"
-              aria-label="Volver al inicio"
-            >
-              <span className="grid size-8 place-items-center rounded-full bg-white/15 text-white transition-transform group-hover:-translate-x-0.5">
-                <MoveLeft className="size-4" aria-hidden />
-              </span>
-              Volver al inicio
-            </Link>
-            <div
-              aria-hidden
-              className="absolute inset-0 bg-[linear-gradient(180deg,rgba(20,42,40,0.02)_28%,rgba(20,42,40,0.88)_100%)]"
-            />
+          {/* Un solo texto en blanco en medio de la imagen */}
+          <div className="relative z-10 mx-auto max-w-lg text-center px-4">
+            <h2 className="text-2xl sm:text-3xl xl:text-[2.2rem] font-light leading-snug tracking-tight text-white drop-shadow-md">
+              &ldquo;{heroTitle}&rdquo;
+            </h2>
+          </div>
+        </div>
 
-            <div className="absolute inset-x-0 bottom-0 px-8 pb-9 pt-28 text-white xl:px-10 xl:pb-10">
-              <p className="m-0 text-[11px] font-bold uppercase tracking-[0.22em] text-white/75">
-                {heroBadge}
-              </p>
-              <h2 className="mt-3 max-w-[450px] text-[2rem] font-semibold leading-[1.14] tracking-[-0.03em] text-white xl:text-[2.25rem]">
-                {heroTitle}
-              </h2>
-              <p className="mt-3 max-w-[440px] text-sm leading-6 text-white/80 xl:text-[15px]">
-                {heroDescription}
-              </p>
-
-              <ul className="m-0 mt-6 grid list-none gap-2.5 border-t border-white/20 p-0 pt-5 xl:grid-cols-2">
-                {heroItems.map((item) => (
-                  <li
-                    key={item}
-                    className="flex items-start gap-2 text-[12px] leading-5 text-white/82"
-                  >
-                    <Check
-                      className="mt-0.5 size-3.5 shrink-0 text-[#8fd7d2]"
-                      strokeWidth={2.5}
-                      aria-hidden
-                    />
-                    <span>{item}</span>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
-
-          <div className="flex min-w-0 flex-col bg-white px-5 py-7 sm:px-8 sm:py-9 lg:px-10 lg:py-10 xl:px-12">
-            <div className="mb-7 sm:mb-8 lg:hidden">
-              <Link
-                href="/"
-                className="group inline-flex min-h-11 items-center gap-2 rounded-full px-1 pr-3 text-sm font-semibold text-slate-600 no-underline transition-colors hover:text-slate-950"
-                aria-label="Volver al inicio"
-              >
-                <span className="grid size-9 place-items-center rounded-full border border-slate-200 bg-white text-slate-700 shadow-sm transition-transform group-hover:-translate-x-0.5">
-                  <MoveLeft className="size-4" aria-hidden />
-                </span>
-                Volver al inicio
-              </Link>
-            </div>
-
-            <div className="mx-auto flex w-full max-w-[470px] flex-1 flex-col justify-center">
-              {children}
-            </div>
-
-            <p className="mb-0 mt-7 text-center text-[11px] text-slate-400 sm:text-left">
-              © {new Date().getFullYear()} CEMYDI · Todos los derechos
-              reservados
-            </p>
+        {/* Columna derecha: Formulario centrado ajustado al viewport */}
+        <div className="flex w-full flex-1 flex-col items-center justify-center overflow-y-auto bg-white px-6 py-4 sm:px-8 sm:py-5 lg:w-1/2 lg:px-10 lg:py-4 xl:px-14">
+          <div className="my-auto w-full max-w-[460px]">
+            {children}
           </div>
         </div>
       </div>

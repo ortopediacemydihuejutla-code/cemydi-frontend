@@ -49,7 +49,7 @@ export default function CatalogPagination({
     <nav className="flex flex-wrap items-center justify-center gap-2 pt-2" aria-label="Paginación del catálogo">
       <button
         type="button"
-        className="cursor-pointer rounded-[10px] border border-[rgba(42,160,157,0.22)] bg-white px-[10px] py-2 text-[0.8rem] font-extrabold text-[#1e6260] disabled:cursor-not-allowed disabled:opacity-40 sm:px-[14px] sm:text-[0.84rem]"
+        className="cursor-pointer rounded-[10px] border border-[#cfe0e0] bg-white px-[10px] py-2 text-[0.8rem] font-extrabold text-[#258e8b] transition hover:bg-[#f0f9f8] disabled:cursor-not-allowed disabled:opacity-40 sm:px-[14px] sm:text-[0.84rem]"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
         aria-label="Página anterior"
@@ -71,10 +71,10 @@ export default function CatalogPagination({
             <button
               key={item}
               type="button"
-              className={`h-9 min-w-9 cursor-pointer rounded-[10px] border text-[0.86rem] font-extrabold ${
+              className={`h-9 min-w-9 cursor-pointer rounded-[10px] border text-[0.86rem] font-extrabold transition ${
                 item === currentPage
-                  ? "border-[#1e6260] bg-[#1e6260] text-white"
-                  : "border-transparent bg-transparent text-[#4f7d87]"
+                  ? "border-[#258e8b] bg-[#258e8b] text-white"
+                  : "border-transparent bg-transparent text-[#4f7d87] hover:bg-[#f0f9f8]"
               }`}
               onClick={() => onPageChange(item)}
               aria-label={`Ir a página ${item}`}
@@ -88,7 +88,7 @@ export default function CatalogPagination({
 
       <button
         type="button"
-        className="cursor-pointer rounded-[10px] border border-[rgba(42,160,157,0.22)] bg-white px-[10px] py-2 text-[0.8rem] font-extrabold text-[#1e6260] disabled:cursor-not-allowed disabled:opacity-40 sm:px-[14px] sm:text-[0.84rem]"
+        className="cursor-pointer rounded-[10px] border border-[#cfe0e0] bg-white px-[10px] py-2 text-[0.8rem] font-extrabold text-[#258e8b] transition hover:bg-[#f0f9f8] disabled:cursor-not-allowed disabled:opacity-40 sm:px-[14px] sm:text-[0.84rem]"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
         aria-label="Página siguiente"

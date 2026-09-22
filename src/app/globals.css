@@ -12,11 +12,11 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --brand-900: #0f3d3b;
-  --brand-800: #154f4d;
-  --brand-700: #1e6260;
-  --brand-600: #2ba2a1;
-  --user-avatar-bg: #154f4d;
+  --brand-900: #134e4c;
+  --brand-800: #1d7370;
+  --brand-700: #258e8b;
+  --brand-600: #30aba8;
+  --user-avatar-bg: #1d7370;
 
   --surface: #f4f7f7;
   --card: #ffffff;
@@ -31,7 +31,7 @@
   --radius-xl: 28px;
 
   --shadow-md: 0 18px 40px rgba(15, 61, 59, 0.14);
-  --focus-ring: 2px solid #20626c;
+  --focus-ring: 2px solid #258e8b;
 }
 
 /* Tokens Tailwind / shadcn alineados con la marca CEMMYDI (ver :root arriba) */

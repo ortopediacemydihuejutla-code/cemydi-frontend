@@ -151,7 +151,7 @@ export function ProductCard({
               />
             </div>
           ) : (
-            <div className="grid size-20 place-items-center rounded-lg border border-[#d6e2e4] bg-white text-xl font-bold text-[#1e6260]">
+            <div className="grid size-20 place-items-center rounded-lg border border-[#d6e2e4] bg-white text-xl font-bold text-[#258e8b]">
               {getProductMonogram(product.nombre)}
             </div>
           )}

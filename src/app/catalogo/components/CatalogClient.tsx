@@ -286,7 +286,7 @@ export default function CatalogClient({
               </h2>
               <button
                 type="button"
-                className="flex size-11 cursor-pointer items-center justify-center rounded-xl bg-white text-[1.4rem] leading-none text-[#1e6260] outline-none focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
+                className="flex size-11 cursor-pointer items-center justify-center rounded-xl bg-white text-[1.4rem] leading-none text-[#258e8b] outline-none focus-visible:ring-2 focus-visible:ring-[#258e8b] focus-visible:ring-offset-2"
                 onClick={() => setMobileFiltersOpen(false)}
                 aria-label="Cerrar"
               >

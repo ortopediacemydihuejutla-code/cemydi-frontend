@@ -7,7 +7,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Lock, LogIn, Mail } from "lucide-react";
+import { ArrowRight, Lock, Mail } from "lucide-react";
 import { loginUser, resendVerificationEmail } from "@/services/auth";
 import { getMyProfile } from "@/services/users";
 import { isProfileComplete } from "@/lib/profile-completion";
@@ -24,9 +24,9 @@ import {
 import { resolveApiUrl } from "@/lib/api-config";
 
 const authBrandLinkClassName =
-  "font-semibold text-[#1e6260] underline decoration-[#1e6260]/35 underline-offset-4 transition-colors hover:text-[#144d4b] hover:decoration-[#144d4b]";
+  "font-semibold text-[#258e8b] underline decoration-[#258e8b]/35 underline-offset-4 transition-colors hover:text-[#134e4c] hover:decoration-[#134e4c]";
 const primaryButtonClassName =
-  "mt-1 flex h-12 w-full items-center justify-center gap-2 rounded-[14px] border-0 bg-[#1e6260] px-4 text-[14px] font-bold text-white shadow-[0_10px_22px_-12px_rgba(30,98,96,0.75)] transition-[background-color,transform,box-shadow] hover:bg-[#185452] hover:shadow-[0_14px_26px_-12px_rgba(30,98,96,0.75)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60";
+  "mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-xl border-0 bg-[#258e8b] px-4 text-xs sm:text-sm font-bold uppercase tracking-wider text-white shadow-[0_10px_22px_-12px_rgba(37,142,139,0.35)] transition-[background-color,transform,box-shadow] hover:bg-[#1d7370] hover:shadow-[0_14px_26px_-12px_rgba(37,142,139,0.4)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60";
 const secondaryButtonClassName =
   "inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-3.5 text-[13px] font-bold text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60";
 
@@ -246,27 +246,32 @@ export default function LoginPage() {
 
   return (
     <AuthSplitLayout
-      heroBadge="CEMYDI"
-      heroTitle="Bienvenido de vuelta"
-      heroDescription="Gestiona tus compras, rentas y perfil en un solo lugar, con el respaldo de nuestro equipo."
+      heroTitle="El respaldo médico y humano que necesitas para tu bienestar y movilidad."
     >
-      <header className="mb-7 text-center">
-        <p className="m-0 text-[11px] font-bold uppercase tracking-[0.19em] text-slate-500">
-          Tu espacio personal
-        </p>
-        <h1 className="mt-3 text-3xl font-bold tracking-[-0.035em] text-slate-950 sm:text-[2.15rem]">
-          Iniciar sesión
-        </h1>
-        <p className="mt-2 text-sm leading-6 text-slate-500">
-          Ingresa tus datos para consultar tus pedidos, rentas y perfil.
-        </p>
-      </header>
+      <div className="w-full space-y-4 sm:space-y-4.5">
+        <header className="space-y-1 text-center sm:text-left">
+          <h1 className="text-2xl font-bold uppercase tracking-[0.06em] text-slate-950 sm:text-[1.65rem]">
+            Iniciar sesión
+          </h1>
+          <p className="text-xs sm:text-[13px] text-slate-500 font-normal leading-relaxed">
+            Ingresa tus credenciales para acceder a tus pedidos, rentas y perfil médico.
+          </p>
+        </header>
 
-      <div className="grid gap-4">
+        {/* Botón de Google One-Click al inicio */}
+        <GoogleAuthButton
+          onClick={handleGoogleLogin}
+          loading={googleLoading}
+          disabled={loading}
+          text="Continuar con Google"
+        />
+
+        <AuthOrDivider label="O completa el formulario" />
+
         {submitError ? (
           <p
             role="alert"
-            className="m-0 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700"
+            className="m-0 rounded-xl border border-red-200 bg-red-50 px-3.5 py-2.5 text-xs font-medium text-red-700"
           >
             {submitError}
           </p>
@@ -275,7 +280,7 @@ export default function LoginPage() {
         <form
           onSubmit={handleSubmit}
           noValidate
-          className="grid gap-4"
+          className="space-y-3 sm:space-y-3.5"
           aria-busy={loading}
         >
           <AuthTextField
@@ -294,21 +299,24 @@ export default function LoginPage() {
 
           <AuthPasswordField
             label="Contraseña"
+            cornerAction={
+              <Link
+                href="/forgot-password"
+                className="text-xs text-slate-500 hover:text-slate-900 underline underline-offset-2 transition-colors"
+              >
+                ¿Olvidaste tu contraseña?
+              </Link>
+            }
             name="password"
             autoComplete="current-password"
             value={form.password}
             onChange={handleChange}
             onBlur={handleBlur}
             error={errors.password}
+            placeholder="••••••••••••"
             icon={Lock}
             disabled={loading}
           />
-
-          <div className="-mt-1 flex justify-end">
-            <Link href="/forgot-password" className={authBrandLinkClassName}>
-              ¿Olvidaste tu contraseña?
-            </Link>
-          </div>
 
           <button
             type="submit"
@@ -319,32 +327,12 @@ export default function LoginPage() {
               "Iniciando sesión…"
             ) : (
               <>
-                Iniciar sesión
-                <LogIn className="size-4" aria-hidden />
+                <span>Iniciar sesión</span>
+                <ArrowRight className="size-4" aria-hidden />
               </>
             )}
           </button>
         </form>
-
-        <AuthOrDivider />
-
-        <GoogleAuthButton
-          onClick={handleGoogleLogin}
-          loading={googleLoading}
-          disabled={loading}
-        />
-
-        <p className="m-0 px-2 text-center text-[11px] leading-5 text-slate-500">
-          Al continuar, confirmas que has leído y aceptas los{" "}
-          <Link href="/terminos-y-condiciones" className={authBrandLinkClassName}>
-            términos y condiciones
-          </Link>{" "}
-          y la{" "}
-          <Link href="/politicas-de-privacidad" className={authBrandLinkClassName}>
-            política de privacidad
-          </Link>
-          .
-        </p>
 
         {showResendVerification ? (
           <div className="grid gap-2.5 border-l-2 border-[#c7a76b] py-1 pl-4">
@@ -362,12 +350,25 @@ export default function LoginPage() {
           </div>
         ) : null}
 
-        <p className="m-0 pt-1 text-center text-sm text-slate-500">
-          ¿No tienes cuenta?{" "}
-          <Link href="/register" className={authBrandLinkClassName}>
-            Crear cuenta
-          </Link>
-        </p>
+        <div className="border-t border-slate-200 pt-4 text-center space-y-2.5">
+          <p className="text-xs sm:text-sm text-slate-500">
+            ¿Aún no tienes cuenta?{" "}
+            <Link href="/register" className={authBrandLinkClassName}>
+              Crear una cuenta
+            </Link>
+          </p>
+          <p className="text-[11px] text-slate-400 font-light leading-relaxed">
+            Al acceder a la plataforma, confirmas tu conformidad con nuestros{" "}
+            <Link href="/terminos-y-condiciones" className="underline hover:text-slate-700">
+              Términos y Condiciones
+            </Link>{" "}
+            y la{" "}
+            <Link href="/politicas-de-privacidad" className="underline hover:text-slate-700">
+              Política de Privacidad
+            </Link>
+            .
+          </p>
+        </div>
       </div>
     </AuthSplitLayout>
   );
