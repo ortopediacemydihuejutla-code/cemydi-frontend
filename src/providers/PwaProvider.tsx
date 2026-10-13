@@ -3,10 +3,23 @@ import { createContext, useCallback, useContext, useEffect, useRef, useState, ty
 import { isOfflinePublicPath } from "@/lib/pwa/policy";
 import { useOnline } from "@/lib/pwa/connectivity";
 import toast from "react-hot-toast";
-import { WifiOff } from "lucide-react";
+import { Wifi, WifiOff } from "lucide-react";
+
+const RECONNECTED_AT = "cemydi-pwa-reconnected-at";
+const RECONNECT_DURATION = 4_000;
+const connectivityToastOptions = {
+  id: "pwa-connectivity",
+  position: "bottom-left" as const,
+  ariaProps: { role: "status", "aria-live": "polite" } as const,
+  style: { padding: "8px 12px", fontSize: "13px", fontWeight: 500, boxShadow: "0 4px 14px rgba(15, 42, 50, 0.12)" },
+};
 
 export function showOfflineToast() {
-  toast("Sin conexión", { id: "pwa-connectivity", duration: 3_000, icon: <WifiOff className="size-5 shrink-0 text-red-600" aria-hidden="true" /> });
+  toast("Sin conexión", { ...connectivityToastOptions, duration: Infinity, icon: <WifiOff className="size-4 shrink-0 text-red-600" aria-hidden="true" /> });
+}
+
+function showConnectedToast(duration = RECONNECT_DURATION) {
+  toast("Conexión restablecida", { ...connectivityToastOptions, duration, icon: <Wifi className="size-4 shrink-0 text-green-700" aria-hidden="true" /> });
 }
 
 const OfflineContext = createContext<{ active: boolean; setActive: (active: boolean) => void }>({ active: false, setActive: () => {} });
@@ -19,7 +32,18 @@ export default function PwaProvider({ children }: { children: ReactNode }) {
   const dirty = useRef(false);
   const setActive = useCallback((active: boolean) => { fallbackRef.current = active; setFallback(active); }, []);
   useEffect(() => {
-    if (!online) showOfflineToast();
+    if (!online) {
+      try { sessionStorage.removeItem(RECONNECTED_AT); } catch { /* Storage may be unavailable. */ }
+      showOfflineToast();
+    } else {
+      // The reconnect reload must preserve the notice's original expiration.
+      try {
+        const timestamp = Number(sessionStorage.getItem(RECONNECTED_AT));
+        const remaining = RECONNECT_DURATION - (Date.now() - timestamp);
+        if (timestamp > 0 && remaining > 0 && remaining <= RECONNECT_DURATION) showConnectedToast(remaining);
+        else sessionStorage.removeItem(RECONNECTED_AT);
+      } catch { /* Connectivity feedback still works without storage. */ }
+    }
   }, [online]);
   useEffect(() => { if (notice) toast.error(notice, { id: "pwa-notice" }); }, [notice]);
   useEffect(() => {
@@ -30,6 +54,8 @@ export default function PwaProvider({ children }: { children: ReactNode }) {
     document.addEventListener("submit", trackDirty);
     document.addEventListener("reset", reset);
     const reconnect = () => {
+      try { sessionStorage.setItem(RECONNECTED_AT, String(Date.now())); } catch { /* Storage may be unavailable. */ }
+      showConnectedToast();
       if (!isOfflinePublicPath(location.pathname)) return;
       const filledForm = [...document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("form input, form textarea")].some((field) => field.value !== field.defaultValue);
       if (!filledForm && !dirty.current) location.reload();

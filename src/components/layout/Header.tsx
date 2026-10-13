@@ -32,28 +32,37 @@ export default function Header() {
 
   useEffect(() => {
     let lastScrollY = window.scrollY;
-    let ticking = false;
+    let directionStart = lastScrollY;
+    let direction = 0;
+    let frame: number | null = null;
 
     const handleScroll = () => {
-      if (!ticking) {
-        window.requestAnimationFrame(() => {
-          const currentScrollY = window.scrollY;
+      if (frame === null) {
+        frame = window.requestAnimationFrame(() => {
+          const currentScrollY = Math.max(0, window.scrollY);
+          const nextDirection = Math.sign(currentScrollY - lastScrollY);
+          if (nextDirection && nextDirection !== direction) {
+            directionStart = lastScrollY;
+            direction = nextDirection;
+          }
           if (currentScrollY <= 20) {
             setIsScrolledDown(false);
-          } else if (currentScrollY > lastScrollY + 6 && currentScrollY > 60) {
+          } else if (direction > 0 && currentScrollY - directionStart >= 16 && currentScrollY > 80) {
             setIsScrolledDown(true);
-          } else if (currentScrollY < lastScrollY - 6) {
+          } else if (direction < 0 && directionStart - currentScrollY >= 48) {
             setIsScrolledDown(false);
           }
           lastScrollY = currentScrollY;
-          ticking = false;
+          frame = null;
         });
-        ticking = true;
       }
     };
 
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      if (frame !== null) window.cancelAnimationFrame(frame);
+    };
   }, []);
 
   const shouldHideHeader = pathname.startsWith("/admin");
@@ -66,7 +75,12 @@ export default function Header() {
   }
 
   return (
-    <header className="sticky top-0 z-50 overflow-hidden bg-[#258e8b]">
+    // Keep the header's document height fixed: collapsing it changes scrollY
+    // through scroll anchoring and can repeatedly reverse the scroll direction.
+    <header className={cn(
+      "sticky z-50 overflow-hidden bg-[#258e8b] transition-[top] duration-300 ease-out motion-reduce:transition-none",
+      isTopBarHidden ? "-top-9" : "top-0",
+    )}>
       <HeaderTopBar isHidden={isTopBarHidden} />
       <div
         className={cn(

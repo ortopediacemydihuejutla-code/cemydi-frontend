@@ -4,6 +4,7 @@ import { canUseOfflineFallback } from "./errors";
 import { ApiError, ApiResponseValidationError } from "@/lib/api-error";
 import { isOfflinePublicPath, isPublicImage } from "./policy";
 import type { CatalogProduct } from "@/services/catalog";
+import { parseCatalogSearchParams } from "@/app/catalogo/utils/catalog-params";
 
 const now = 1_800_000_000_000;
 function product(id = 1): CatalogProduct {
@@ -69,6 +70,20 @@ describe("productos públicos offline", () => {
     const b = toOfflineProduct({ ...product(2), requiereReceta: true, tipoAdquisicion: "RENTA", marca: "Otra" }, false, undefined, now);
     const result = filterOfflineProducts([a, b], { searchQuery: "movilidad", clasificaciones: ["Movilidad"], marcas: ["otra"], tipos: ["RENTA"], receta: "con", soloDisponibles: false, sort: "nombre-desc", view: "grid", page: 1 });
     expect(result.products.map((item) => item.id)).toEqual([2]);
+  });
+  it("ordena por creación y conserva el orden del servidor en fechas iguales", () => {
+    const a = toOfflineProduct({ ...product(1), nombre: "Zeta", createdAt: "2026-10-13" }, false, undefined, now - 100);
+    const b = toOfflineProduct({ ...product(2), nombre: "Alfa", createdAt: "2026-10-10" }, false, undefined, now);
+    const filters = parseCatalogSearchParams(new URLSearchParams());
+    expect(filterOfflineProducts([b, a], filters).products.map((item) => item.id)).toEqual([1, 2]);
+    const c = toOfflineProduct({ ...product(3), createdAt: a.createdAt! }, false, undefined, now);
+    expect(filterOfflineProducts([a, c, b], filters, [3, 1, 2]).products.map((item) => item.id)).toEqual([3, 1, 2]);
+    expect(filterOfflineProducts([a, c, b], { ...filters, sort: "precio-asc" }, [2, 3, 1]).products.map((item) => item.id)).toEqual([2, 3, 1]);
+  });
+  it("sigue leyendo productos antiguos sin fecha de creación", () => {
+    const legacy = toOfflineProduct(product(), false, undefined, now);
+    delete legacy.createdAt;
+    expect(maintainProducts([legacy], now)).toHaveLength(1);
   });
 });
 describe("política offline", () => {

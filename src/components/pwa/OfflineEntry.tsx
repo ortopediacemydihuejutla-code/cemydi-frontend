@@ -8,13 +8,11 @@ import { clearOfflineContent, getOfflineAbout, getOfflineProducts } from "@/lib/
 import { defaultAboutPageContent, type AboutPageContent } from "@/services/about-page";
 import { AboutPageClient } from "@/app/quienes-somos/AboutPageClient";
 import ContactContent from "@/app/contactanos/ContactContent";
-import { useOnline } from "@/lib/pwa/connectivity";
-import { showOfflineToast, useOfflinePresentation } from "@/providers/PwaProvider";
+import { useOfflinePresentation } from "@/providers/PwaProvider";
 import toast from "react-hot-toast";
 import OfflineHome from "./OfflineHome";
 
 export default function OfflineEntry() {
-  const online = useOnline();
   const { setActive } = useOfflinePresentation();
   const [path, setPath] = useState("/offline");
   const [product, setProduct] = useState<OfflineProduct | null>(null);
@@ -24,10 +22,9 @@ export default function OfflineEntry() {
   const [error, setError] = useState("");
   useEffect(() => {
     setActive(true);
-    if (online) toast("Servicio temporalmente no disponible. Mostramos contenido guardado.", { id: "pwa-connectivity" });
-    else showOfflineToast();
+    if (navigator.onLine) toast("Servicio temporalmente no disponible. Mostramos contenido guardado.", { id: "pwa-service" });
     return () => setActive(false);
-  }, [online, setActive]);
+  }, [setActive]);
   useEffect(() => {
     let cancelled = false;
     void Promise.all([getOfflineProducts(), getOfflineAbout()]).then(([products, savedAbout]) => {

@@ -112,9 +112,15 @@ export function useVoiceSearch({
   }, [onError]);
 
   const stopListening = useCallback(() => {
-    if (recognitionRef.current) {
+    const recognition = recognitionRef.current;
+    recognitionRef.current = null;
+    if (recognition) {
+      recognition.onstart = null;
+      recognition.onresult = null;
+      recognition.onerror = null;
+      recognition.onend = null;
       try {
-        recognitionRef.current.stop();
+        recognition.abort();
       } catch {
         // Ignorar fallas si la instancia ya se detuvo
       }
@@ -123,7 +129,7 @@ export function useVoiceSearch({
   }, []);
 
   const startListening = useCallback(async () => {
-    if (typeof window === "undefined") {
+    if (typeof window === "undefined" || recognitionRef.current) {
       return;
     }
 
@@ -142,50 +148,6 @@ export function useVoiceSearch({
       return;
     }
 
-    // Consulta de permisos previos si la API Permissions está disponible
-    if (navigator.permissions?.query) {
-      try {
-        const permissionStatus = await navigator.permissions.query({
-          name: "microphone" as PermissionName,
-        });
-        if (permissionStatus.state === "denied") {
-          toast.error(
-            "El permiso de micrófono está bloqueado en tu navegador. Habilítalo para continuar.",
-          );
-          return;
-        }
-      } catch {
-        // Si el navegador no soporta consultar 'microphone', continuamos
-      }
-    }
-
-    // Solicitud explícita de permiso al dispositivo si mediaDevices está disponible
-    if (navigator.mediaDevices?.getUserMedia) {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-        stream.getTracks().forEach((track) => track.stop());
-      } catch (err) {
-        const errName = err instanceof Error ? err.name : "";
-        if (errName === "NotAllowedError" || errName === "PermissionDeniedError") {
-          toast.error("Permiso de micrófono denegado. Permite el acceso para buscar por voz.");
-        } else if (errName === "NotFoundError" || errName === "DevicesNotFoundError") {
-          toast.error("No se encontró ningún micrófono conectado en tu dispositivo.");
-        } else {
-          toast.error("No se pudo acceder al micrófono.");
-        }
-        return;
-      }
-    }
-
-    // Detener cualquier instancia previa activa
-    if (recognitionRef.current) {
-      try {
-        recognitionRef.current.abort();
-      } catch {
-        // Ignorar fallos de abort previo
-      }
-    }
-
     try {
       const recognition = new SpeechRecognitionClass();
       recognitionRef.current = recognition;
@@ -195,10 +157,11 @@ export function useVoiceSearch({
       recognition.maxAlternatives = 1;
 
       recognition.onstart = () => {
-        setIsListening(true);
+        if (recognitionRef.current === recognition) setIsListening(true);
       };
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
+        if (recognitionRef.current !== recognition) return;
         const transcript = event.results[0]?.[0]?.transcript ?? "";
         const clean = transcript.trim().replace(/\.+$/, "");
         if (clean) {
@@ -207,7 +170,9 @@ export function useVoiceSearch({
       };
 
       recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        if (recognitionRef.current !== recognition) return;
         setIsListening(false);
+        recognitionRef.current = null;
         onErrorRef.current?.(event.error);
 
         if (event.error === "not-allowed" || event.error === "service-not-allowed") {
@@ -224,10 +189,13 @@ export function useVoiceSearch({
       };
 
       recognition.onend = () => {
+        if (recognitionRef.current !== recognition) return;
         setIsListening(false);
         recognitionRef.current = null;
       };
 
+      // Iniciar desde el clic: SpeechRecognition solicita su propio permiso.
+      // Esperar getUserMedia aquí puede bloquear el arranque y perder el gesto.
       recognition.start();
     } catch {
       setIsListening(false);
@@ -237,18 +205,24 @@ export function useVoiceSearch({
   }, [lang]);
 
   const toggleListening = useCallback(async () => {
-    if (isListening) {
+    if (recognitionRef.current) {
       stopListening();
     } else {
       await startListening();
     }
-  }, [isListening, startListening, stopListening]);
+  }, [startListening, stopListening]);
 
   useEffect(() => {
     return () => {
-      if (recognitionRef.current) {
+      const recognition = recognitionRef.current;
+      recognitionRef.current = null;
+      if (recognition) {
+        recognition.onstart = null;
+        recognition.onresult = null;
+        recognition.onerror = null;
+        recognition.onend = null;
         try {
-          recognitionRef.current.abort();
+          recognition.abort();
         } catch {
           // Ignorar
         }

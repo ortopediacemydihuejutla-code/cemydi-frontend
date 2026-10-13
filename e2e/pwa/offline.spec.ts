@@ -55,6 +55,39 @@ test("guarda páginas vistas, deduplica, filtra y pagina offline sin datos comer
   await expect(page.getByText("Stock, precio y popularidad requieren conexión.")).toBeVisible();
 });
 
+test("conserva el orden online y muestra un aviso persistente que se confirma al reconectar", async ({ page, context }) => {
+  await page.goto("/catalogo");
+  await ready(page);
+  await expect.poll(() => countSaved(page)).toBe(24);
+  await page.waitForFunction(() => new Promise<boolean>((resolve) => {
+    const request = indexedDB.open("cemydi-public-offline");
+    request.onsuccess = () => {
+      const db = request.result;
+      const value = db.transaction("metadata", "readonly").objectStore("metadata").get("catalog-orders");
+      value.onsuccess = () => { db.close(); resolve(Boolean(value.result)); };
+    };
+    request.onerror = () => resolve(false);
+  }));
+  const onlineOrder = await page.locator("main article h3").allTextContents();
+  expect(onlineOrder).toHaveLength(24);
+  await context.setOffline(true);
+  await page.goto("/catalogo");
+  await expect(page.getByText("24 productos guardados · Página 1 de 1")).toBeVisible();
+  expect(await page.locator("main article h3").allTextContents()).toEqual(onlineOrder);
+  await expect(page.getByRole("combobox", { name: "Ordenar productos" })).toHaveValue("reciente");
+  await page.clock.install();
+  await page.clock.fastForward(12_000);
+  const notices = page.locator('[data-rht-toaster]');
+  await expect(notices.getByText("Sin conexión", { exact: true })).toBeVisible();
+  await expect(notices.locator(".lucide-wifi-off")).toHaveCount(1);
+  await page.screenshot({ path: "output/playwright/pwa-offline-order.png" });
+  await context.setOffline(false);
+  await expect(notices.getByText("Conexión restablecida", { exact: true })).toBeVisible();
+  await expect(notices.locator(".lucide-wifi")).toHaveClass(/text-green-700/);
+  await expect(notices.getByText("Sin conexión", { exact: true })).toHaveCount(0);
+  await expect(notices.getByText("Conexión restablecida", { exact: true })).not.toBeVisible({ timeout: 7_000 });
+});
+
 test("abre detalle por ID y slug después de cerrar la pestaña", async ({ page, context }) => {
   await page.goto("/producto/producto-1");
   await ready(page);
@@ -198,6 +231,19 @@ test("manifiesto único, iconos y headers del worker", async ({ page, request })
   expect(manifest.lang).toBe("es-MX");
   expect(manifest.start_url).toBe("/");
   expect(manifest.icons.filter((icon: { purpose: string }) => icon.purpose === "maskable")).toHaveLength(2);
+  const backgrounds = await page.evaluate(async (icons: { src: string }[]) => Promise.all(icons.map(({ src }) => new Promise<number[]>((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => {
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth; canvas.height = image.naturalHeight;
+      const context = canvas.getContext("2d")!;
+      context.drawImage(image, 0, 0);
+      resolve(Array.from(context.getImageData(0, 0, 1, 1).data));
+    };
+    image.onerror = () => reject(new Error(`Icono no disponible: ${src}`));
+    image.src = src;
+  }))), manifest.icons);
+  expect(backgrounds).toEqual(manifest.icons.map(() => [255, 255, 255, 255]));
   const worker = await request.get("/sw.js");
   expect(worker.headers()["cache-control"]).toContain("no-store");
   expect(worker.headers()["content-security-policy"]).not.toContain("unsafe-eval");

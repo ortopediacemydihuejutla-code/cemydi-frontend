@@ -262,7 +262,7 @@ export default function CatalogToolbar({
               aria-label="Ordenar productos"
             >
               {CATALOG_SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value} disabled={offline && !option.value.startsWith("nombre-")}>
+              <option key={option.value} value={option.value} disabled={offline && option.value !== "reciente" && !option.value.startsWith("nombre-")}>
                   {option.label}
                 </option>
               ))}

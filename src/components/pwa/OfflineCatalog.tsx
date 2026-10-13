@@ -6,7 +6,8 @@ import CatalogToolbar from "@/app/catalogo/components/CatalogToolbar";
 import CatalogPagination from "@/app/catalogo/components/CatalogPagination";
 import { buildCatalogQueryParams, countActiveFilters, parseCatalogSearchParams, type CatalogAppliedParams } from "@/app/catalogo/utils/catalog-params";
 import { filterOfflineProducts, type OfflineProduct } from "@/lib/pwa/products";
-import { getOfflineProducts } from "@/lib/pwa/storage";
+import { getOfflineCatalogOrders, getOfflineProducts } from "@/lib/pwa/storage";
+import { getSavedCatalogOrder, type OfflineCatalogOrders } from "@/lib/pwa/catalog-order";
 import CatalogHeader from "@/app/catalogo/components/CatalogHeader";
 import ProductGrid from "@/app/catalogo/components/ProductGrid";
 
@@ -14,20 +15,22 @@ export const OFFLINE_COMMERCE_MESSAGE = "Consultar disponibilidad y precio al re
 export default function OfflineCatalog() {
   const [products, setProducts] = useState<OfflineProduct[] | null>(null);
   const [error, setError] = useState("");
-  const [filters, setFilters] = useState<CatalogAppliedParams>(() => ({ ...parseCatalogSearchParams(new URLSearchParams()), sort: "nombre-asc" }));
+  const [filters, setFilters] = useState<CatalogAppliedParams>(() => parseCatalogSearchParams(new URLSearchParams()));
+  const [orders, setOrders] = useState<OfflineCatalogOrders>({});
   const [open, setOpen] = useState(false);
   const filterTrigger = useRef<HTMLElement | null>(null);
   useEffect(() => {
     let cancelled = false;
     const initial = parseCatalogSearchParams(new URLSearchParams(location.search));
-    void getOfflineProducts().then((items) => {
+    void Promise.all([getOfflineProducts(), getOfflineCatalogOrders()]).then(([items, savedOrders]) => {
       if (cancelled) return;
       setProducts(items);
-      setFilters({ ...initial, soloDisponibles: false, sort: initial.sort === "nombre-desc" ? "nombre-desc" : "nombre-asc" });
+      setOrders(savedOrders);
+      setFilters({ ...initial, soloDisponibles: false });
     }).catch(() => { if (!cancelled) { setProducts([]); setError("No se pudo leer el almacenamiento. Puede estar bloqueado, vacío o haber sido eliminado por el navegador."); } });
     return () => { cancelled = true; };
   }, []);
-  const result = useMemo(() => filterOfflineProducts(products ?? [], filters), [products, filters]);
+  const result = useMemo(() => filterOfflineProducts(products ?? [], filters, getSavedCatalogOrder(orders, filters)), [products, filters, orders]);
   const update = (next: Partial<CatalogAppliedParams>) => {
     const value = { ...filters, page: 1, ...next };
     setFilters(value);
@@ -47,7 +50,7 @@ export default function OfflineCatalog() {
     onToggleTipo: (value: "VENTA" | "RENTA" | "MIXTO") => update({ tipos: toggle(filters.tipos, value) }),
     onToggleReceta: (value: "con" | "sin") => update({ receta: filters.receta === value ? null : value }),
     onToggleSoloDisponibles: () => {},
-    onClearAll: () => update({ ...parseCatalogSearchParams(new URLSearchParams()), sort: "nombre-asc" }),
+    onClearAll: () => update(parseCatalogSearchParams(new URLSearchParams())),
   };
   return <Dialog.Root open={open} onOpenChange={setOpen}><div className="min-h-[calc(100vh-110px)] bg-white">
     <div className="grid min-h-[inherit] w-full grid-cols-1 gap-7 px-4 py-6 lg:grid-cols-[286px_minmax(0,1fr)] lg:px-8 lg:py-8 xl:gap-9 xl:px-10 2xl:px-12">

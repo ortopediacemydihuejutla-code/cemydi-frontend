@@ -11,6 +11,8 @@ export const OFFLINE_LIMIT = 200;
 const publicFields = catalogProductSchema.pick({ id: true, slug: true, nombre: true, marca: true, modelo: true, descripcion: true, clasificacion: true, tipoAdquisicion: true, requiereReceta: true });
 const detailFields = catalogProductSchema.pick({ medidas: true, pesoSoportado: true, material: true, contenidoCaja: true, indicacionesUso: true });
 export const offlineProductSchema = publicFields.extend({
+  // Optional so products saved by earlier app versions remain readable.
+  createdAt: z.string().optional(),
   imageUrls: z.array(z.string()).max(12),
   aliases: z.array(z.string()).max(20),
   updatedAt: z.number().finite().nonnegative(),
@@ -22,6 +24,7 @@ export function toOfflineProduct(input: CatalogProduct, details = false, alias?:
   const product = catalogProductSchema.parse(input);
   return offlineProductSchema.parse({
     ...publicFields.parse(product),
+    createdAt: product.createdAt,
     imageUrls: [...new Set([product.imageUrl, ...product.images.map((image) => image.imageUrl)].filter((url): url is string => Boolean(url)))].slice(0, 12),
     aliases: [...new Set([String(product.id), getProductSlug(product), alias].filter((value): value is string => Boolean(value)))],
     updatedAt: now,
@@ -58,15 +61,26 @@ export function findOfflineProduct(products: OfflineProduct[], alias: string) {
   return matches.length === 1 ? matches[0] : null;
 }
 
-export function filterOfflineProducts(products: OfflineProduct[], filters: CatalogAppliedParams) {
+export function filterOfflineProducts(products: OfflineProduct[], filters: CatalogAppliedParams, savedOrder: number[] = []) {
   const query = filters.searchQuery.trim().toLocaleLowerCase("es");
+  const positions = new Map(savedOrder.map((id, index) => [id, index]));
   const filtered = products.filter((product) =>
     (!query || `${product.nombre} ${product.marca} ${product.modelo} ${product.descripcion}`.toLocaleLowerCase("es").includes(query)) &&
     (!filters.clasificaciones.length || filters.clasificaciones.some((value) => normalizeClassificationKey(value) === normalizeClassificationKey(product.clasificacion))) &&
     (!filters.marcas.length || filters.marcas.some((value) => normalizeMarcaKey(value) === normalizeMarcaKey(product.marca))) &&
     (!filters.tipos.length || filters.tipos.includes(product.tipoAdquisicion)) &&
     (!filters.receta || product.requiereReceta === (filters.receta === "con"))
-  ).sort((a, b) => (filters.sort === "nombre-desc" ? -1 : 1) * a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }) || a.id - b.id);
+  ).sort((a, b) => {
+    if (savedOrder.length) {
+      const position = (positions.get(a.id) ?? savedOrder.length) - (positions.get(b.id) ?? savedOrder.length);
+      if (position) return position;
+    }
+    if (filters.sort === "nombre-asc" || filters.sort === "nombre-desc") {
+      return (filters.sort === "nombre-desc" ? -1 : 1) * a.nombre.localeCompare(b.nombre, "es", { sensitivity: "base" }) || a.id - b.id;
+    }
+    const date = (value?: string) => value && Number.isFinite(Date.parse(value)) ? Date.parse(value) : 0;
+    return date(b.createdAt) - date(a.createdAt) || b.id - a.id;
+  });
   const totalPages = Math.max(1, Math.ceil(filtered.length / 24));
   const page = Math.min(Math.max(1, filters.page), totalPages);
   return { products: filtered.slice((page - 1) * 24, page * 24), total: filtered.length, totalPages, page };

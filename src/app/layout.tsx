@@ -11,7 +11,7 @@ import PwaProvider from "@/providers/PwaProvider";
 import { getSiteUrl } from "@/lib/site-config";
 
 const siteUrl = getSiteUrl();
-const iconVersion = "cemydi-20260701";
+const iconVersion = "cemydi-20261013";
 export const viewport: Viewport = { themeColor: "#258e8b" };
 
 export const metadata: Metadata = {

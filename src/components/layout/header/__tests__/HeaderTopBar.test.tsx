@@ -41,7 +41,8 @@ describe("HeaderTopBar", () => {
     expect(aside).toHaveClass("opacity-100");
 
     rerender(<HeaderTopBar isHidden={true} />);
-    expect(aside).toHaveClass("grid-rows-[0fr]");
+    expect(aside).toHaveClass("grid-rows-[1fr]", "h-9");
+    expect(aside).toHaveAttribute("aria-hidden", "true");
     expect(aside).toHaveClass("opacity-0");
     expect(aside).toHaveClass("pointer-events-none");
   });

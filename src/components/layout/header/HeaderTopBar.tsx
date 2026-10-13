@@ -94,11 +94,11 @@ export default function HeaderTopBar({ isHidden = false }: HeaderTopBarProps) {
       aria-label="Barra informativa superior"
       aria-hidden={isHidden}
       className={cn(
-        "grid w-full overflow-hidden bg-[#000000] text-xs text-white/80 [&_a]:min-h-0 [&_a]:min-w-0 [&_button]:min-h-0 [&_button]:min-w-0",
-        "transition-[grid-template-rows,opacity] duration-350 ease-[cubic-bezier(0.4,0,0.2,1)] motion-reduce:transition-none",
+        "grid grid-rows-[1fr] h-9 w-full overflow-hidden bg-[#000000] text-xs text-white/80 [&_a]:min-h-0 [&_a]:min-w-0 [&_button]:min-h-0 [&_button]:min-w-0",
+        "transition-opacity duration-300 ease-out motion-reduce:transition-none",
         isHidden
-          ? "grid-rows-[0fr] opacity-0 pointer-events-none select-none"
-          : "grid-rows-[1fr] opacity-100",
+          ? "opacity-0 pointer-events-none select-none"
+          : "opacity-100",
       )}
     >
       <div

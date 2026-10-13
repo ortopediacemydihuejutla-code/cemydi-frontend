@@ -2,6 +2,8 @@ import { maintainProducts, mergeProducts, toOfflineProduct, type OfflineProduct,
 import type { CatalogProduct } from "@/services/catalog";
 import { aboutPageContentSchema } from "@/lib/schemas/about-page";
 import type { AboutPageContent } from "@/services/about-page";
+import type { CatalogAppliedParams } from "@/app/catalogo/utils/catalog-params";
+import { catalogOrderKey, parseOfflineCatalogOrders } from "./catalog-order";
 
 export const OFFLINE_DB = "cemydi-public-offline";
 // Details and aliases belong to their product record: eviction is atomic and
@@ -89,6 +91,28 @@ async function metadata<T>(key: string, write?: T): Promise<unknown> {
 export async function saveOfflineAbout(content: AboutPageContent) {
   await metadata("about", { content: aboutPageContentSchema.parse(content), updatedAt: Date.now() });
   registerPublicImages([content.heroImageUrl, content.secondaryImageUrl].filter((value): value is string => Boolean(value)));
+}
+export async function getOfflineCatalogOrders() {
+  return parseOfflineCatalogOrders(await metadata("catalog-orders"));
+}
+export async function saveOfflineCatalogOrder(products: CatalogProduct[], filters: CatalogAppliedParams) {
+  const db = await openDatabase();
+  // Read and merge in one transaction so simultaneous tabs cannot lose pages.
+  await new Promise<void>((resolve, reject) => {
+    const transaction = db.transaction("metadata", "readwrite");
+    const store = transaction.objectStore("metadata");
+    const request = store.get("catalog-orders");
+    request.onsuccess = () => {
+      const orders = parseOfflineCatalogOrders(request.result?.value);
+      const key = catalogOrderKey(filters);
+      const pages = { ...orders[key]?.pages, [String(filters.page)]: products.filter((product) => product.activo).map((product) => product.id) };
+      // Bound references to the capacity of the 200-product offline catalog.
+      const boundedPages = Object.fromEntries(Object.entries(pages).sort(([a], [b]) => Number(a) - Number(b)).slice(0, 9));
+      store.put({ key: "catalog-orders", value: parseOfflineCatalogOrders({ ...orders, [key]: { updatedAt: Date.now(), pages: boundedPages } }) });
+    };
+    transaction.oncomplete = () => { db.close(); resolve(); };
+    transaction.onabort = transaction.onerror = () => { db.close(); reject(new Error("No se pudo guardar el orden del catálogo.")); };
+  });
 }
 function registerPublicImages(urls: string[]) {
   if (typeof navigator !== "undefined" && "serviceWorker" in navigator) void navigator.serviceWorker.ready.then((registration) => registration.active?.postMessage({ type: "PUBLIC_IMAGES", urls })).catch(() => {});

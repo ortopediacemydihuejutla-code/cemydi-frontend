@@ -1,5 +1,5 @@
-import { fireEvent, render, screen } from "@testing-library/react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { act, fireEvent, render, screen } from "@testing-library/react";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import Header from "../../Header";
 
 vi.mock("next/navigation", () => ({
@@ -24,6 +24,7 @@ describe("Header with TopBar integration", () => {
     vi.clearAllMocks();
     window.scrollY = 0;
   });
+  afterEach(() => { vi.restoreAllMocks(); vi.useRealTimers(); });
 
   it("renders both HeaderTopBar and main navigation", () => {
     render(<Header />);
@@ -36,6 +37,9 @@ describe("Header with TopBar integration", () => {
   });
 
   it("toggles TopBar visibility on scroll down and scroll up", () => {
+    vi.useFakeTimers();
+    vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => window.setTimeout(() => callback(0), 16));
+    vi.spyOn(window, "cancelAnimationFrame").mockImplementation((id) => window.clearTimeout(id));
     const { container } = render(<Header />);
     const topBar = container.querySelector("aside");
 
@@ -44,8 +48,20 @@ describe("Header with TopBar integration", () => {
     // Simulate scrolling down
     window.scrollY = 120;
     fireEvent.scroll(window);
-
-    expect(topBar).toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(16));
+    expect(topBar).toHaveAttribute("aria-hidden", "true");
+    expect(topBar).toHaveClass("h-9");
+    expect(container.querySelector("header")).toHaveClass("-top-9");
+    // Small reversals caused by touch momentum must not reopen the top bar.
+    window.scrollY = 110;
+    fireEvent.scroll(window);
+    act(() => vi.advanceTimersByTime(16));
+    expect(topBar).toHaveAttribute("aria-hidden", "true");
+    window.scrollY = 65;
+    fireEvent.scroll(window);
+    act(() => vi.advanceTimersByTime(16));
+    expect(topBar).toHaveAttribute("aria-hidden", "false");
+    expect(container.querySelector("header")).toHaveClass("top-0");
   });
 
   it("renders desktop navigation links with animated underline indicators", () => {
