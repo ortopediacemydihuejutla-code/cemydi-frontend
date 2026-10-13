@@ -6,13 +6,24 @@ import { useEffect, useRef } from "react";
 import { ArrowRight, CheckCircle2, HeartHandshake, ShieldCheck, Sparkles } from "lucide-react";
 import gsap from "gsap";
 import type { AboutPageContent } from "@/services/about-page";
+import { saveOfflineAbout } from "@/lib/pwa/storage";
+import toast from "react-hot-toast";
 
 type AboutPageClientProps = {
   content: AboutPageContent;
+  persist?: boolean;
+  offline?: boolean;
 };
 
-export function AboutPageClient({ content }: AboutPageClientProps) {
+export function AboutPageClient({ content, persist = false, offline = false }: AboutPageClientProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    if (persist && navigator.onLine) void saveOfflineAbout(content).catch(() => {
+      if (!cancelled) toast.error("No se pudo guardar el contenido institucional para consultarlo sin conexión. Puedes continuar navegando con conexión y recargar para reintentar.", { id: "pwa-about-save" });
+    });
+    return () => { cancelled = true; };
+  }, [content, persist]);
 
   useEffect(() => {
     const root = rootRef.current;
@@ -150,6 +161,7 @@ export function AboutPageClient({ content }: AboutPageClientProps) {
           <div data-about-reveal className="overflow-hidden rounded-lg border border-border bg-white shadow-[0_24px_70px_rgba(15,61,59,0.12)]">
             <Image
               src={secondaryImage}
+              unoptimized={offline}
               alt="Ortopedia CEMYDI en Huejutla"
               width={900}
               height={640}

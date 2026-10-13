@@ -1,6 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it, vi } from "vitest";
 
-import { buildCatalogSearchPath } from "./HeaderSearch";
+import HeaderSearch, { buildCatalogSearchPath } from "./HeaderSearch";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
+  useRouter: () => ({ push: vi.fn() }),
+  useSearchParams: () => new URLSearchParams(),
+}));
 
 describe("buildCatalogSearchPath", () => {
   it("crea una búsqueda limpia desde cualquier página", () => {
@@ -29,5 +36,21 @@ describe("buildCatalogSearchPath", () => {
     expect(buildCatalogSearchPath("   ", currentParams, true)).toBe(
       "/catalogo?clasificaciones=Movilidad",
     );
+  });
+});
+
+describe("HeaderSearch", () => {
+  it("renderiza el input y el botón de búsqueda por voz", () => {
+    render(<HeaderSearch inputId="header-search-test" />);
+
+    expect(
+      screen.getByRole("searchbox", { name: "Buscar productos" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Buscar por voz" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Buscar" }),
+    ).toBeInTheDocument();
   });
 });

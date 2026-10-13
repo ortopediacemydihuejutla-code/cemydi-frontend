@@ -1,13 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
 import {
-  Camera,
   Mail,
   MapPin,
   MessageCircle,
   Phone,
   Send,
-  Share2,
   UsersRound,
 } from "lucide-react";
 
@@ -26,10 +24,8 @@ const locations = [
 ];
 
 const socialLinks = [
-  { href: "/contactanos", label: "Facebook", icon: UsersRound },
-  { href: "/contactanos", label: "Twitter", icon: MessageCircle },
-  { href: "/contactanos", label: "Instagram", icon: Camera },
-  { href: "/contactanos", label: "LinkedIn", icon: Share2 },
+  { href: "https://www.facebook.com/OrtopediaCEMYDI", label: "Facebook", icon: UsersRound },
+  { href: "https://wa.me/527896880251", label: "WhatsApp", icon: MessageCircle },
 ];
 
 export default function Footer() {
@@ -63,22 +59,12 @@ export default function Footer() {
           </div>
           
           <div className="relative mt-1 max-w-[26.25rem] z-10">
-            <label className="sr-only" htmlFor="footer-email">
-              Correo electronico
-            </label>
-            <input
-              id="footer-email"
-              name="correo"
-              type="email"
-              placeholder="tu@correo.com"
-              className="min-h-12 w-full rounded-lg border border-input bg-background px-4 pr-14 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-primary focus:bg-white"
-            />
             <Link
               href="mailto:contacto@cemydi.com"
-              className="absolute top-1 right-1 flex size-10 items-center justify-center rounded-full bg-primary text-primary-foreground transition hover:bg-[#154f4d]"
-              aria-label="Enviar correo"
+              className="inline-flex min-h-12 items-center justify-center gap-3 rounded-lg bg-[#1d7370] px-4 text-sm font-semibold text-white no-underline transition hover:bg-[#154f4d]"
             >
               <Send className="size-4" aria-hidden="true" />
+              Escribir por correo
             </Link>
           </div>
         </section>
@@ -135,6 +121,8 @@ export default function Footer() {
               <Link
                 key={label}
                 href={href}
+                target="_blank"
+                rel="noopener noreferrer"
                 className="flex size-11 items-center justify-center rounded-full border border-border bg-white text-primary no-underline transition hover:border-primary/40 hover:bg-accent"
                 aria-label={label}
                 title={label}

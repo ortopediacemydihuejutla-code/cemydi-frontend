@@ -1,11 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
 
-export function HomeHero() {
+export function HomeHero({ offline = false }: { offline?: boolean }) {
   return (
     <section className="relative flex min-h-[calc(100svh-3.75rem)] items-center overflow-hidden text-white lg:min-h-[calc(100svh-5rem)]">
         <Image
           src="/rehabilitacion.webp"
+          unoptimized={offline}
           alt=""
           fill
           priority

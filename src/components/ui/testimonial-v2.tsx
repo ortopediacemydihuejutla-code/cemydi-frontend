@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { motion, type PanInfo } from "framer-motion";
-import { ChevronLeft, ChevronRight, Quote, Star } from "lucide-react";
+import { motion, useReducedMotion, type PanInfo } from "framer-motion";
+import { ChevronLeft, ChevronRight, Pause, Play, Quote, Star } from "lucide-react";
 
 import type { HomeTestimonial } from "@/services/reviews";
 
@@ -57,6 +57,9 @@ export default function TestimonialsSection({ testimonials }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [windowWidth, setWindowWidth] = useState(1024);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isHovered, setIsHovered] = useState(false);
+  const [hasFocus, setHasFocus] = useState(false);
+  const reduceMotion = useReducedMotion();
   const [direction, setDirection] = useState(1);
   const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -93,22 +96,18 @@ export default function TestimonialsSection({ testimonials }: Props) {
   const canGoPrev = activeIndex > 0;
 
   useEffect(() => {
-    if (!isAutoPlaying || maxIndex === 0) return undefined;
+    if (!isAutoPlaying || isHovered || hasFocus || reduceMotion || maxIndex === 0) return undefined;
 
     autoPlayRef.current = setInterval(() => {
-      setCurrentIndex((previous) => {
-        if (previous >= maxIndex) {
-          setDirection(-1);
-          return Math.max(0, previous - 1);
-        }
-
-        if (previous <= 0) {
-          setDirection(1);
-          return Math.min(maxIndex, previous + 1);
-        }
-
-        return Math.max(0, Math.min(maxIndex, previous + direction));
-      });
+      if (activeIndex >= maxIndex) {
+        setDirection(-1);
+        setCurrentIndex(Math.max(0, activeIndex - 1));
+      } else if (activeIndex <= 0) {
+        setDirection(1);
+        setCurrentIndex(1);
+      } else {
+        setCurrentIndex(activeIndex + direction);
+      }
     }, 4000);
 
     return () => {
@@ -116,7 +115,7 @@ export default function TestimonialsSection({ testimonials }: Props) {
         clearInterval(autoPlayRef.current);
       }
     };
-  }, [direction, isAutoPlaying, maxIndex]);
+  }, [activeIndex, direction, isAutoPlaying, isHovered, hasFocus, reduceMotion, maxIndex]);
 
   const disableAutoPlay = () => {
     setIsAutoPlaying(false);
@@ -160,10 +159,16 @@ export default function TestimonialsSection({ testimonials }: Props) {
     <section
       className="overflow-hidden bg-gradient-to-b from-[#f8fbfb] to-white px-4 py-12 sm:py-20"
       aria-labelledby="testimonios-titulo"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      onFocusCapture={() => setHasFocus(true)}
+      onBlurCapture={(event) => {
+        if (!event.currentTarget.contains(event.relatedTarget)) setHasFocus(false);
+      }}
     >
       <div className="mx-auto w-full max-w-[80rem]">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={reduceMotion ? false : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.2 }}
           transition={{ duration: 0.6 }}
@@ -187,10 +192,20 @@ export default function TestimonialsSection({ testimonials }: Props) {
 
         <div className="relative" ref={containerRef}>
           <div className="mb-4 flex justify-center gap-2 sm:absolute sm:-top-16 sm:right-0 sm:mb-0">
+            {maxIndex > 0 && !reduceMotion ? (
+              <button
+                type="button"
+                onClick={() => setIsAutoPlaying((playing) => !playing)}
+                className="grid size-11 place-items-center rounded-full bg-white text-[#1d7370] shadow-md"
+                aria-label={isAutoPlaying ? "Pausar testimonios" : "Reanudar testimonios"}
+              >
+                {isAutoPlaying ? <Pause className="size-5" aria-hidden /> : <Play className="size-5" aria-hidden />}
+              </button>
+            ) : null}
             <motion.button
               type="button"
-              whileHover={{ scale: canGoPrev ? 1.1 : 1 }}
-              whileTap={{ scale: canGoPrev ? 0.95 : 1 }}
+              whileHover={{ scale: canGoPrev && !reduceMotion ? 1.1 : 1 }}
+              whileTap={{ scale: canGoPrev && !reduceMotion ? 0.95 : 1 }}
               onClick={goPrev}
               disabled={!canGoPrev}
               className={
@@ -204,8 +219,8 @@ export default function TestimonialsSection({ testimonials }: Props) {
             </motion.button>
             <motion.button
               type="button"
-              whileHover={{ scale: canGoNext ? 1.1 : 1 }}
-              whileTap={{ scale: canGoNext ? 0.95 : 1 }}
+              whileHover={{ scale: canGoNext && !reduceMotion ? 1.1 : 1 }}
+              whileTap={{ scale: canGoNext && !reduceMotion ? 0.95 : 1 }}
               onClick={goNext}
               disabled={!canGoNext}
               className={
@@ -224,7 +239,8 @@ export default function TestimonialsSection({ testimonials }: Props) {
               className="flex"
               animate={{ x: `-${activeIndex * (100 / visibleCount)}%` }}
               transition={{
-                type: "spring",
+                ...(reduceMotion ? { duration: 0 } : {}),
+                type: reduceMotion ? "tween" : "spring",
                 stiffness: 70,
                 damping: 20,
               }}
@@ -233,15 +249,15 @@ export default function TestimonialsSection({ testimonials }: Props) {
                 <motion.div
                   key={testimonial.id}
                   className="w-full flex-shrink-0 p-2 md:w-1/2 xl:w-1/3"
-                  initial={{ opacity: 0.5, scale: 0.95 }}
+                  initial={reduceMotion ? false : { opacity: 0.5, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.4 }}
-                  drag="x"
+                  drag={reduceMotion ? false : "x"}
                   dragConstraints={{ left: 0, right: 0 }}
                   dragElastic={0.2}
                   onDragEnd={handleDragEnd}
-                  whileHover={{ y: -5 }}
-                  whileTap={{ scale: 0.98, cursor: "grabbing" }}
+                  whileHover={{ y: reduceMotion ? 0 : -5 }}
+                  whileTap={{ scale: reduceMotion ? 1 : 0.98, cursor: "grabbing" }}
                   style={{ cursor: "grab" }}
                 >
                   <motion.article
@@ -272,7 +288,7 @@ export default function TestimonialsSection({ testimonials }: Props) {
                             >
                               {getInitials(testimonial.name)}
                             </div>
-                            <motion.div
+                            {!reduceMotion ? <motion.div
                               className="absolute inset-0 rounded-full bg-[#2ba2a1]/20"
                               animate={{
                                 scale: [1, 1.2, 1],
@@ -283,7 +299,7 @@ export default function TestimonialsSection({ testimonials }: Props) {
                                 repeat: Infinity,
                                 repeatDelay: 1,
                               }}
-                            />
+                            /> : null}
                           </div>
                           <div className="min-w-0">
                             <h3 className="truncate text-sm font-bold text-[#0f2a32] sm:text-base">
@@ -308,9 +324,10 @@ export default function TestimonialsSection({ testimonials }: Props) {
                 key={index}
                 type="button"
                 onClick={() => goToSlide(index)}
-                className="relative mx-1 grid size-6 place-items-center focus:outline-none"
-                whileHover={{ scale: 1.2 }}
-                whileTap={{ scale: 0.9 }}
+                className="relative mx-1 grid size-6 place-items-center"
+                whileHover={{ scale: reduceMotion ? 1 : 1.2 }}
+                whileTap={{ scale: reduceMotion ? 1 : 0.9 }}
+                aria-current={index === activeIndex ? "true" : undefined}
                 aria-label={`Ir al testimonio ${index + 1}`}
               >
                 <motion.div
@@ -320,15 +337,15 @@ export default function TestimonialsSection({ testimonials }: Props) {
                       : "size-2 rounded-full bg-[#c8d9dd]"
                   }
                   animate={{
-                    scale: index === activeIndex ? [1, 1.2, 1] : 1,
+                    scale: index === activeIndex && !reduceMotion ? [1, 1.2, 1] : 1,
                   }}
                   transition={{
                     duration: 1.5,
-                    repeat: index === activeIndex ? Infinity : 0,
+                    repeat: index === activeIndex && !reduceMotion ? Infinity : 0,
                     repeatDelay: 1,
                   }}
                 />
-                {index === activeIndex ? (
+                {index === activeIndex && !reduceMotion ? (
                   <motion.div
                     className="absolute size-2 rounded-full bg-[#2ba2a1]/30"
                     animate={{

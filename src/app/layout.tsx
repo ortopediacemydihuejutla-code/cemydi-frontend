@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import Script from "next/script";
 import "./globals.css";
 import { headers } from "next/headers";
@@ -7,12 +7,16 @@ import { CartProvider } from "@/providers/CartContext";
 import ToasterClient from "@/providers/ToasterClient";
 import { ErrorMonitoringClient } from "@/providers/ErrorMonitoringClient";
 import AppShell from "@/components/layout/AppShell";
+import PwaProvider from "@/providers/PwaProvider";
 import { getSiteUrl } from "@/lib/site-config";
 
 const siteUrl = getSiteUrl();
 const iconVersion = "cemydi-20260701";
+export const viewport: Viewport = { themeColor: "#258e8b" };
 
 export const metadata: Metadata = {
+  applicationName: "Ortopedia CEMYDI",
+  appleWebApp: { capable: true, title: "CEMYDI", statusBarStyle: "default" },
   metadataBase: new URL(siteUrl),
   title: {
     default: "Ortopedia CEMYDI",
@@ -43,6 +47,7 @@ export default async function RootLayout({
 }) {
   const requestHeaders = await headers();
   const pathname = requestHeaders.get("x-pathname") ?? "";
+  const nonce = requestHeaders.get("x-nonce") ?? undefined;
 
   return (
     <html lang="es" suppressHydrationWarning>
@@ -73,7 +78,6 @@ export default async function RootLayout({
         />
         <link rel="shortcut icon" href={`/favicon.ico?v=${iconVersion}`} />
         <link rel="apple-touch-icon" href={`/apple-icon.png?v=${iconVersion}`} sizes="180x180" />
-        <link rel="manifest" href="/manifest.webmanifest" />
       </head>
       <body suppressHydrationWarning>
         {process.env.NODE_ENV === "development" ? (
@@ -81,13 +85,14 @@ export default async function RootLayout({
             id="development-hydration-attribute-cleanup"
             src="/development-hydration-attribute-cleanup.js"
             strategy="beforeInteractive"
+            nonce={nonce}
           />
         ) : null}
         <AuthProvider>
           <CartProvider>
             <ToasterClient />
             <ErrorMonitoringClient />
-            <AppShell initialPathname={pathname}>{children}</AppShell>
+            <PwaProvider><AppShell initialPathname={pathname}>{children}</AppShell></PwaProvider>
           </CartProvider>
         </AuthProvider>
       </body>

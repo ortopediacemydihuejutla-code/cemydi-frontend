@@ -3,6 +3,7 @@ import { expect, test } from "@playwright/test";
 test("inicio ignora atributos de seguridad inyectados antes de hidratar", async ({
   page,
 }) => {
+  await page.setViewportSize({ width: 390, height: 844 });
   await page.addInitScript(() => {
     const markDivs = (node: Node) => {
       if (!(node instanceof Element)) return;
@@ -38,15 +39,10 @@ test("inicio ignora atributos de seguridad inyectados antes de hidratar", async 
 
   await page.goto("/");
 
-  const nextButton = page.getByRole("button", {
-    name: "Siguiente testimonio",
-  });
-  const previousButton = page.getByRole("button", {
-    name: "Testimonio anterior",
-  });
-
-  await expect(nextButton).toBeEnabled();
-  await nextButton.click();
-  await expect(previousButton).toBeEnabled();
+  // Exercise hydration without depending on API testimonials or autoplay timing.
+  await page.getByRole("button", { name: "Abrir menú", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Cerrar menú", exact: true })).toBeVisible();
+  await page.getByRole("button", { name: "Cerrar menú", exact: true }).click();
+  await expect(page.getByRole("button", { name: "Abrir menú", exact: true })).toBeVisible();
   expect(hydrationErrors).toEqual([]);
 });

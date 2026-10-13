@@ -1,6 +1,8 @@
 "use client";
 
 import Image from "next/image";
+import OfflineBoundary from "@/components/pwa/OfflineBoundary";
+import ProductPersistence from "@/components/pwa/ProductPersistence";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import {
@@ -10,17 +12,12 @@ import {
   ChevronLeft,
   ChevronRight,
   ChevronUp,
-  ClipboardList,
-  Layers3,
-  ListChecks,
   MessageSquareText,
   PenLine,
-  Ruler,
   ShieldCheck,
   Star,
   Store,
   Truck,
-  Weight,
   X,
 } from "lucide-react";
 import { FavoriteButton } from "@/components/account/FavoriteButton";
@@ -54,14 +51,7 @@ import {
 } from "@/lib/promotion-pricing";
 import { getClientSiteUrl } from "@/lib/site-config";
 import { buildProductShareData } from "@/lib/product-share";
-import {
-  Breadcrumb,
-  BreadcrumbItem,
-  BreadcrumbLink,
-  BreadcrumbList,
-  BreadcrumbPage,
-  BreadcrumbSeparator,
-} from "@/features/admin/components/ui/breadcrumb";
+import { ProductDetailLayout, ProductDescription, PRODUCT_DETAIL_COLUMNS } from "@/components/product/ProductDetailLayout";
 
 function formatMoney(value: number) {
   return formatCurrencyMx(value, { fractionDigits: 0 });
@@ -172,7 +162,11 @@ type ProductDetailClientProps = {
   promotion?: ActivePromotion | null;
 };
 
-export default function ProductDetailClient({
+export default function ProductDetailClient(props: ProductDetailClientProps) {
+  return <OfflineBoundary><ProductPersistence products={[props.product]} detail /><OnlineProductDetailClient {...props} /></OfflineBoundary>;
+}
+
+function OnlineProductDetailClient({
   product,
   productId,
   promotion = null,
@@ -365,13 +359,7 @@ export default function ProductDetailClient({
   const isOutOfStock = product.stock <= 0;
   const selectedGalleryImage =
     galleryImages.find((image) => image.url === selectedImageUrl) ?? galleryImages[0] ?? null;
-  const orthopedicDetails = [
-    { label: "Medidas", value: product.medidas, icon: Ruler },
-    { label: "Peso soportado", value: product.pesoSoportado, icon: Weight },
-    { label: "Material", value: product.material, icon: Layers3 },
-    { label: "Contenido", value: product.contenidoCaja, icon: ClipboardList },
-    { label: "Indicaciones", value: product.indicacionesUso, icon: ListChecks },
-  ].filter((item) => item.value?.trim());
+
 
   const showBuyAction =
     product.tipoAdquisicion === "VENTA" ||
@@ -602,32 +590,8 @@ export default function ProductDetailClient({
   };
 
   return (
-    <section className="mx-auto max-w-[1440px] px-4 pb-11 pt-6 lg:px-6">
-      <div className="mb-5 border-b border-[#e3ebee] pb-4">
-        <Breadcrumb>
-          <BreadcrumbList className="gap-y-2 text-[0.92rem]">
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild className="font-medium text-[#5e707a] hover:text-[#1f6a67]">
-                <Link href="/">Inicio</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator className="text-[#93a4ac]" />
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild className="font-medium text-[#5e707a] hover:text-[#1f6a67]">
-                <Link href="/catalogo">Catálogo</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator className="text-[#93a4ac]" />
-            <BreadcrumbItem>
-              <BreadcrumbPage className="max-w-[min(70vw,620px)] truncate font-semibold text-[#142734]">
-                {product.nombre}
-              </BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-      </div>
-
-      <div className="grid gap-8 xl:grid-cols-[minmax(0,1.12fr)_minmax(0,0.9fr)_360px]">
+    <ProductDetailLayout name={product.nombre}>
+      <div className={PRODUCT_DETAIL_COLUMNS}>
         <section className="grid gap-4 xl:sticky xl:top-24 xl:self-start">
           <div
             className={`grid gap-4 lg:items-start ${
@@ -1107,39 +1071,7 @@ export default function ProductDetailClient({
         </aside>
       </div>
 
-      <section className="mt-9 border-t border-[#e3ebee] py-8 xl:mr-[388px]">
-        <div className="grid gap-8">
-          <h2 className="text-[1.65rem] font-semibold text-[#142734]">
-            Descripción
-          </h2>
-          <p className="max-w-[1040px] whitespace-pre-line text-[1.04rem] leading-9 text-[#2d4d5b]">
-            {product.descripcion}
-          </p>
-        </div>
-
-        {orthopedicDetails.length > 0 ? (
-          <div className="mt-9 grid max-w-[1040px] gap-4 border-t border-[#e6eef1] pt-7">
-            <h2 className="text-[1.4rem] font-semibold text-[#142734]">
-              Ficha ortopédica
-            </h2>
-            <dl className="grid gap-x-8 gap-y-5 sm:grid-cols-2">
-              {orthopedicDetails.map(({ label, value, icon: Icon }) => (
-                <div key={label} className="grid grid-cols-[auto_minmax(0,1fr)] gap-3">
-                  <Icon className="mt-1 size-5 text-[#1f6a67]" aria-hidden />
-                  <div>
-                    <dt className="text-xs font-semibold uppercase tracking-[0.08em] text-[#80929b]">
-                      {label}
-                    </dt>
-                    <dd className="mt-1 whitespace-pre-line text-[0.98rem] leading-6 text-[#1b3141]">
-                      {value}
-                    </dd>
-                  </div>
-                </div>
-              ))}
-            </dl>
-          </div>
-        ) : null}
-      </section>
+      <ProductDescription product={product} />
 
       <section
         id="resenas"
@@ -1658,6 +1590,6 @@ export default function ProductDetailClient({
           </div>
         </div>
       ) : null}
-    </section>
+    </ProductDetailLayout>
   );
 }

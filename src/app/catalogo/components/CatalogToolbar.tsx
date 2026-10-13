@@ -15,8 +15,11 @@ import {
   type CatalogView,
 } from "../utils/catalog-params";
 import { resolveApiUrl } from "@/lib/api-config";
+import VoiceSearchButton from "@/components/search/VoiceSearchButton";
+import { useVoiceSearch } from "@/components/search/useVoiceSearch";
 
 type CatalogToolbarProps = {
+  offline?: boolean;
   searchQuery: string;
   sort: CatalogSort;
   view: CatalogView;
@@ -34,6 +37,7 @@ type SearchSuggestion = {
 };
 
 export default function CatalogToolbar({
+  offline = false,
   searchQuery,
   sort,
   view,
@@ -53,10 +57,20 @@ export default function CatalogToolbar({
     setSearchDraft(searchQuery);
   }, [searchQuery]);
 
+  const handleVoiceResult = (transcript: string) => {
+    setSearchDraft(transcript);
+    onSearchSubmit(transcript);
+    setSuggestionsOpen(false);
+  };
+
+  const { isListening, toggleListening } = useVoiceSearch({
+    onResult: handleVoiceResult,
+  });
+
   const normalizedDraft = useMemo(() => searchDraft.trim(), [searchDraft]);
 
   useEffect(() => {
-    if (!isSearchActive || normalizedDraft.length < 2) {
+    if (offline || !isSearchActive || normalizedDraft.length < 2) {
       setSuggestions([]);
       setSuggestionsOpen(false);
       return;
@@ -111,7 +125,7 @@ export default function CatalogToolbar({
       controller.abort();
       window.clearTimeout(timeout);
     };
-  }, [isSearchActive, normalizedDraft]);
+  }, [isSearchActive, normalizedDraft, offline]);
 
   const handleSearch = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -133,11 +147,100 @@ export default function CatalogToolbar({
 
   return (
     <section className="border-b border-[#e5ecee] pb-5">
-      <div className="grid gap-3 xl:grid-cols-[minmax(360px,1fr)_auto_auto] xl:items-center">
+      <div className="grid min-w-0 gap-3">
         <div className="flex min-w-0 gap-3">
+          <form className="relative flex min-w-0 flex-1 gap-2" onSubmit={handleSearch}>
+            <div className="relative min-w-0 flex-1">
+              <label htmlFor="catalog-search" className="sr-only">
+                Buscar en el catálogo
+              </label>
+              <Search
+                className="pointer-events-none absolute left-4 top-1/2 z-[1] size-5 -translate-y-1/2 text-[#7a8e97]"
+                aria-hidden="true"
+              />
+              <input
+                id="catalog-search"
+                name="catalog-search"
+                type="text"
+                role="searchbox"
+                enterKeyHint="search"
+                className="h-13 w-full rounded-lg border border-[#d6e0e3] bg-white pl-11 pr-24 text-base text-[#18313f] outline-none transition placeholder:text-[#5c7078] focus:border-[#0f6a67] focus:ring-2 focus:ring-[#0f6a67]"
+                placeholder={isListening ? "Escuchando... habla ahora" : "Buscar productos"}
+                value={searchDraft}
+                onChange={(event) => {
+                  setSearchDraft(event.target.value);
+                  setIsSearchActive(true);
+                  setSuggestionsOpen(true);
+                }}
+                onFocus={() => {
+                  setIsSearchActive(true);
+                  if (suggestions.length > 0) setSuggestionsOpen(true);
+                }}
+                onBlur={() => {
+                  window.setTimeout(() => {
+                    setIsSearchActive(false);
+                    setSuggestionsOpen(false);
+                  }, 120);
+                }}
+                autoComplete="off"
+              />
+              <div className="absolute right-2 top-1/2 flex -translate-y-1/2 items-center gap-1">
+                {searchDraft ? (
+                  <button
+                    type="button"
+                    className="inline-flex size-9 items-center justify-center rounded-md text-[#6f8590] outline-none transition hover:bg-[#eef5f6] hover:text-[#18313f] focus-visible:ring-2 focus-visible:ring-[#0f6a67]"
+                    onClick={handleClearSearch}
+                    aria-label="Limpiar búsqueda"
+                  >
+                    <X className="size-4" />
+                  </button>
+                ) : null}
+                {!offline && <VoiceSearchButton
+                  isListening={isListening}
+                  onToggle={toggleListening}
+                  variant="catalog"
+                />}
+              </div>
+            </div>
+            <button
+              type="submit"
+              className="inline-flex min-h-13 shrink-0 items-center justify-center rounded-lg bg-[#172932] px-4 text-sm font-semibold text-white outline-none transition hover:bg-[#0f1f27] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2 sm:px-6"
+            >
+              Buscar
+            </button>
+
+            {suggestionsOpen ? (
+              <div
+                className="absolute inset-x-0 top-[calc(100%+10px)] z-20 overflow-hidden rounded-lg border border-[#dfe8eb] bg-white shadow-[0_18px_48px_rgba(15,42,50,0.12)]"
+                role="listbox"
+                aria-label="Sugerencias de búsqueda"
+              >
+                {loadingSuggestions ? (
+                  <div className="border-b border-[#edf2f3] px-4 py-3 text-sm font-medium text-[#61747d]">
+                    Buscando...
+                  </div>
+                ) : null}
+                {suggestions.map((item) => (
+                  <button
+                    key={item.id}
+                    type="button"
+                    className="grid min-h-12 w-full gap-1 bg-white px-4 py-3 text-left outline-none transition hover:bg-[#f6fbfb] focus-visible:bg-[#f6fbfb]"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => selectSuggestion(item)}
+                  >
+                    <span className="text-sm font-semibold text-[#18313f]">{item.nombre}</span>
+                    <span className="text-xs font-medium text-[#61747d]">{item.marca}</span>
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </form>
+        </div>
+
+        <div className="flex min-w-0 flex-wrap items-center gap-3">
           <button
             type="button"
-            className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-lg border border-[#d7e3e6] bg-white px-4 text-sm font-semibold text-[#21414d] shadow-[0_8px_20px_rgba(18,39,49,0.04)] outline-none transition hover:border-[#b8ccd1] hover:bg-[#f8fbfb] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2 lg:hidden"
+            className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-lg border border-[#d7e3e6] bg-white px-3 text-sm font-semibold text-[#21414d] outline-none transition hover:bg-[#f8fbfb] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2 lg:hidden"
             onClick={onOpenMobileFilters}
           >
             <SlidersHorizontal className="size-4" aria-hidden="true" />
@@ -148,99 +251,18 @@ export default function CatalogToolbar({
               </span>
             ) : null}
           </button>
-
-          <form className="relative min-w-0 flex-1" onSubmit={handleSearch}>
-          <label htmlFor="catalog-search" className="sr-only">
-            Buscar en el catálogo
-          </label>
-          <Search
-            className="pointer-events-none absolute left-4 top-1/2 z-[1] size-5 -translate-y-1/2 text-[#7a8e97]"
-            aria-hidden="true"
-          />
-          <input
-            id="catalog-search"
-            name="catalog-search"
-            type="text"
-            role="searchbox"
-            enterKeyHint="search"
-            className="h-13 w-full rounded-lg border border-[#d6e0e3] bg-white px-14 pr-28 text-[0.95rem] text-[#18313f] shadow-[0_8px_20px_rgba(18,39,49,0.04)] outline-none transition placeholder:text-[#8ca0a8] focus:border-[#0f6a67] focus:ring-4 focus:ring-[rgba(15,106,103,0.12)]"
-            placeholder="Buscar por nombre, marca, modelo o categoría"
-            value={searchDraft}
-            onChange={(event) => {
-              setSearchDraft(event.target.value);
-              setIsSearchActive(true);
-              setSuggestionsOpen(true);
-            }}
-            onFocus={() => {
-              setIsSearchActive(true);
-              if (suggestions.length > 0) setSuggestionsOpen(true);
-            }}
-            onBlur={() => {
-              window.setTimeout(() => {
-                setIsSearchActive(false);
-                setSuggestionsOpen(false);
-              }, 120);
-            }}
-            autoComplete="off"
-          />
-          {searchDraft ? (
-            <button
-              type="button"
-              className="absolute right-[92px] top-1/2 inline-flex size-8 -translate-y-1/2 items-center justify-center rounded-full text-[#6f8590] outline-none transition hover:bg-[#eef5f6] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
-              onClick={handleClearSearch}
-              aria-label="Limpiar búsqueda"
-            >
-              <X className="size-4" />
-            </button>
-          ) : null}
-          <button
-            type="submit"
-            className="absolute right-1.5 top-1.5 inline-flex min-h-10 items-center rounded-md bg-[#172932] px-5 text-sm font-semibold text-white outline-none transition hover:bg-[#0f1f27] focus-visible:ring-2 focus-visible:ring-[#0f6a67] focus-visible:ring-offset-2"
-          >
-            Buscar
-          </button>
-
-          {suggestionsOpen ? (
-            <div
-              className="absolute inset-x-0 top-[calc(100%+10px)] z-20 overflow-hidden rounded-lg border border-[#dfe8eb] bg-white shadow-[0_18px_48px_rgba(15,42,50,0.12)]"
-              role="listbox"
-              aria-label="Sugerencias de búsqueda"
-            >
-              {loadingSuggestions ? (
-                <div className="border-b border-[#edf2f3] px-4 py-3 text-sm font-medium text-[#61747d]">
-                  Buscando...
-                </div>
-              ) : null}
-              {suggestions.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  className="grid min-h-12 w-full gap-1 bg-white px-4 py-3 text-left outline-none transition hover:bg-[#f6fbfb] focus-visible:bg-[#f6fbfb]"
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => selectSuggestion(item)}
-                >
-                  <span className="text-sm font-semibold text-[#18313f]">{item.nombre}</span>
-                  <span className="text-xs font-medium text-[#61747d]">{item.marca}</span>
-                </button>
-              ))}
-            </div>
-          ) : null}
-          </form>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-[minmax(220px,auto)_auto] sm:items-center sm:justify-between xl:contents">
-          <label className="flex min-h-12 items-center gap-3 rounded-lg border border-[#d7e3e6] bg-white px-3 shadow-[0_8px_20px_rgba(18,39,49,0.04)]">
-            <span className="shrink-0 text-[0.68rem] font-semibold uppercase tracking-[0.08em] text-[#7a8e97]">
+          <label className="flex min-h-12 min-w-0 flex-1 items-center gap-2 rounded-lg border border-[#d7e3e6] bg-white px-3 sm:flex-none">
+            <span className="hidden shrink-0 text-sm text-[#5c7078] sm:inline">
               Ordenar
             </span>
             <select
-              className="min-h-10 min-w-0 cursor-pointer rounded-md border-0 bg-transparent px-1 text-sm font-semibold text-[#21414d] outline-none focus:ring-0"
+              className="min-h-11 w-full min-w-0 cursor-pointer rounded-md border-0 bg-transparent px-1 text-sm font-semibold text-[#21414d] focus-visible:outline-2 focus-visible:outline-[#0f6a67]"
               value={sort}
               onChange={(event) => onSortChange(event.target.value as CatalogSort)}
               aria-label="Ordenar productos"
             >
               {CATALOG_SORT_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
+                <option key={option.value} value={option.value} disabled={offline && !option.value.startsWith("nombre-")}>
                   {option.label}
                 </option>
               ))}
@@ -248,7 +270,7 @@ export default function CatalogToolbar({
           </label>
 
           <div
-            className="hidden min-h-12 w-max overflow-hidden rounded-lg border border-[#d7e3e6] bg-white shadow-[0_8px_20px_rgba(18,39,49,0.04)] md:inline-flex"
+            className="ml-auto hidden min-h-12 w-max overflow-hidden rounded-lg border border-[#d7e3e6] bg-white md:inline-flex"
             role="group"
             aria-label="Vista de productos"
           >

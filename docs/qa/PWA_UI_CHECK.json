@@ -1,0 +1,93 @@
+{
+  "visuals": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/",
+      "headerCount": 1,
+      "headerClass": "sticky top-0 z-50 overflow-hidden bg-[#258e8b]",
+      "mainOfflineBanner": false,
+      "overflow": false
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/catalogo",
+      "headerCount": 1,
+      "headerClass": "sticky top-0 z-50 overflow-hidden bg-[#258e8b]",
+      "mainOfflineBanner": false,
+      "overflow": false
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/quienes-somos",
+      "headerCount": 1,
+      "headerClass": "sticky top-0 z-50 overflow-hidden bg-[#258e8b]",
+      "mainOfflineBanner": false,
+      "overflow": false
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "route": "/contactanos",
+      "headerCount": 1,
+      "headerClass": "sticky top-0 z-50 overflow-hidden bg-[#258e8b]",
+      "mainOfflineBanner": false,
+      "overflow": false
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/",
+      "headerCount": 1,
+      "headerClass": "sticky top-0 z-50 overflow-hidden bg-[#258e8b]",
+      "mainOfflineBanner": false,
+      "overflow": false
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/catalogo",
+      "headerCount": 1,
+      "headerClass": "sticky top-0 z-50 overflow-hidden bg-[#258e8b]",
+      "mainOfflineBanner": false,
+      "overflow": false
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/quienes-somos",
+      "headerCount": 1,
+      "headerClass": "sticky top-0 z-50 overflow-hidden bg-[#258e8b]",
+      "mainOfflineBanner": false,
+      "overflow": false
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "route": "/contactanos",
+      "headerCount": 1,
+      "headerClass": "sticky top-0 z-50 overflow-hidden bg-[#258e8b]",
+      "mainOfflineBanner": false,
+      "overflow": false
+    }
+  ],
+  "uiErrors": []
+}

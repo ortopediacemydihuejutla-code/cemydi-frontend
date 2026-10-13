@@ -1,0 +1,225 @@
+{
+  "cacheSize": 24,
+  "cacheDiagnostics": [
+    {
+      "id": 34,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 35,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 36,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/png"
+    },
+    {
+      "id": 37,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 38,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/png"
+    },
+    {
+      "id": 39,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 40,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 41,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/png"
+    },
+    {
+      "id": 42,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 43,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 44,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 45,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/png"
+    },
+    {
+      "id": 46,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 47,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/png"
+    },
+    {
+      "id": 48,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 49,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 50,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 51,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 52,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 53,
+      "urlCount": 2,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 54,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/png"
+    },
+    {
+      "id": 55,
+      "urlCount": 2,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/png"
+    },
+    {
+      "id": 56,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    },
+    {
+      "id": 57,
+      "urlCount": 1,
+      "hasKey": true,
+      "hasResponse": true,
+      "type": "basic",
+      "status": 200,
+      "mime": "image/jpeg"
+    }
+  ],
+  "products": 24,
+  "images": 24,
+  "placeholders": 0,
+  "imageFailures": []
+}

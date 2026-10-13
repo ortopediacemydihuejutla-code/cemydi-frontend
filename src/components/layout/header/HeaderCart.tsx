@@ -8,7 +8,7 @@ import { useCart } from "@/providers/CartContext";
 export function HeaderCartSkeleton() {
   return (
     <div
-      className="inline-flex size-10 shrink-0 animate-pulse rounded-full bg-white/15"
+      className="inline-flex size-11 shrink-0 animate-pulse rounded-full bg-white/15 motion-reduce:animate-none"
       aria-hidden="true"
     />
   );

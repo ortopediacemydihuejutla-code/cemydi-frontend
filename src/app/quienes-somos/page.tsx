@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AboutPageClient } from "./AboutPageClient";
-import { getAboutPageContent } from "@/services/about-page";
+import { getAboutPageSnapshot } from "@/services/about-page";
+import OfflineBoundary from "@/components/pwa/OfflineBoundary";
 
 export const metadata: Metadata = {
   title: "Quiénes somos",
@@ -14,7 +15,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AboutPage() {
-  const content = await getAboutPageContent();
+  const { content, valid, unavailable } = await getAboutPageSnapshot();
 
-  return <AboutPageClient content={content} />;
+  return <OfflineBoundary unavailable={unavailable}>{!valid && <p className="p-4 text-sm">Contenido institucional predeterminado.</p>}<AboutPageClient content={content} persist={valid} /></OfflineBoundary>;
 }

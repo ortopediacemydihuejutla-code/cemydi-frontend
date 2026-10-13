@@ -1,0 +1,506 @@
+{
+  "origin": "http://localhost:3001",
+  "backend": "local real, sin autenticar",
+  "registrations": [
+    {
+      "scope": "http://localhost:3001/",
+      "active": "activated",
+      "script": "http://localhost:3001/sw.js"
+    }
+  ],
+  "manifestErrors": [],
+  "installability": {
+    "installabilityErrors": []
+  },
+  "workerEvents": [
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activating",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [
+            "63544C60AFB490A5EA048EAF64743D41"
+          ],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [
+            "63544C60AFB490A5EA048EAF64743D41"
+          ],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [
+            "63544C60AFB490A5EA048EAF64743D41"
+          ],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    },
+    {
+      "versions": [
+        {
+          "versionId": "0",
+          "registrationId": "0",
+          "scriptURL": "http://localhost:3001/sw.js",
+          "runningStatus": "running",
+          "status": "activated",
+          "scriptLastModified": 1791760388,
+          "scriptResponseTime": 1791761306.1069,
+          "controlledClients": [],
+          "targetId": "0482E1670E9BF8CD79B6D7065CAE5B86"
+        }
+      ]
+    }
+  ],
+  "checks": {
+    "offlineCards": 24,
+    "commercialVisible": false,
+    "searchResultCount": 1,
+    "unvisitedDetail": "Producto no guardado",
+    "contactIframes": 0,
+    "coldRestart": {
+      "serverRunning": false,
+      "catalogCount": 24,
+      "routes": [
+        {
+          "route": "/producto/silla-de-ruedas-tipo-cama",
+          "heading": "Silla de ruedas tipo cama"
+        },
+        {
+          "route": "/quienes-somos",
+          "heading": "Quiénes somos"
+        },
+        {
+          "route": "/contactanos",
+          "heading": "Atención sin vueltas."
+        }
+      ]
+    },
+    "privateUnavailable": "page.goto: net::ERR_FAILED at http://localhost:3001/admin",
+    "nativeInstallButtonVisible": true,
+    "cachedProductImagesVisible": 18,
+    "brokenCachedImages": 0
+  },
+  "privateFailure": "page.goto: net::ERR_FAILED at http://localhost:3001/admin",
+  "cacheAudit": [
+    {
+      "name": "serwist-precache-v2-http://localhost:3001/",
+      "paths": [
+        "/icon-192.png",
+        "/icon-512.png",
+        "/icon-maskable-192.png",
+        "/icon-maskable-512.png",
+        "/logo-horizontal-white.png",
+        "/offline",
+        "/fondowan.png",
+        "/_next/static/chunks/01psw2kb6xmvn.js",
+        "/_next/static/chunks/04ce1l6s4qoda.js",
+        "/_next/static/chunks/0dvv12tgjmwj2.js",
+        "/_next/static/chunks/0g8ku62w0yb2s.js",
+        "/_next/static/chunks/0cz1d0mv5g_q7.js",
+        "/_next/static/chunks/0gr8vhehtdtao.js",
+        "/_next/static/chunks/0t-60pnz9fet3.js",
+        "/_next/static/chunks/0_klv09andqj_.js",
+        "/_next/static/chunks/0gj78z5yxdyo1.js",
+        "/_next/static/chunks/101w7_yv4v2qr.js",
+        "/_next/static/chunks/12y40iwina75s.js",
+        "/_next/static/chunks/13ws-kovh6zn2.js",
+        "/_next/static/chunks/147791tv090-k.js",
+        "/_next/static/chunks/18jt76zvn6ych.js",
+        "/_next/static/chunks/19i4ns-dg29d4.js",
+        "/_next/static/chunks/1hfdavqm-7whk.js",
+        "/_next/static/chunks/1cxb_z19h3s12.js",
+        "/_next/static/chunks/1mczab9yiysvw.js",
+        "/_next/static/chunks/1i2yc0nu6dzar.js",
+        "/_next/static/chunks/1bqe7zrso33ev.js",
+        "/_next/static/chunks/1ncz1o9-5wk0n.js",
+        "/_next/static/chunks/1myyezsu02umr.js",
+        "/_next/static/chunks/1ntn7efqc-iiw.js",
+        "/_next/static/chunks/1upacwjrjfosk.js",
+        "/_next/static/chunks/1rjf1dpo00l3y.js",
+        "/_next/static/chunks/1od90llmtfdnv.js",
+        "/_next/static/chunks/1zlnnljcq2iyi.js",
+        "/_next/static/chunks/1_spa2zxu4q79.js",
+        "/_next/static/chunks/2-oozoqocmquf.js",
+        "/_next/static/chunks/231f5rp39kcq8.js",
+        "/_next/static/chunks/29p7x6ttgs7vc.js",
+        "/_next/static/chunks/29b3hr1mradej.js",
+        "/_next/static/chunks/27z01b-q703q9.js",
+        "/_next/static/chunks/2avbgpyqe71qz.js",
+        "/_next/static/chunks/2b--az46upioo.js",
+        "/_next/static/chunks/2d5tasdrl3ztg.js",
+        "/_next/static/chunks/2embatkv4m29t.js",
+        "/_next/static/chunks/2ic6oumtar13c.js",
+        "/_next/static/chunks/2lfkyxvv0-v87.js",
+        "/_next/static/chunks/2mriv-ebcbt7h.js",
+        "/_next/static/chunks/2lgm8nzl9fnbu.js",
+        "/_next/static/chunks/2s_cdzrrfsnbp.js",
+        "/_next/static/chunks/2uwzb7583la94.js",
+        "/_next/static/chunks/2tkpseb_e1p-c.js",
+        "/_next/static/chunks/2vu-1nnnd1sdx.js",
+        "/_next/static/chunks/2z9s5do50xgmu.css",
+        "/_next/static/chunks/2x8v0jvw0cw-s.js",
+        "/_next/static/chunks/2xy5t3uatdmfo.js",
+        "/_next/static/chunks/30mnjly2v9hxq.js",
+        "/_next/static/chunks/32d5d6h2kii-2.js",
+        "/_next/static/chunks/32m-1f8os4ye8.js",
+        "/_next/static/chunks/32zykqn3cn-xr.js",
+        "/_next/static/chunks/33-gexlfcoqat.js",
+        "/_next/static/chunks/343b656dbmn23.js",
+        "/_next/static/chunks/36-c_o26adis1.js",
+        "/_next/static/chunks/36capfr7odja_.js",
+        "/_next/static/chunks/3ewnx9rw88txm.js",
+        "/_next/static/chunks/39g3md8g701gf.css",
+        "/_next/static/chunks/3e_8x__17gaid.js",
+        "/_next/static/chunks/3fu-hvtbqa06z.js",
+        "/_next/static/chunks/3ds9c0d2ysck3.js",
+        "/_next/static/chunks/3k65go-0s5myn.js",
+        "/_next/static/chunks/3kmhkb-w_cal1.js",
+        "/_next/static/chunks/3m-wtiwx7r4n0.js",
+        "/_next/static/chunks/3mg_b5s2f3r4s.js",
+        "/_next/static/chunks/3nm32do64wn99.js",
+        "/_next/static/chunks/3p1vo3l_fp2_1.js",
+        "/_next/static/chunks/3t7s9sjk146qp.js",
+        "/_next/static/chunks/3qknb8z0eyx2m.js",
+        "/_next/static/chunks/3u4_mlsauvch9.js",
+        "/_next/static/chunks/3u9ci-i4seziw.js",
+        "/_next/static/chunks/3uaql3a09a5xd.js",
+        "/_next/static/chunks/3v7_p-hrgyoim.js",
+        "/_next/static/chunks/3x06i1iiyobu3.js",
+        "/_next/static/chunks/3ym7a-pzyq1y1.js",
+        "/_next/static/chunks/3_v9iia4jb0dk.js",
+        "/_next/static/chunks/42mtryoe_tyi5.js",
+        "/_next/static/chunks/430z_u1nzeg2-.js",
+        "/_next/static/chunks/4327t077udb66.js",
+        "/_next/static/chunks/43r8nnolgv03z.js",
+        "/_next/static/chunks/442l-nwt62ea9.js",
+        "/_next/static/chunks/turbopack-0ak6_eb-dz2mp.js",
+        "/_next/static/zhJXnS3V9dgz0xeGo5sxR/_buildManifest.js",
+        "/_next/static/zhJXnS3V9dgz0xeGo5sxR/_clientMiddlewareManifest.js",
+        "/_next/static/zhJXnS3V9dgz0xeGo5sxR/_ssgManifest.js"
+      ]
+    },
+    {
+      "name": "cemydi-public-images-v1",
+      "paths": [
+        "/_next/image",
+        "/_next/image",
+        "/_next/image",
+        "/_next/image",
+        "/img_Contactanos.png",
+        "/_next/image"
+      ]
+    }
+  ],
+  "pageErrors": [],
+  "devtoolsWarnings": [
+    "Sin screenshots para Richer PWA Install UI (desktop/mobile)",
+    "Shortcuts sin iconos 96x96"
+  ],
+  "notes": [
+    "La emulación CDP permitió inicialmente la red del worker; la prueba definitiva detuvo el servidor 3001.",
+    "Un intento de navegación al cerrar la conexión fue interrumpido; las rutas se reabrieron y comprobaron nuevamente."
+  ],
+  "consoleObservations": [
+    "DevTools registra rechazos no-response del worker al solicitar recursos sin respaldo durante la caída de red (admin, API de sesión, manifest y favicons). No equivalen a ausencia de errores globales.",
+    "El aviso Banner not shown corresponde a preventDefault de beforeinstallprompt y al botón propio de instalación."
+  ]
+}

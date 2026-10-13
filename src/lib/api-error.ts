@@ -12,6 +12,13 @@ export class ApiError extends Error {
   }
 }
 
+export class ApiResponseValidationError extends ApiError {
+  constructor(body: unknown) {
+    super("La respuesta del servidor no tiene el formato esperado.", 502, body);
+    this.name = "ApiResponseValidationError";
+  }
+}
+
 export function isDevelopmentMode() {
   return process.env.NODE_ENV === "development";
 }
@@ -67,11 +74,7 @@ export async function parseApiResponse<T>(
       console.error("parseApiResponse schema mismatch", parsed.error.flatten());
     }
 
-    throw new ApiError(
-      "La respuesta del servidor no tiene el formato esperado.",
-      502,
-      parsed.error.flatten(),
-    );
+    throw new ApiResponseValidationError(parsed.error.flatten());
   }
 
   return parsed.data;

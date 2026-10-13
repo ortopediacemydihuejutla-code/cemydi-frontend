@@ -1,7 +1,11 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { usePublicPathname } from "@/lib/pwa/connectivity";
+import { useOfflinePresentation } from "@/providers/PwaProvider";
+import VoiceSearchButton from "@/components/search/VoiceSearchButton";
+import { useVoiceSearch } from "@/components/search/useVoiceSearch";
 
 const SEARCH_EXAMPLES = [
   "sillas de ruedas",
@@ -120,27 +124,49 @@ type HeaderSearchProps = {
 
 export default function HeaderSearch({ inputId = "header-search" }: HeaderSearchProps) {
   const router = useRouter();
-  const pathname = usePathname();
+  const pathname = usePublicPathname();
+  const { active: offline } = useOfflinePresentation();
   const searchParams = useSearchParams();
   const [isFocused, setIsFocused] = useState(false);
   const animatedPlaceholder = useAnimatedSearchPlaceholder(isFocused);
 
+  const currentCatalogQuery =
+    pathname === "/catalogo" ? (searchParams.get("q") ?? "") : "";
+  const [searchValue, setSearchValue] = useState(currentCatalogQuery);
+
+  useEffect(() => {
+    setSearchValue(currentCatalogQuery);
+  }, [currentCatalogQuery]);
+
+  const onVoiceResult = (transcript: string) => {
+    setSearchValue(transcript);
+    const keepFilters = pathname === "/catalogo";
+    const destination = buildCatalogSearchPath(
+      transcript,
+      searchParams,
+      keepFilters,
+    );
+    if (offline) location.assign(destination); else router.push(destination);
+  };
+
+  const { isListening, toggleListening } = useVoiceSearch({
+    onResult: onVoiceResult,
+  });
+
   const onSearchSubmit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const searchValue = String(formData.get("header-search") ?? "");
     const keepFilters = pathname === "/catalogo";
     const destination = buildCatalogSearchPath(
       searchValue,
       searchParams,
       keepFilters,
     );
-    router.push(destination);
+    if (offline) location.assign(destination); else router.push(destination);
   };
 
   return (
     <form
-      className="relative flex h-10 w-full max-w-full items-center overflow-hidden rounded-full border border-white/35 bg-white/15 pl-3.5 shadow-inner transition-colors focus-within:border-white focus-within:bg-white/20 lg:max-w-[35rem]"
+      className="relative flex h-11 w-full max-w-full items-center overflow-hidden rounded-full border border-white/35 bg-white/15 pl-3.5 shadow-inner transition-colors focus-within:border-white focus-within:bg-white/20 lg:max-w-[35rem]"
       onSubmit={onSearchSubmit}
     >
       <label htmlFor={inputId} className="sr-only">
@@ -150,7 +176,7 @@ export default function HeaderSearch({ inputId = "header-search" }: HeaderSearch
         aria-hidden="true"
         className="pointer-events-none text-white/80 shrink-0"
       >
-        <svg viewBox="0 0 16 16" className="size-4">
+        <svg viewBox="0 0 16 16" className="size-4" suppressHydrationWarning>
           <circle
             cx="6.5"
             cy="6.5"
@@ -158,6 +184,7 @@ export default function HeaderSearch({ inputId = "header-search" }: HeaderSearch
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
+            suppressHydrationWarning
           />
           <path
             d="M10.2 10.2 14 14"
@@ -165,23 +192,32 @@ export default function HeaderSearch({ inputId = "header-search" }: HeaderSearch
             stroke="currentColor"
             strokeLinecap="round"
             strokeWidth="2"
+            suppressHydrationWarning
           />
         </svg>
       </span>
       <input
         id={inputId}
-        key={`${pathname}-${searchParams.get("q") ?? ""}`}
         name="header-search"
         type="text"
         role="searchbox"
         enterKeyHint="search"
         autoComplete="off"
-        placeholder={animatedPlaceholder}
+        placeholder={isListening ? "Escuchando... habla ahora" : animatedPlaceholder}
         className="h-full w-full min-w-0 bg-transparent px-3 text-sm text-white outline-none placeholder:text-white/80"
-        defaultValue={pathname === "/catalogo" ? (searchParams.get("q") ?? "") : ""}
+        value={searchValue}
+        onChange={(event) => setSearchValue(event.target.value)}
         onFocus={() => setIsFocused(true)}
         onBlur={() => setIsFocused(false)}
       />
+      <div className="mr-1.5 flex shrink-0 items-center">
+        <VoiceSearchButton
+          disabled={offline}
+          isListening={isListening}
+          onToggle={toggleListening}
+          variant="header"
+        />
+      </div>
       <button
         type="submit"
         className="inline-flex h-full shrink-0 items-center justify-center bg-white px-5 text-xs font-bold text-[#258e8b] transition hover:bg-slate-100 focus-visible:outline-none"

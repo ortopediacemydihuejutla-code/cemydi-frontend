@@ -1,5 +1,6 @@
 import { getActivePromotions, getCatalogProducts } from "@/services/catalog";
 import CatalogClient from "./components/CatalogClient";
+import { canUseOfflineFallback } from "@/lib/pwa/errors";
 import { mergeAvailableClassifications } from "./utils/catalog-formatters";
 import { mergeAvailableBrands } from "./utils/catalog-params";
 import {
@@ -31,6 +32,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
     ReturnType<typeof getActivePromotions>
   >["promotions"] = [];
   let error = "";
+  let unavailable = false;
 
   try {
     const [result, promotionsResult] = await Promise.all([
@@ -52,25 +54,13 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
     );
     availableBrands = mergeAvailableBrands(result.filters?.marcas);
     promotions = promotionsResult.promotions;
-  } catch {
+  } catch (failure) {
+    unavailable = canUseOfflineFallback(failure);
     error = "No pudimos cargar el catalogo. Intenta nuevamente en unos minutos.";
   }
 
-  const catalogStateKey = [
-    applied.searchQuery,
-    applied.clasificaciones.join(","),
-    applied.marcas.join(","),
-    applied.tipos.join(","),
-    applied.receta ?? "",
-    applied.soloDisponibles ? "1" : "0",
-    applied.sort,
-    applied.view,
-    String(applied.page),
-  ].join("|");
-
   return (
     <CatalogClient
-      key={catalogStateKey}
       products={products}
       pagination={pagination}
       availableClassifications={availableClassifications}
@@ -78,6 +68,7 @@ export default async function CatalogPage({ searchParams }: CatalogPageProps) {
       promotions={promotions}
       applied={applied}
       error={error}
+      unavailable={unavailable}
     />
   );
 }

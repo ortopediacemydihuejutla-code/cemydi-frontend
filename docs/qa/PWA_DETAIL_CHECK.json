@@ -1,0 +1,35 @@
+{
+  "savedDetail": [
+    {
+      "id": 57,
+      "hasDetail": true,
+      "fields": [
+        "id",
+        "slug",
+        "nombre",
+        "marca",
+        "modelo",
+        "descripcion",
+        "clasificacion",
+        "tipoAdquisicion",
+        "requiereReceta",
+        "imageUrls",
+        "aliases",
+        "updatedAt",
+        "detail"
+      ],
+      "detailFields": [
+        "medidas",
+        "pesoSoportado",
+        "material",
+        "contenidoCaja",
+        "indicacionesUso",
+        "updatedAt"
+      ]
+    }
+  ],
+  "detailErrors": [],
+  "mobileHeight": 359.99998474121094,
+  "desktopHeight": 559.9999847412109,
+  "overflow": false
+}

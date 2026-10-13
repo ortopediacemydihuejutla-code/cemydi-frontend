@@ -51,7 +51,8 @@ export function FavoriteButton({
       if (router) {
         router.push("/login");
       } else if (typeof window !== "undefined") {
-        window.location.href = "/login";
+        // Standalone renders without App Router require a full document navigation.
+        window.location.assign(new URL("/login", window.location.origin).href);
       }
       return;
     }

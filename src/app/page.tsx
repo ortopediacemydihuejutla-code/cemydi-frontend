@@ -8,6 +8,7 @@ import { PromotionsShowcase } from "@/components/home/promotions-showcase";
 import TestimonialsSection from "@/components/ui/testimonial-v2";
 import { ActivePromotion, getActivePromotions } from "@/services/catalog";
 import { HomeTestimonial, getHomeTestimonials } from "@/services/reviews";
+import OfflineBoundary from "@/components/pwa/OfflineBoundary";
 
 export const metadata: Metadata = {
   title: "Inicio",
@@ -45,13 +46,13 @@ export default async function HomePage() {
   ]);
 
   return (
-    <>
+    <OfflineBoundary>
       <HomeHero />
       <HomeCategories />
       <PromotionsShowcase promotions={promotions} />
       <HomeRentalProcess />
       <HomeFeatures />
       <TestimonialsSection testimonials={testimonials} />
-    </>
+    </OfflineBoundary>
   );
 }

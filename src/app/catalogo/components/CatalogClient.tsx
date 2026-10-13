@@ -15,9 +15,12 @@ import {
 } from "../utils/catalog-params";
 import CatalogActiveFilters from "./CatalogActiveFilters";
 import CatalogFilters from "./CatalogFilters";
+import CatalogHeader from "./CatalogHeader";
 import CatalogPagination from "./CatalogPagination";
 import CatalogToolbar from "./CatalogToolbar";
 import ProductGrid from "./ProductGrid";
+import OfflineBoundary from "@/components/pwa/OfflineBoundary";
+import ProductPersistence from "@/components/pwa/ProductPersistence";
 
 type CatalogPaginationData = {
   page: number;
@@ -36,9 +39,14 @@ type CatalogClientProps = {
   promotions: ActivePromotion[];
   applied: CatalogAppliedParams;
   error?: string;
+  unavailable?: boolean;
 };
 
-export default function CatalogClient({
+export default function CatalogClient(props: CatalogClientProps) {
+  return <OfflineBoundary unavailable={props.unavailable}><ProductPersistence products={props.products} /><OnlineCatalogClient {...props} /></OfflineBoundary>;
+}
+
+function OnlineCatalogClient({
   products,
   pagination,
   availableClassifications,
@@ -81,7 +89,7 @@ export default function CatalogClient({
     });
 
     startTransition(() => {
-      router.push(catalogPathFromParams(params));
+      router.push(catalogPathFromParams(params), { scroll: false });
     });
   };
 
@@ -189,26 +197,16 @@ export default function CatalogClient({
   return (
     <div className="min-h-[calc(100vh-110px)] bg-white">
       <div className="grid min-h-[inherit] w-full grid-cols-1 gap-7 px-4 py-6 lg:grid-cols-[286px_minmax(0,1fr)] lg:px-8 lg:py-8 xl:gap-9 xl:px-10 2xl:px-12">
+        <div className="lg:col-span-2">
+          <CatalogHeader searchQuery={applied.searchQuery} />
+        </div>
         <CatalogFilters
           {...filterProps}
           activeFilters={activeFilters}
-          className="sticky top-24 hidden h-[calc(100dvh-7rem)] self-start overflow-hidden lg:block"
+          className="sticky top-36 hidden max-h-[calc(100dvh-10rem)] self-start lg:flex lg:flex-col"
         />
 
         <div className="grid min-w-0 content-start gap-5 pb-8 lg:pb-12">
-          <header className="pb-1">
-            <h1 className="text-[clamp(1.9rem,3vw,2.55rem)] font-semibold leading-tight text-[#122731]">
-              {applied.searchQuery.trim()
-                ? `Resultados para "${applied.searchQuery.trim()}"`
-                : "Catálogo de productos"}
-            </h1>
-            <p className="mt-3 max-w-[760px] text-[0.98rem] leading-7 text-[#5c7078]">
-              {applied.searchQuery.trim()
-                ? "Usa filtros y ordenamiento para ubicar la mejor opción."
-                : "Explora suministros médicos, movilidad, rehabilitación y soporte con una experiencia clara, ordenada y funcional."}
-            </p>
-          </header>
-
           <CatalogToolbar
             searchQuery={applied.searchQuery}
             sort={applied.sort}
@@ -296,7 +294,8 @@ export default function CatalogClient({
             <CatalogFilters
               {...filterProps}
               activeFilters={activeFilters}
-              className="flex-1 overflow-y-auto px-[18px] py-3"
+              showHeading={false}
+              className="flex min-h-0 flex-1 flex-col px-4 py-3"
               onClearAll={() => {
                 clearAllFilters();
                 setMobileFiltersOpen(false);

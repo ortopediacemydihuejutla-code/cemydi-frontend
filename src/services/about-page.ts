@@ -1,5 +1,7 @@
 import { publicFetch } from "@/lib/api/public-fetch";
 import { parseApiResponse } from "@/lib/api-error";
+import { aboutPageResponseSchema } from "@/lib/schemas/about-page";
+import { canUseOfflineFallback } from "@/lib/pwa/errors";
 
 export type AboutPageContent = {
   id: number;
@@ -44,6 +46,10 @@ type AboutPageResponse = {
 };
 
 export async function getAboutPageContent(): Promise<AboutPageContent> {
+  return (await getAboutPageSnapshot()).content;
+}
+
+export async function getAboutPageSnapshot(): Promise<{ content: AboutPageContent; valid: boolean; unavailable: boolean }> {
   try {
     const response = await publicFetch("/about-page", {
       next: { revalidate: 60 },
@@ -52,10 +58,11 @@ export async function getAboutPageContent(): Promise<AboutPageContent> {
     const data = await parseApiResponse<AboutPageResponse>(
       response,
       "No se pudo cargar Quiénes somos",
+      aboutPageResponseSchema,
     );
 
-    return data.aboutPage ?? defaultAboutPageContent;
-  } catch {
-    return defaultAboutPageContent;
+    return { content: data.aboutPage ?? defaultAboutPageContent, valid: Boolean(data.aboutPage), unavailable: false };
+  } catch (error) {
+    return { content: defaultAboutPageContent, valid: false, unavailable: canUseOfflineFallback(error) };
   }
 }

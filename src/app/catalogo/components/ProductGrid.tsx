@@ -10,6 +10,8 @@ import type { ActivePromotion, CatalogProduct } from "@/services/catalog";
 import { isOptimizableImageUrl } from "@/lib/cloudinary-image";
 import { getClientSiteUrl } from "@/lib/site-config";
 import { buildProductShareData, getProductSlug } from "@/lib/product-share";
+import type { OfflineProduct } from "@/lib/pwa/products";
+import OfflineImage from "@/components/pwa/OfflineImage";
 import {
   formatMoney,
   formatTipo,
@@ -18,7 +20,7 @@ import {
 import type { CatalogView } from "../utils/catalog-params";
 
 type ProductGridProps = {
-  products: CatalogProduct[];
+  products: (CatalogProduct | OfflineProduct)[];
   view: CatalogView;
   searchQuery?: string;
   promotionsByProduct?: Map<number, ActivePromotion>;
@@ -65,15 +67,16 @@ export function ProductCard({
   promotion = null,
   view,
 }: {
-  product: CatalogProduct;
+  product: CatalogProduct | OfflineProduct;
   searchQuery: string;
   isPromoted?: boolean;
   promotion?: ActivePromotion | null;
   view: CatalogView;
 }) {
-  const hasImage = isOptimizableImageUrl(product.imageUrl);
-  const detailHref = `/producto/${encodeURIComponent(getProductSlug(product))}`;
-  const shareData = buildProductShareData(product, getClientSiteUrl());
+  const offline = "imageUrls" in product;
+  const hasImage = !offline && isOptimizableImageUrl(product.imageUrl);
+  const detailHref = `/producto/${offline ? product.id : encodeURIComponent(getProductSlug(product))}`;
+  const shareData = offline ? null : buildProductShareData(product, getClientSiteUrl());
   const hasPromotion = Boolean(promotion) || isPromoted;
   const acquisitionBadges =
     product.tipoAdquisicion === "MIXTO"
@@ -124,19 +127,19 @@ export function ProductCard({
             ) : null}
           </div>
 
-          <ProductShareMenu
+          {shareData && <ProductShareMenu
             shareData={shareData}
             productName={product.nombre}
             compact
             className="pointer-events-auto shrink-0 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 sm:data-[open=true]:opacity-100"
             menuClassName="bottom-auto right-0 top-[calc(100%+8px)]"
             triggerClassName="!bg-transparent !text-[#176b67] shadow-none ring-0 hover:!bg-transparent hover:!text-[#0f4f4d] !size-7 flex items-center justify-center p-0"
-          />
+          />}
         </div>
 
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-t-lg px-2 pb-1 pt-9 sm:px-3 sm:pt-10">
           <div className="relative flex h-full w-full items-center justify-center">
-          {hasImage ? (
+          {offline ? <OfflineImage urls={product.imageUrls} name={product.nombre} /> : hasImage ? (
             <div className="relative h-full w-full">
               <Image
                 src={product.imageUrl!}
@@ -177,11 +180,11 @@ export function ProductCard({
               </h3>
             </div>
 
-            <FavoriteButton
+            {!offline && <FavoriteButton
               product={product}
               compact
               className="shrink-0 z-10 opacity-100 transition duration-200 sm:opacity-0 sm:group-hover:opacity-100 sm:focus-within:opacity-100 sm:data-[favorite=true]:opacity-100"
-            />
+            />}
           </div>
 
           <p className="mt-1.5 text-sm text-[#5f7780]">
@@ -189,7 +192,7 @@ export function ProductCard({
           </p>
         </div>
 
-        <div className="mt-3 grid gap-1.5">
+        {offline ? <p className="mt-3 text-sm font-semibold text-[#0f6a67]">Consultar disponibilidad y precio al reconectar</p> : <div className="mt-3 grid gap-1.5">
           <div className="flex min-h-4 flex-wrap items-center gap-x-2 gap-y-1 text-xs">
             {promotion ? (
               <>
@@ -223,7 +226,7 @@ export function ProductCard({
               />
             ) : null}
           </div>
-        </div>
+        </div>}
 
       </div>
     </article>

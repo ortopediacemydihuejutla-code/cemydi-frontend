@@ -1,0 +1,16 @@
+{
+  "url": "http://localhost:3001/catalogo?q=Asiento",
+  "products": [
+    "Asiento nylon silla ruedas",
+    "Asiento silla ruedas"
+  ],
+  "worker": {
+    "controller": "http://localhost:3001/sw.js",
+    "registrations": [
+      {
+        "scope": "http://localhost:3001/",
+        "state": "activated"
+      }
+    ]
+  }
+}

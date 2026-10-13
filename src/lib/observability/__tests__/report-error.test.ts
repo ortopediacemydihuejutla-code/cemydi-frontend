@@ -2,18 +2,17 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { reportError } from "../report-error";
 
 describe("reportError", () => {
-  const originalEnv = process.env.NODE_ENV;
-
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   afterEach(() => {
-    process.env.NODE_ENV = originalEnv;
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
   });
 
   it("logs full error object and context in development mode", () => {
-    process.env.NODE_ENV = "development";
+    vi.stubEnv("NODE_ENV", "development");
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const err = new Error("Error de prueba dev");
@@ -27,7 +26,7 @@ describe("reportError", () => {
   });
 
   it("logs structured error and triggers telemetry beacon in production", () => {
-    process.env.NODE_ENV = "production";
+    vi.stubEnv("NODE_ENV", "production");
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
     const sendBeaconSpy = vi.fn().mockReturnValue(true);
 
@@ -57,7 +56,7 @@ describe("reportError", () => {
   });
 
   it("deduplicates identical errors occurring within window", () => {
-    process.env.NODE_ENV = "development";
+    vi.stubEnv("NODE_ENV", "development");
     const consoleSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
     const err = new Error("Error repetitivo");

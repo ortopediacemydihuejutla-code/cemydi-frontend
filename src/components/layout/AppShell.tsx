@@ -48,7 +48,7 @@ export default function AppShell({
   const currentPathname = usePathname();
   const pathname = currentPathname || initialPathname;
   const hidePublicChrome =
-    pathname.startsWith("/admin") || !isPublicChromeRoute(pathname);
+    pathname.startsWith("/admin") || (pathname !== "/offline" && !isPublicChromeRoute(pathname));
 
   if (hidePublicChrome) {
     return <>{children}</>;

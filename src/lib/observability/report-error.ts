@@ -1,3 +1,5 @@
+import { telemetryUrl } from "./telemetry-url";
+
 type ReportErrorContext = {
   digest?: string;
   scope?: string;
@@ -82,19 +84,19 @@ export function reportError(error: unknown, context: ReportErrorContext = {}) {
   }
 
   console.error("[reportError]", {
-    message: normalized.message,
-    name: normalized.name,
-    digest: context.digest,
-    scope: context.scope,
+    message: normalized.message.slice(0, 1000),
+    name: normalized.name.slice(0, 100),
+    digest: context.digest?.slice(0, 200),
+    scope: context.scope?.slice(0, 100),
   });
 
   sendTelemetryBeacon({
-    message: normalized.message,
-    name: normalized.name,
-    digest: context.digest,
-    scope: context.scope,
+    message: normalized.message.slice(0, 1000),
+    name: normalized.name.slice(0, 100),
+    digest: context.digest?.slice(0, 200),
+    scope: context.scope?.slice(0, 100),
     stack: normalized.stack?.slice(0, 1500),
-    url: typeof window !== "undefined" ? window.location.href : undefined,
+    url: telemetryUrl(typeof window !== "undefined" ? window.location.href : undefined),
     timestamp: new Date().toISOString(),
   });
 }

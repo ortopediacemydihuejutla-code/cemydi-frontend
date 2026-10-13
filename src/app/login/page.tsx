@@ -24,9 +24,9 @@ import {
 import { resolveApiUrl } from "@/lib/api-config";
 
 const authBrandLinkClassName =
-  "font-semibold text-[#258e8b] underline decoration-[#258e8b]/35 underline-offset-4 transition-colors hover:text-[#134e4c] hover:decoration-[#134e4c]";
+  "font-semibold text-[#1d7370] underline decoration-[#1d7370]/35 underline-offset-4 transition-colors hover:text-[#134e4c] hover:decoration-[#134e4c]";
 const primaryButtonClassName =
-  "mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-xl border-0 bg-[#258e8b] px-4 text-xs sm:text-sm font-bold uppercase tracking-wider text-white shadow-[0_10px_22px_-12px_rgba(37,142,139,0.35)] transition-[background-color,transform,box-shadow] hover:bg-[#1d7370] hover:shadow-[0_14px_26px_-12px_rgba(37,142,139,0.4)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60";
+  "mt-1 flex h-11 w-full items-center justify-center gap-2 rounded-xl border-0 bg-[#1d7370] px-4 text-xs sm:text-sm font-bold uppercase tracking-wider text-white shadow-[0_10px_22px_-12px_rgba(37,142,139,0.35)] transition-[background-color,transform,box-shadow] hover:bg-[#134e4c] hover:shadow-[0_14px_26px_-12px_rgba(37,142,139,0.4)] active:translate-y-px disabled:cursor-not-allowed disabled:opacity-60";
 const secondaryButtonClassName =
   "inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-slate-300 bg-white px-3.5 text-[13px] font-bold text-slate-700 transition-colors hover:border-slate-400 hover:bg-slate-50 disabled:cursor-not-allowed disabled:opacity-60";
 
@@ -357,7 +357,7 @@ export default function LoginPage() {
               Crear una cuenta
             </Link>
           </p>
-          <p className="text-[11px] text-slate-400 font-light leading-relaxed">
+          <p className="text-xs text-slate-600 leading-relaxed">
             Al acceder a la plataforma, confirmas tu conformidad con nuestros{" "}
             <Link href="/terminos-y-condiciones" className="underline hover:text-slate-700">
               Términos y Condiciones

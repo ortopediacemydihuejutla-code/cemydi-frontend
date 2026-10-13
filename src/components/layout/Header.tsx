@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePublicPathname } from "@/lib/pwa/connectivity";
 import { Menu, X } from "lucide-react";
 import HeaderTopBar from "@/components/layout/header/HeaderTopBar";
 import { Suspense, useEffect, useState } from "react";
@@ -12,15 +12,18 @@ import HeaderSearch, {
   HeaderSearchSkeleton,
 } from "@/components/layout/header/HeaderSearch";
 import { cn } from "@/lib/utils";
+import { useOfflinePresentation } from "@/providers/PwaProvider";
 
 const NAV_LINKS = [
+  { href: "/", label: "Inicio" },
   { href: "/catalogo", label: "Catálogo" },
   { href: "/quienes-somos", label: "Quiénes somos" },
   { href: "/contactanos", label: "Contáctanos" },
 ] as const;
 
 export default function Header() {
-  const pathname = usePathname();
+  const pathname = usePublicPathname();
+  const { active: offline } = useOfflinePresentation();
   const [mobileMenuState, setMobileMenuState] = useState({
     pathname,
     open: false,
@@ -81,12 +84,15 @@ export default function Header() {
               width={160}
               height={48}
               priority
+              unoptimized={offline}
               className="block h-9.5 w-auto object-contain sm:h-10 lg:h-11"
             />
           </Link>
 
           <div className="flex shrink-0 items-center gap-1.5 lg:hidden">
-            <HeaderCart />
+            <div className="flex size-11 shrink-0 items-center justify-center">
+              <HeaderCart />
+            </div>
             <button
               type="button"
               className="inline-flex size-11 items-center justify-center rounded-full border border-white/25 bg-white/10 text-white transition hover:bg-white/18"
@@ -109,7 +115,7 @@ export default function Header() {
           </div>
         </div>
 
-        <div className="hidden justify-center lg:flex">
+        <div className="hidden min-w-0 justify-center lg:flex">
           <Suspense fallback={<HeaderSearchSkeleton />}>
             <HeaderSearch inputId="header-search-desktop" />
           </Suspense>
@@ -146,8 +152,12 @@ export default function Header() {
             className="mx-1 h-5 w-px shrink-0 bg-white/25"
             aria-hidden="true"
           />
-          <HeaderAuth />
-          <HeaderCart />
+          <div className="flex min-h-11 w-64 shrink-0 items-center justify-end gap-2 [&>a]:whitespace-nowrap">
+            <HeaderAuth />
+          </div>
+          <div className="flex size-11 shrink-0 items-center justify-center">
+            <HeaderCart />
+          </div>
         </nav>
 
         {isMobileMenuOpen ? (

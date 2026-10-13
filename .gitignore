@@ -49,3 +49,16 @@ next-env.d.ts
 /.playwright-cli/
 /.codex/
 /output/
+/public/sw.js
+/public/sw.js.map
+/pwa-*.log
+
+# Local QA screenshots and image evidence
+/docs/qa/**/*.png
+/docs/qa/**/*.jpg
+/docs/qa/**/*.jpeg
+/docs/qa/**/*.webp
+/docs/qa/**/*.avif
+/docs/qa/**/*.gif
+/docs/qa/**/*.svg
+/docs/qa/**/*.bmp

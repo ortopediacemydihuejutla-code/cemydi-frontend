@@ -1,0 +1,76 @@
+{
+  "scope": "Quiénes somos, producción local, tres contextos fríos por variante, sin throttling. Baseline reconstruida para esta ruta; no equivale a benchmark de todos los flujos.",
+  "results": {
+    "baseline": [
+      {
+        "lcp": 300,
+        "cls": 0,
+        "domContentLoaded": 347,
+        "documentBytes": 12134,
+        "resourceBytes": 7503707,
+        "jsBytes": 378671
+      },
+      {
+        "lcp": 320,
+        "cls": 0,
+        "domContentLoaded": 306.90000000037253,
+        "documentBytes": 12134,
+        "resourceBytes": 7503708,
+        "jsBytes": 378671
+      },
+      {
+        "lcp": 812,
+        "cls": 0,
+        "domContentLoaded": 150.20000000018626,
+        "documentBytes": 12134,
+        "resourceBytes": 7503705,
+        "jsBytes": 378671
+      }
+    ],
+    "pwa": [
+      {
+        "lcp": 1664,
+        "cls": 0,
+        "domContentLoaded": 422.5,
+        "documentBytes": 12575,
+        "resourceBytes": 7514261,
+        "jsBytes": 387068
+      },
+      {
+        "lcp": 156,
+        "cls": 0,
+        "domContentLoaded": 145.59999999962747,
+        "documentBytes": 12358,
+        "resourceBytes": 7514263,
+        "jsBytes": 387068
+      },
+      {
+        "lcp": 324,
+        "cls": 0,
+        "domContentLoaded": 146.20000000018626,
+        "documentBytes": 12358,
+        "resourceBytes": 7502200,
+        "jsBytes": 387068
+      }
+    ]
+  },
+  "storedBytesFor24FixtureProducts": 6985,
+  "visuals": [
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "overflow": false,
+      "file": "docs/qa/pwa-desktop.png"
+    },
+    {
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "overflow": false,
+      "file": "docs/qa/pwa-mobile.png"
+    }
+  ]
+}

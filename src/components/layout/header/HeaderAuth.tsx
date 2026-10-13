@@ -31,9 +31,12 @@ import { logoutUser } from "@/services/auth";
 export function HeaderAuthSkeleton() {
   return (
     <div
-      className="inline-flex size-10 shrink-0 animate-pulse rounded-full bg-white/15"
+      className="inline-flex min-h-11 shrink-0 items-center gap-2 motion-safe:animate-pulse"
       aria-hidden="true"
-    />
+    >
+      <span className="h-11 w-28 rounded-full bg-white/15" />
+      <span className="h-11 w-28 rounded-full bg-white/15" />
+    </div>
   );
 }
 

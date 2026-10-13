@@ -1,43 +1,12 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createContentSecurityPolicy } from "./src/lib/content-security-policy";
 
 const projectRoot = path.dirname(fileURLToPath(import.meta.url));
 const backendInternalUrl =
   process.env.INTERNAL_API_URL?.trim() || "http://localhost:4000";
-const isProduction = process.env.NODE_ENV === "production";
-const apiOrigin = (() => {
-  const publicApiUrl = process.env.NEXT_PUBLIC_API_URL?.trim();
-  if (!publicApiUrl || publicApiUrl.startsWith("/")) {
-    return "";
-  }
-
-  try {
-    return new URL(publicApiUrl).origin;
-  } catch {
-    return "";
-  }
-})();
-
-const csp = [
-  "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isProduction ? "" : " 'unsafe-eval'"}`,
-  "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://res.cloudinary.com https://images.unsplash.com",
-  "font-src 'self' data:",
-  [
-    "connect-src 'self'",
-    "http://localhost:4000",
-    "https://res.cloudinary.com",
-    apiOrigin,
-  ]
-    .filter(Boolean)
-    .join(" "),
-  "frame-ancestors 'none'",
-  "base-uri 'self'",
-  "form-action 'self'",
-  "object-src 'none'",
-].join("; ");
+const csp = createContentSecurityPolicy();
 
 const nextConfig: NextConfig = {
   turbopack: {
@@ -45,6 +14,13 @@ const nextConfig: NextConfig = {
   },
   async headers() {
     return [
+      {
+        source: "/sw.js",
+        headers: [
+          { key: "Cache-Control", value: "no-cache, no-store, must-revalidate" },
+          { key: "Service-Worker-Allowed", value: "/" },
+        ],
+      },
       {
         source: "/:path*",
         headers: [
@@ -55,7 +31,7 @@ const nextConfig: NextConfig = {
           {
             key: "Permissions-Policy",
             value:
-              "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
+              "camera=(), microphone=(self), geolocation=(), payment=(), usb=()",
           },
         ],
       },

@@ -17,6 +17,8 @@ import {
   truncateShareDescription,
 } from "@/lib/product-share";
 import ProductDetailClient from "./ProductDetailClient";
+import OfflineEntry from "@/components/pwa/OfflineEntry";
+import { canUseOfflineFallback } from "@/lib/pwa/errors";
 
 type ProductDetailPageProps = {
   params: Promise<{
@@ -123,9 +125,15 @@ export default async function ProductDetailPage({
 }: ProductDetailPageProps) {
   const { id: productPath } = await params;
   const legacyProductId = getLegacyProductId(productPath);
-  const product = legacyProductId
-    ? await loadProductByIdOrThrowNotFound(legacyProductId)
-    : await loadProductBySlugOrThrowNotFound(productPath);
+  let product;
+  try {
+    product = legacyProductId
+      ? await loadProductByIdOrThrowNotFound(legacyProductId)
+      : await loadProductBySlugOrThrowNotFound(productPath);
+  } catch (error) {
+    if (canUseOfflineFallback(error)) return <OfflineEntry />;
+    throw error;
+  }
 
   if (legacyProductId) {
     redirect(`/producto/${encodeURIComponent(getProductSlug(product))}`);
