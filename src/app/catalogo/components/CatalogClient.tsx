@@ -43,7 +43,7 @@ type CatalogClientProps = {
 };
 
 export default function CatalogClient(props: CatalogClientProps) {
-  return <OfflineBoundary unavailable={props.unavailable}><ProductPersistence products={props.products} catalogFilters={props.applied} /><OnlineCatalogClient {...props} /></OfflineBoundary>;
+  return <OfflineBoundary unavailable={props.unavailable} preserveState><ProductPersistence products={props.products} catalogFilters={props.applied} /><OnlineCatalogClient {...props} /></OfflineBoundary>;
 }
 
 function OnlineCatalogClient({

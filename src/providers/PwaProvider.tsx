@@ -5,7 +5,6 @@ import { useOnline } from "@/lib/pwa/connectivity";
 import toast from "react-hot-toast";
 import { Wifi, WifiOff } from "lucide-react";
 
-const RECONNECTED_AT = "cemydi-pwa-reconnected-at";
 const RECONNECT_DURATION = 4_000;
 const connectivityToastOptions = {
   id: "pwa-connectivity",
@@ -29,38 +28,16 @@ export default function PwaProvider({ children }: { children: ReactNode }) {
   const [notice, setNotice] = useState("");
   const [fallback, setFallback] = useState(false);
   const fallbackRef = useRef(false);
-  const dirty = useRef(false);
+  const wasOnline = useRef(true);
   const setActive = useCallback((active: boolean) => { fallbackRef.current = active; setFallback(active); }, []);
   useEffect(() => {
     if (!online) {
-      try { sessionStorage.removeItem(RECONNECTED_AT); } catch { /* Storage may be unavailable. */ }
       showOfflineToast();
-    } else {
-      // The reconnect reload must preserve the notice's original expiration.
-      try {
-        const timestamp = Number(sessionStorage.getItem(RECONNECTED_AT));
-        const remaining = RECONNECT_DURATION - (Date.now() - timestamp);
-        if (timestamp > 0 && remaining > 0 && remaining <= RECONNECT_DURATION) showConnectedToast(remaining);
-        else sessionStorage.removeItem(RECONNECTED_AT);
-      } catch { /* Connectivity feedback still works without storage. */ }
-    }
+    } else if (!wasOnline.current) showConnectedToast();
+    wasOnline.current = online;
   }, [online]);
   useEffect(() => { if (notice) toast.error(notice, { id: "pwa-notice" }); }, [notice]);
   useEffect(() => {
-    const trackDirty = (event: Event) => { if (event.target instanceof Element && event.target.closest("form")) dirty.current = true; };
-    const reset = () => { dirty.current = false; };
-    document.addEventListener("input", trackDirty);
-    document.addEventListener("change", trackDirty);
-    document.addEventListener("submit", trackDirty);
-    document.addEventListener("reset", reset);
-    const reconnect = () => {
-      try { sessionStorage.setItem(RECONNECTED_AT, String(Date.now())); } catch { /* Storage may be unavailable. */ }
-      showConnectedToast();
-      if (!isOfflinePublicPath(location.pathname)) return;
-      const filledForm = [...document.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>("form input, form textarea")].some((field) => field.value !== field.defaultValue);
-      if (!filledForm && !dirty.current) location.reload();
-    };
-    window.addEventListener("online", reconnect);
     let cancelled = false;
     if (process.env.NODE_ENV === "production" && "serviceWorker" in navigator) {
       // Let the browser install updates in the background. With skipWaiting
@@ -85,8 +62,17 @@ export default function PwaProvider({ children }: { children: ReactNode }) {
       const link = event.target instanceof Element ? event.target.closest("a") : null;
       if (!link || link.hasAttribute("download")) return;
       const url = new URL(link.href, location.href);
+      // A recovered connection can leave the shell open while a form is dirty.
+      // Explicit navigation then uses a document and may reach any online page.
+      if (navigator.onLine) {
+        const samePageHash = url.hash && url.pathname === location.pathname && url.search === location.search;
+        if (url.origin === location.origin && (!link.target || link.target === "_self") && !samePageHash) {
+          event.preventDefault(); event.stopPropagation(); location.assign(url.href);
+        }
+        return;
+      }
       if (url.origin === location.origin || /^https?:$/.test(url.protocol)) {
-        if (link.target && url.origin === location.origin && isOfflinePublicPath(url.pathname)) return;
+        if (link.target && link.target !== "_self" && url.origin === location.origin && isOfflinePublicPath(url.pathname)) return;
         event.preventDefault(); event.stopPropagation();
         if (url.origin === location.origin && isOfflinePublicPath(url.pathname)) location.assign(url.href);
         else toast.error("Necesitas conexión a Internet para entrar a esta página.", { id: "pwa-navigation" });
@@ -95,11 +81,6 @@ export default function PwaProvider({ children }: { children: ReactNode }) {
     document.addEventListener("click", navigateOffline, true);
     return () => {
       cancelled = true;
-      document.removeEventListener("input", trackDirty);
-      document.removeEventListener("change", trackDirty);
-      document.removeEventListener("submit", trackDirty);
-      document.removeEventListener("reset", reset);
-      window.removeEventListener("online", reconnect);
       document.removeEventListener("click", navigateOffline, true);
     };
   }, []);

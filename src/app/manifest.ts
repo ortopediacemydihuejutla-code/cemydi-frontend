@@ -29,10 +29,14 @@ export default function manifest(): MetadataRoute.Manifest {
         purpose: "any",
       },
     ],
+    screenshots: [
+      { src: "/pwa/inicio-wide.png", sizes: "1440x900", type: "image/png", form_factor: "wide", label: "Inicio de Ortopedia CEMYDI en escritorio" },
+      { src: "/pwa/inicio-narrow.png", sizes: "390x844", type: "image/png", form_factor: "narrow", label: "Inicio de Ortopedia CEMYDI en móvil" },
+    ],
     shortcuts: [
-      { name: "Catálogo", url: "/catalogo" },
-      { name: "Quiénes somos", url: "/quienes-somos" },
-      { name: "Contáctanos", url: "/contactanos" },
+      { name: "Catálogo", url: "/catalogo", icons: [{ src: "/icon-96.png", sizes: "96x96", type: "image/png" }] },
+      { name: "Quiénes somos", url: "/quienes-somos", icons: [{ src: "/icon-96.png", sizes: "96x96", type: "image/png" }] },
+      { name: "Contáctanos", url: "/contactanos", icons: [{ src: "/icon-96.png", sizes: "96x96", type: "image/png" }] },
     ],
   };
 }

@@ -17,5 +17,5 @@ export const metadata: Metadata = {
 export default async function AboutPage() {
   const { content, valid, unavailable } = await getAboutPageSnapshot();
 
-  return <OfflineBoundary unavailable={unavailable}>{!valid && <p className="p-4 text-sm">Contenido institucional predeterminado.</p>}<AboutPageClient content={content} persist={valid} /></OfflineBoundary>;
+  return <OfflineBoundary unavailable={unavailable} preserveState>{!valid && <p className="p-4 text-sm">Contenido institucional predeterminado.</p>}<AboutPageClient content={content} persist={valid} /></OfflineBoundary>;
 }

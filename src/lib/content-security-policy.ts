@@ -14,6 +14,7 @@ export function createContentSecurityPolicy(nonce?: string): string {
     "font-src 'self' data:",
     ["connect-src 'self'", "http://localhost:4000", "https://res.cloudinary.com", apiOrigin].filter(Boolean).join(" "),
     "worker-src 'self'",
+    "frame-src 'self' https://www.google.com",
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",

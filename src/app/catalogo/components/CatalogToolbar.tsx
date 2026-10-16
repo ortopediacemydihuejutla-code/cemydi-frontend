@@ -1,6 +1,6 @@
 "use client";
 
-import { FormEvent, useEffect, useMemo, useState } from "react";
+import { FormEvent, useEffect, useId, useMemo, useState } from "react";
 import {
   Grid2X2,
   List,
@@ -47,6 +47,7 @@ export default function CatalogToolbar({
   onViewChange,
   onOpenMobileFilters,
 }: CatalogToolbarProps) {
+  const searchId = useId();
   const [searchDraft, setSearchDraft] = useState(searchQuery);
   const [suggestions, setSuggestions] = useState<SearchSuggestion[]>([]);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
@@ -151,7 +152,7 @@ export default function CatalogToolbar({
         <div className="flex min-w-0 gap-3">
           <form className="relative flex min-w-0 flex-1 gap-2" onSubmit={handleSearch}>
             <div className="relative min-w-0 flex-1">
-              <label htmlFor="catalog-search" className="sr-only">
+              <label htmlFor={searchId} className="sr-only">
                 Buscar en el catálogo
               </label>
               <Search
@@ -159,7 +160,7 @@ export default function CatalogToolbar({
                 aria-hidden="true"
               />
               <input
-                id="catalog-search"
+                id={searchId}
                 name="catalog-search"
                 type="text"
                 role="searchbox"

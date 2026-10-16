@@ -17,9 +17,13 @@ type AboutPageClientProps = {
 
 export function AboutPageClient({ content, persist = false, offline = false }: AboutPageClientProps) {
   const rootRef = useRef<HTMLDivElement | null>(null);
+  const savedContent = useRef<AboutPageContent | null>(null);
   useEffect(() => {
     let cancelled = false;
-    if (persist && navigator.onLine) void saveOfflineAbout(content).catch(() => {
+    // Reconnection may resume this effect with the same server snapshot.
+    if (persist && navigator.onLine && savedContent.current !== content) void saveOfflineAbout(content).then(() => {
+      savedContent.current = content;
+    }).catch(() => {
       if (!cancelled) toast.error("No se pudo guardar el contenido institucional para consultarlo sin conexión. Puedes continuar navegando con conexión y recargar para reintentar.", { id: "pwa-about-save" });
     });
     return () => { cancelled = true; };

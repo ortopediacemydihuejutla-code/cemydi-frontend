@@ -22,10 +22,11 @@ export default function OfflineCatalog() {
   useEffect(() => {
     let cancelled = false;
     const initial = parseCatalogSearchParams(new URLSearchParams(location.search));
-    void Promise.all([getOfflineProducts(), getOfflineCatalogOrders()]).then(([items, savedOrders]) => {
+    void Promise.allSettled([getOfflineProducts(), getOfflineCatalogOrders()]).then(([productResult, orderResult]) => {
       if (cancelled) return;
-      setProducts(items);
-      setOrders(savedOrders);
+      setProducts(productResult.status === "fulfilled" ? productResult.value : []);
+      setOrders(orderResult.status === "fulfilled" ? orderResult.value : {});
+      if (productResult.status === "rejected" || orderResult.status === "rejected") setError("No se pudo leer todo el contenido guardado. El almacenamiento puede estar bloqueado o no disponible.");
       setFilters({ ...initial, soloDisponibles: false });
     }).catch(() => { if (!cancelled) { setProducts([]); setError("No se pudo leer el almacenamiento. Puede estar bloqueado, vacío o haber sido eliminado por el navegador."); } });
     return () => { cancelled = true; };

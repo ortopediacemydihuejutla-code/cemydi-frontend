@@ -163,7 +163,7 @@ type ProductDetailClientProps = {
 };
 
 export default function ProductDetailClient(props: ProductDetailClientProps) {
-  return <OfflineBoundary><ProductPersistence products={[props.product]} detail /><OnlineProductDetailClient {...props} /></OfflineBoundary>;
+  return <OfflineBoundary preserveState><ProductPersistence products={[props.product]} detail /><OnlineProductDetailClient {...props} /></OfflineBoundary>;
 }
 
 function OnlineProductDetailClient({

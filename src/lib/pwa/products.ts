@@ -5,8 +5,9 @@ import type { CatalogProduct } from "@/services/catalog";
 import type { CatalogAppliedParams } from "@/app/catalogo/utils/catalog-params";
 import { normalizeClassificationKey } from "@/app/catalogo/utils/catalog-formatters";
 import { normalizeMarcaKey } from "@/app/catalogo/utils/catalog-params";
+import { OFFLINE_TTL } from "./policy";
 
-export const OFFLINE_TTL = 30 * 86400 * 1000;
+export { OFFLINE_TTL } from "./policy";
 export const OFFLINE_LIMIT = 200;
 const publicFields = catalogProductSchema.pick({ id: true, slug: true, nombre: true, marca: true, modelo: true, descripcion: true, clasificacion: true, tipoAdquisicion: true, requiereReceta: true });
 const detailFields = catalogProductSchema.pick({ medidas: true, pesoSoportado: true, material: true, contenidoCaja: true, indicacionesUso: true });

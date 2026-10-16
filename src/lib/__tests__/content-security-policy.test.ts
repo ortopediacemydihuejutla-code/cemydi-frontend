@@ -11,6 +11,7 @@ describe("content security policy", () => {
     expect(scripts).toContain("'nonce-test-nonce'");
     expect(scripts).not.toMatch(/unsafe-inline|unsafe-eval/);
     expect(policy).toContain("worker-src 'self'");
+    expect(policy).toContain("frame-src 'self' https://www.google.com");
     expect(policy).toContain("frame-ancestors 'none'");
   });
 
