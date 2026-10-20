@@ -1,6 +1,8 @@
 /// <reference lib="webworker" />
 import { ExpirationPlugin, Serwist, StaleWhileRevalidate, type HandlerCallbackOptions, type PrecacheEntry, type SerwistGlobalConfig } from "serwist";
 import { getPublicImageCacheUrl, isOfflinePublicPath, isUsableOfflineImage, OFFLINE_IMAGE_SAVED_AT, OFFLINE_TTL } from "@/lib/pwa/policy";
+import { legalPrecachePath, legalPrecacheSlug, validateLegalPrecacheResponse } from "@/lib/pwa/legal-precache";
+import { legalDocumentSchema } from "@/lib/schemas/legal-document";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -90,6 +92,8 @@ const serwist: Serwist = new Serwist({
     },
     plugins: [{
       cacheWillUpdate: async ({ request, response }) => {
+        const legalSlug = legalPrecacheSlug(new URL(request.url).pathname);
+        if (legalSlug) return await validateLegalPrecacheResponse(response, legalSlug) ? response : null;
         if (new URL(request.url).pathname !== "/offline") return response.status === 200 ? response : null;
         // Allow canonical trailing-slash redirects, but reject other routes,
         // error pages and non-HTML. Keep the shell paired with its build assets.
@@ -121,6 +125,19 @@ const serwist: Serwist = new Serwist({
   ],
 });
 serwist.addEventListeners();
+self.addEventListener("message", (event) => {
+  if (event.data?.type !== "READ_LEGAL_PRECACHE" || !event.ports[0] || !event.source || !("url" in event.source)) return;
+  const clientUrl = new URL(event.source.url);
+  if (clientUrl.origin !== self.location.origin || !isOfflinePublicPath(clientUrl.pathname)) return;
+  const slug = legalDocumentSchema.shape.slug.safeParse(event.data.slug);
+  if (!slug.success) { event.ports[0].postMessage(null); return; }
+  event.waitUntil((async () => {
+    try {
+      const response = await serwist.matchPrecache(legalPrecachePath(slug.data));
+      event.ports[0].postMessage(response ? await response.json() : null);
+    } catch { event.ports[0].postMessage(null); }
+  })());
+});
 self.addEventListener("activate", (event) => {
   const current = new Set(["cemydi-public-images-v1"]);
   imageMaintenance = (async () => {

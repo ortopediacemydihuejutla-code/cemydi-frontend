@@ -333,12 +333,12 @@ export async function getLegalDocument(
   return (await getLegalDocumentSnapshot(slug)).document;
 }
 
-export async function getLegalDocumentSnapshot(slug: LegalDocumentSlug): Promise<{
+export async function getLegalDocumentSnapshot(slug: LegalDocumentSlug, fresh = false): Promise<{
   document: LegalDocument; valid: boolean; unavailable: boolean;
 }> {
   try {
     const response = await publicFetch(`/legal-documents/${slug}`, {
-      next: { revalidate: 60 },
+      ...(fresh ? { cache: "no-store" as const } : { next: { revalidate: 60 } }),
     });
     const data = await parseApiResponse<LegalDocumentResponse>(
       response,

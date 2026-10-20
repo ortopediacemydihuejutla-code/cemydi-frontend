@@ -1,11 +1,12 @@
-# Documentos legales sin conexión
+# Documentos legales en precache
 
-Las rutas `/terminos-y-condiciones` y `/politicas-de-privacidad` usan el respaldo público de la PWA en producción.
+Términos y privacidad se descargan automáticamente al instalar o actualizar el service worker en producción. Basta abrir cualquier página que registre la PWA; no hace falta visitar las páginas legales.
 
-- Al visitar cada página con conexión se guarda únicamente un documento público validado, nunca el HTML de la sesión ni respuestas administrativas.
-- Las copias se guardan por slug en IndexedDB y caducan a los 30 días. Leerlas no renueva su vigencia.
-- Un fallo de red o del servidor permite consultar la copia guardada. Los defaults demostrativos, errores y documentos incompatibles no reemplazan una copia existente.
-- Sin copia vigente se muestra un mensaje para visitar la página con conexión. Una copia disponible conserva el contenido, formato e índice y muestra cuándo se guardó.
-- La acción existente para borrar contenido sin conexión elimina también estos documentos.
+- Serwist incluye `/pwa/legal/terminos-y-condiciones` y `/pwa/legal/politicas-de-privacidad` como recursos esenciales, con revisión vinculada al build.
+- Estos endpoints de Next.js entregan únicamente JSON público validado. No reenvían cookies ni guardan HTML de sesión. Un documento no disponible devuelve 503; el fallback demostrativo del frontend no completa una instalación.
+- El worker valida estado HTTP, formato y slug antes de aceptar cada entrada. Si falta un documento, la instalación falla y una versión anterior activa puede seguir funcionando.
+- Al consultar las páginas offline se lee la revisión del worker activo mediante MessageChannel, sin solicitudes de red ni escrituras en IndexedDB. El formato y el índice son los de la página legal existente.
+- Las copias se renuevan con la instalación de una nueva versión; no caducan a los 30 días ni se eliminan con el borrado del contenido opcional de catálogo.
+- Si el navegador elimina el precache, la página indica que se necesita conexión para completar una instalación o actualización.
 
-Validación: `npm run test`, `npm run lint`, `npm run build` y `npm run test:e2e:pwa`. La prueba de documentos legales cubre ambas rutas, recarga offline, ausencia de copia y caducidad.
+Validación: `npm run lint`, `npm run test`, `npm run build`, `npm run test:e2e` y `npm run test:e2e:pwa`. La prueba específica instala la PWA desde catálogo y abre ambos documentos por primera vez sin internet.

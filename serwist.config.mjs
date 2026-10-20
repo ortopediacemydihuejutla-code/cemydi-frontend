@@ -6,11 +6,15 @@ export default serwist({
   swSrc: "src/app/sw.ts",
   swDest: "public/sw.js",
   precachePrerendered: false,
-  // Only immutable build assets and explicitly public essentials. Never API/RSC.
+  // Only immutable build assets and explicitly public essentials. Never session API/RSC.
   globPatterns: [
     ".next/static/**/*.{js,css,woff,woff2}",
     "public/{logo-horizontal-white.png,logoOriginalEslogan.svg,icon-*.png,fondowan.png,rehabilitacion.webp,img_Contactanos.png,img_QuienesSomos.png}",
   ],
-  additionalPrecacheEntries: [{ url: "/offline", revision }],
+  additionalPrecacheEntries: [
+    { url: "/offline", revision },
+    { url: "/pwa/legal/terminos-y-condiciones", revision },
+    { url: "/pwa/legal/politicas-de-privacidad", revision },
+  ],
   maximumFileSizeToCacheInBytes: 8 * 1024 * 1024,
 });
