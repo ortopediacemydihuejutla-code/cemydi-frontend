@@ -1,5 +1,8 @@
 import { publicFetch } from "@/lib/api/public-fetch";
 import { parseApiResponse } from "@/lib/api-error";
+import { z } from "@/lib/zod";
+import { legalDocumentSchema } from "@/lib/schemas/legal-document";
+import { canUseOfflineFallback } from "@/lib/pwa/errors";
 
 export const legalDocumentSlugs = [
   "politicas-de-privacidad",
@@ -322,11 +325,17 @@ export const defaultLegalDocuments: Record<LegalDocumentSlug, LegalDocument> = {
   ),
 };
 
-type LegalDocumentResponse = { document: LegalDocument };
+type LegalDocumentResponse = { document: LegalDocument | null };
 
 export async function getLegalDocument(
   slug: LegalDocumentSlug,
 ): Promise<LegalDocument> {
+  return (await getLegalDocumentSnapshot(slug)).document;
+}
+
+export async function getLegalDocumentSnapshot(slug: LegalDocumentSlug): Promise<{
+  document: LegalDocument; valid: boolean; unavailable: boolean;
+}> {
   try {
     const response = await publicFetch(`/legal-documents/${slug}`, {
       next: { revalidate: 60 },
@@ -334,9 +343,10 @@ export async function getLegalDocument(
     const data = await parseApiResponse<LegalDocumentResponse>(
       response,
       "No se pudo cargar el documento",
+      z.object({ document: legalDocumentSchema.refine((document) => document.slug === slug).nullable() }),
     );
-    return data.document ?? defaultLegalDocuments[slug];
-  } catch {
-    return defaultLegalDocuments[slug];
+    return { document: data.document ?? defaultLegalDocuments[slug], valid: Boolean(data.document), unavailable: false };
+  } catch (error) {
+    return { document: defaultLegalDocuments[slug], valid: false, unavailable: canUseOfflineFallback(error) };
   }
 }

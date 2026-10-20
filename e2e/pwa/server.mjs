@@ -21,6 +21,12 @@ const backend = http.createServer((req, res) => {
     res.end(JSON.stringify({ products: filtered.slice((page - 1) * pageSize, page * pageSize).map((product) => withImages ? { ...product, imageUrl: `/icon-192.png?product=${product.id}` } : product), pagination: { page, pageSize, total: filtered.length, totalPages: Math.ceil(filtered.length / pageSize), hasPrevious: page > 1, hasNext: page * pageSize < filtered.length }, filters: { clasificaciones: ["Movilidad"], marcas: ["Marca A", "Marca B"] } })); return;
   }
   if (url.pathname === "/about-page") { res.end(JSON.stringify({ aboutPage: about })); return; }
+  if (url.pathname.startsWith("/legal-documents/")) {
+    if (failure) { res.statusCode = 503; res.end('{"message":"Servicio temporalmente no disponible"}'); return; }
+    const slug = url.pathname.split("/").pop();
+    const title = slug === "terminos-y-condiciones" ? "Términos y condiciones" : "Política de privacidad";
+    res.end(JSON.stringify({ document: { slug, title, description: "Documento público de prueba", fields: { effectiveDate: "2026-10-20" }, customSections: [], sections: [{ id: "alcance", title: "Alcance público", body: `<p>Contenido publicado de ${title}</p>` }] } })); return;
+  }
   if (url.pathname === "/promotions") { res.end('{"promotions":[]}'); return; }
   if (/^\/products\/(?:slug\/)?/.test(url.pathname)) {
     const key = url.pathname.split("/").pop();

@@ -12,6 +12,7 @@ import ContactContent from "@/app/contactanos/ContactContent";
 import { useOfflinePresentation } from "@/providers/PwaProvider";
 import toast from "react-hot-toast";
 import OfflineHome from "./OfflineHome";
+import OfflineLegalDocument from "./OfflineLegalDocument";
 import { getOfflineProductAlias } from "@/lib/pwa/policy";
 
 export default function OfflineEntry({ documentFallback = false }: { documentFallback?: boolean }) {
@@ -100,6 +101,7 @@ export default function OfflineEntry({ documentFallback = false }: { documentFal
         : path === "/" ? <OfflineHome />
         : path === "/catalogo" ? <OfflineCatalog />
         : path.startsWith("/producto/") ? <OfflineProductDetail product={product} />
+        : path === "/terminos-y-condiciones" || path === "/politicas-de-privacidad" ? <OfflineLegalDocument slug={path.slice(1) as "terminos-y-condiciones" | "politicas-de-privacidad"} />
         : path === "/quienes-somos" ? <><AboutPageClient content={about?.content ?? defaultAboutPageContent} offline /><p className="mx-auto max-w-7xl px-5 py-4 text-sm text-muted-foreground">{about ? `Contenido público guardado. Actualizado: ${new Date(about.updatedAt).toLocaleString("es-MX")}` : "Contenido institucional predeterminado. No hay una actualización guardada vigente."}</p></>
         : path === "/contactanos" ? <ContactContent offline /> : <section className="mx-auto grid max-w-3xl gap-5 p-6 py-14"><h1 className="text-3xl">Contenido guardado</h1>{count > 0 ? <a href="/catalogo" className="font-semibold text-primary">Consultar {count} productos guardados</a> : <p>No hay productos guardados vigentes. Visita el catálogo con conexión para guardarlos.</p>}<Button variant="outline" onClick={() => void clear()}>Borrar contenido guardado</Button></section>}
   </>;

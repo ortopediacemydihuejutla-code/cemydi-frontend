@@ -1,4 +1,4 @@
-export const PUBLIC_OFFLINE_PATHS = ["/", "/offline", "/catalogo", "/quienes-somos", "/contactanos"];
+export const PUBLIC_OFFLINE_PATHS = ["/", "/offline", "/catalogo", "/quienes-somos", "/contactanos", "/terminos-y-condiciones", "/politicas-de-privacidad"];
 export const OFFLINE_TTL = 30 * 86400 * 1000;
 export const OFFLINE_IMAGE_SAVED_AT = "x-cemydi-cached-at";
 

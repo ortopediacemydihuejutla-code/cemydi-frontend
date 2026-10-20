@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { LegalDocumentPage } from "@/components/legal/LegalDocumentPage";
-import { getLegalDocument } from "@/services/legal-documents";
+import { getLegalDocumentSnapshot } from "@/services/legal-documents";
+import OfflineBoundary from "@/components/pwa/OfflineBoundary";
+import LegalPersistence from "@/components/pwa/LegalPersistence";
 
 export const metadata: Metadata = {
   title: "Términos y condiciones",
@@ -8,6 +10,9 @@ export const metadata: Metadata = {
 };
 
 export default async function TermsPage() {
-  const document = await getLegalDocument("terminos-y-condiciones");
-  return <LegalDocumentPage document={document} />;
+  const { document, valid, unavailable } = await getLegalDocumentSnapshot("terminos-y-condiciones");
+  return <OfflineBoundary unavailable={unavailable}>
+    {valid && <LegalPersistence document={document} />}
+    <LegalDocumentPage document={document} />
+  </OfflineBoundary>;
 }

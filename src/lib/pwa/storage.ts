@@ -5,6 +5,8 @@ import type { AboutPageContent } from "@/services/about-page";
 import type { CatalogAppliedParams } from "@/app/catalogo/utils/catalog-params";
 import { catalogOrderKey, parseOfflineCatalogOrders } from "./catalog-order";
 import { z } from "@/lib/zod";
+import { legalDocumentSchema } from "@/lib/schemas/legal-document";
+import type { LegalDocument, LegalDocumentSlug } from "@/services/legal-documents";
 
 export const OFFLINE_DB = "cemydi-public-offline";
 // Details and aliases belong to their product record: eviction is atomic and
@@ -206,6 +208,27 @@ export async function getOfflineAbout(): Promise<{ content: AboutPageContent; up
   return parsed.data;
 }
 export const markContactVisited = () => metadata("contact-visited", true);
+const offlineLegalSchema = z.object({
+  document: legalDocumentSchema,
+  updatedAt: z.number().finite().nonnegative(),
+});
+export async function saveOfflineLegal(document: LegalDocument) {
+  const validated = legalDocumentSchema.parse(document);
+  await metadata(`legal:${validated.slug}`, { document: validated, updatedAt: Date.now() });
+}
+export async function getOfflineLegal(slug: LegalDocumentSlug) {
+  const key = `legal:${slug}`;
+  const value = await metadata(key);
+  const parsed = offlineLegalSchema.safeParse(value);
+  const now = Date.now();
+  if (!parsed.success || parsed.data.document.slug !== slug || parsed.data.updatedAt > now || now - parsed.data.updatedAt >= OFFLINE_TTL) {
+    if (value !== undefined && value !== null) {
+      try { await metadata(key, null); } catch { /* Retry housekeeping on the next access. */ }
+    }
+    return null;
+  }
+  return parsed.data;
+}
 export const wasContactVisited = async () => (await metadata("contact-visited")) === true;
 export async function clearOfflineContent() {
   pendingImages.cleanup?.();

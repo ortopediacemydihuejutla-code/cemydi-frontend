@@ -27,6 +27,59 @@ test.beforeEach(async ({ request }) => {
   await request.get("http://127.0.0.1:4199/__test/images?on=0");
 });
 
+test("consulta términos y privacidad offline con copia, sin copia y con copia vencida", async ({ page, context }) => {
+  await page.goto("/terminos-y-condiciones");
+  await ready(page);
+  await expect.poll(() => page.evaluate(() => new Promise<boolean>((resolve, reject) => {
+    const request = indexedDB.open("cemydi-public-offline", 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      const tx = db.transaction("metadata");
+      const read = tx.objectStore("metadata").get("legal:terminos-y-condiciones");
+      tx.oncomplete = () => { db.close(); resolve(Boolean(read.result)); };
+    };
+  }))).toBe(true);
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByText("Contenido publicado de Términos y condiciones")).toBeVisible();
+  await expect(page.getByText(/Copia guardada el/)).toBeVisible();
+  await page.goto("/politicas-de-privacidad");
+  await expect(page.getByText(/No hay una copia guardada vigente/)).toBeVisible();
+  await context.setOffline(false);
+  await page.goto("/politicas-de-privacidad");
+  await expect(page.getByText("Contenido publicado de Política de privacidad")).toBeVisible();
+  await expect.poll(() => page.evaluate(() => new Promise<boolean>((resolve, reject) => {
+    const request = indexedDB.open("cemydi-public-offline", 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      const tx = db.transaction("metadata");
+      const read = tx.objectStore("metadata").get("legal:politicas-de-privacidad");
+      tx.oncomplete = () => { db.close(); resolve(Boolean(read.result)); };
+    };
+  }))).toBe(true);
+  await context.setOffline(true);
+  await page.reload();
+  await expect(page.getByText("Contenido publicado de Política de privacidad")).toBeVisible();
+  await page.evaluate(() => new Promise<void>((resolve, reject) => {
+    const request = indexedDB.open("cemydi-public-offline", 1);
+    request.onerror = () => reject(request.error);
+    request.onsuccess = () => {
+      const db = request.result;
+      const tx = db.transaction("metadata", "readwrite");
+      const store = tx.objectStore("metadata");
+      const read = store.get("legal:politicas-de-privacidad");
+      read.onsuccess = () => store.put({ ...read.result, value: { ...read.result.value, updatedAt: Date.now() - 30 * 86400 * 1000 } });
+      tx.oncomplete = () => { db.close(); resolve(); };
+      tx.onabort = () => { db.close(); reject(tx.error); };
+    };
+  }));
+  await page.reload();
+  await expect(page.getByText(/No hay una copia guardada vigente/)).toBeVisible();
+  await expect(page.getByText("Contenido publicado de Política de privacidad")).toHaveCount(0);
+});
+
 test("guarda páginas vistas, deduplica, filtra y pagina offline sin datos comerciales", async ({ page, context }) => {
   await page.goto("/catalogo");
   await ready(page);
