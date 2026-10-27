@@ -38,10 +38,10 @@ async function prepareImages(urls: string[], event: ExtendableMessageEvent) {
     while (pending.length && generation === imageGeneration) {
       const url = pending.shift()!;
       try {
-        const essential = new URL(url);
-        essential.search = "";
         // These files already have a build-revisioned copy in the precache.
-        if (serwist.getPrecacheKeyForUrl(essential.href)) continue;
+        // Query parameters may identify a different public image/version.
+        // Only skip the exact precached URL, not every URL sharing its path.
+        if (serwist.getPrecacheKeyForUrl(url)) continue;
         let download = imageDownloads.get(url);
         if (!download) {
           download = (async () => {
@@ -148,9 +148,7 @@ self.addEventListener("activate", (event) => {
     const retained = new Map<string, Request>();
     for (const request of await cache.keys()) {
       const key = getPublicImageCacheUrl(request.url, self.location.origin);
-      const essential = new URL(key ?? request.url);
-      essential.search = "";
-      if (!key || serwist.getPrecacheKeyForUrl(essential.href)) {
+      if (!key || serwist.getPrecacheKeyForUrl(key)) {
         await cache.delete(request);
         continue;
       }

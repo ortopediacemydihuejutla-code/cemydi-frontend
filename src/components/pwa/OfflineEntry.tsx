@@ -9,7 +9,7 @@ import { clearOfflineContent, getOfflineAbout, getOfflineProducts } from "@/lib/
 import { defaultAboutPageContent, type AboutPageContent } from "@/services/about-page";
 import { AboutPageClient } from "@/app/quienes-somos/AboutPageClient";
 import ContactContent from "@/app/contactanos/ContactContent";
-import { useOfflinePresentation } from "@/providers/PwaProvider";
+import { rememberReconnection, useOfflinePresentation } from "@/providers/PwaProvider";
 import toast from "react-hot-toast";
 import OfflineHome from "./OfflineHome";
 import OfflineLegalDocument from "./OfflineLegalDocument";
@@ -57,6 +57,7 @@ export default function OfflineEntry({ documentFallback = false }: { documentFal
       // recover its real route. Never reload ordinary public pages or drafts.
       if ([...dirtyForms].some((form) => form.isConnected) || modified) return;
       recovering = true;
+      rememberReconnection();
       location.replace(location.pathname === "/offline" ? "/" : location.href);
     };
     document.addEventListener("input", trackDirty);

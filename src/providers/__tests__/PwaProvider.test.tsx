@@ -1,7 +1,7 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import toast, { Toaster } from "react-hot-toast";
-import PwaProvider from "../PwaProvider";
+import PwaProvider, { rememberReconnection } from "../PwaProvider";
 
 describe("aviso de conectividad", () => {
   beforeEach(() => { vi.useFakeTimers(); sessionStorage.clear(); });
@@ -34,5 +34,21 @@ describe("aviso de conectividad", () => {
     act(() => vi.advanceTimersByTime(1_000));
     act(() => vi.advanceTimersByTime(1_100));
     expect(screen.queryByText("Conexión restablecida")).not.toBeInTheDocument();
+  });
+
+  it.each(["invalid", String(Date.now() - 10_000), String(Date.now() + 60_000)])("descarta una marca de reconexión inválida o vencida: %s", (value) => {
+    vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
+    sessionStorage.setItem("cemydi-pwa-reconnected-at", value);
+    render(<PwaProvider><Toaster /></PwaProvider>);
+    expect(screen.queryByText("Conexión restablecida")).not.toBeInTheDocument();
+    expect(sessionStorage.getItem("cemydi-pwa-reconnected-at")).toBeNull();
+  });
+
+  it("continúa si el navegador bloquea el almacenamiento de sesión", () => {
+    vi.spyOn(navigator, "onLine", "get").mockReturnValue(true);
+    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new DOMException("Blocked", "SecurityError"); });
+    vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new DOMException("Blocked", "SecurityError"); });
+    expect(rememberReconnection).not.toThrow();
+    expect(() => render(<PwaProvider><Toaster /></PwaProvider>)).not.toThrow();
   });
 });

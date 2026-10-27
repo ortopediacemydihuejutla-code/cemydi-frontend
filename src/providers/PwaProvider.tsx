@@ -6,6 +6,12 @@ import toast from "react-hot-toast";
 import { Wifi, WifiOff } from "lucide-react";
 
 const RECONNECT_DURATION = 4_000;
+const RECONNECTED_AT = "cemydi-pwa-reconnected-at";
+
+export function rememberReconnection() {
+  try { sessionStorage.setItem(RECONNECTED_AT, String(Date.now())); }
+  catch { /* Storage can be unavailable; navigation must still recover. */ }
+}
 const connectivityToastOptions = {
   id: "pwa-connectivity",
   position: "bottom-left" as const,
@@ -34,6 +40,18 @@ export default function PwaProvider({ children }: { children: ReactNode }) {
     if (!online) {
       showOfflineToast();
     } else if (!wasOnline.current) showConnectedToast();
+    else {
+      // The precached document navigates on reconnect. Keep only the remaining
+      // notice duration across that navigation, without retaining user data.
+      try {
+        const saved = sessionStorage.getItem(RECONNECTED_AT);
+        sessionStorage.removeItem(RECONNECTED_AT);
+        const elapsed = saved === null ? Infinity : Date.now() - Number(saved);
+        if (Number.isFinite(elapsed) && elapsed >= 0 && elapsed < RECONNECT_DURATION) {
+          showConnectedToast(RECONNECT_DURATION - elapsed);
+        }
+      } catch { /* The notice is optional when storage is blocked. */ }
+    }
     wasOnline.current = online;
   }, [online]);
   useEffect(() => { if (notice) toast.error(notice, { id: "pwa-notice" }); }, [notice]);

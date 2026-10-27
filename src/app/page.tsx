@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
+import { AuthRouteLoading } from "@/components/auth/auth-route-loading";
 
 import { HomeCategories } from "@/components/home/HomeCategories";
 import { HomeFeatures } from "@/components/home/HomeFeatures";
@@ -39,7 +41,15 @@ async function loadTestimonials() {
   }
 }
 
-export default async function HomePage() {
+export default function HomePage() {
+  return (
+    <Suspense fallback={<AuthRouteLoading title="Cargando CEMYDI" description="Preparando el contenido..." />}>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+async function HomeContent() {
   const [promotions, testimonials] = await Promise.all([
     loadPromotions(),
     loadTestimonials(),
