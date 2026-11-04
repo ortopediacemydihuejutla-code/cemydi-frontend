@@ -38,6 +38,7 @@ const ADMIN_BREADCRUMB_CONFIG: Record<
   "/admin/users": { label: "Usuarios", parent: "/admin" },
   "/admin/rentals": { label: "Rentas", parent: "/admin" },
   "/admin/reviews": { label: "Reseñas", parent: "/admin" },
+  "/admin/notifications": { label: "Notificaciones", parent: "/admin" },
 }
 
 interface PageHeaderProps {

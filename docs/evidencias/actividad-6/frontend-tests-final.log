@@ -1,0 +1,13 @@
+
+> cemydi-frontend@0.1.0 test
+> vitest run --maxWorkers=2
+
+
+ RUN  v4.1.11 C:/Users/Victo/Documents/ortopedia-cemydi-web/cemydi-frontend
+
+
+ Test Files  70 passed (70)
+      Tests  276 passed (276)
+   Start at  11:31:08
+   Duration  143.69s (transform 2.78s, setup 48.40s, import 15.46s, tests 9.67s, environment 192.64s)
+

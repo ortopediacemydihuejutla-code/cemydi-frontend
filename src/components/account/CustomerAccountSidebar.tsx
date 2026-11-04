@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Bell,
   CircleAlert,
   CircleHelp,
   ClipboardList,
@@ -47,6 +48,7 @@ const accountNavigation = [
   { title: "Mis favoritos", url: "/favoritos", icon: Heart },
   { title: "Mis reseñas", url: "/mis-resenas", icon: MessageSquareText },
   { title: "Configuración", url: "/configuracion", icon: Settings },
+  { title: "Notificaciones", url: "/notificaciones", icon: Bell },
 ] as const;
 
 function AccountNavigation() {

@@ -1,0 +1,7 @@
+{
+  "method": "GET",
+  "url": "http://localhost:3001/api/products?page=1&pageSize=1",
+  "status": 200,
+  "contentType": "application/json; charset=utf-8",
+  "upstream": "http://127.0.0.1:4000/products?page=1&pageSize=1"
+}

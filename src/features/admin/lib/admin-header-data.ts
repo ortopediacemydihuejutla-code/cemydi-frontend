@@ -15,6 +15,7 @@ export const ADMIN_SEARCH_DESTINATIONS: AdminSearchDestination[] = [
   { title: "Usuarios", description: "Cuentas y permisos", href: "/admin/users", keywords: ["usuario", "cuenta", "cliente", "rol"] },
   { title: "Rentas", description: "Solicitudes, entregas y devoluciones", href: "/admin/rentals", keywords: ["renta", "solicitud", "entrega", "devolucion"] },
   { title: "Promociones", description: "Descuentos y campañas", href: "/admin/promotions", keywords: ["promocion", "descuento", "oferta"] },
+  { title: "Notificaciones", description: "Envíos a clientes y avisos automáticos", href: "/admin/notifications", keywords: ["notificacion", "push", "avisos", "campaña"] },
   { title: "Reseñas", description: "Moderación de opiniones", href: "/admin/reviews", keywords: ["resena", "comentario", "opinion", "aprobar"] },
   { title: "Analytics", description: "Métricas operativas", href: "/admin/analytics", keywords: ["analiticas", "metrica", "reporte"] },
   { title: "Monitoreo de BD", description: "Respaldos y mantenimiento", href: "/admin/database", keywords: ["base de datos", "respaldo", "backup", "mantenimiento"] },

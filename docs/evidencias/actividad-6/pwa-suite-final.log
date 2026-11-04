@@ -1,0 +1,40 @@
+[WebServer] (node:2472) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:19692) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 23 tests using 1 worker
+
+(node:26716) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:26716) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 [chromium-pwa] › e2e\pwa\legal-precache.spec.ts:7:5 › precarga ambos documentos desde catálogo y los abre offline sin visitas previas (3.6s)
+  ok  2 [chromium-pwa] › e2e\pwa\legal-precache.spec.ts:47:5 › rechaza errores y slugs desconocidos e impide instalar documentos incompletos (1.4s)
+  ok  3 [chromium-pwa] › e2e\pwa\offline.spec.ts:30:5 › guarda páginas vistas, deduplica, filtra y pagina offline sin datos comerciales (3.2s)
+  ok  4 [chromium-pwa] › e2e\pwa\offline.spec.ts:58:5 › conserva el orden online y muestra un aviso persistente que se confirma al reconectar (7.2s)
+  ok  5 [chromium-pwa] › e2e\pwa\offline.spec.ts:91:5 › abre detalle por ID y slug después de cerrar la pestaña (2.6s)
+  ok  6 [chromium-pwa] › e2e\pwa\offline.spec.ts:119:5 › conserva ambas páginas informativas y evita mapas offline (4.8s)
+  ok  7 [chromium-pwa] › e2e\pwa\offline.spec.ts:144:5 › 5xx permite respaldo y no renueva productos ni contenido institucional (2.3s)
+  ok  8 [chromium-pwa] › e2e\pwa\offline.spec.ts:167:5 › expira registros, mantiene estado vacío y no cachea datos privados (2.0s)
+  ok  9 [chromium-pwa] › e2e\pwa\offline.spec.ts:200:5 › IndexedDB bloqueado no rompe la navegación online (729ms)
+  ok 10 [chromium-pwa] › e2e\pwa\offline.spec.ts:207:5 › Quiénes somos avisa si IndexedDB está bloqueado sin ocultar contenido online (511ms)
+  ok 11 [chromium-pwa] › e2e\pwa\offline.spec.ts:215:5 › un 404 confirmado por ID elimina producto, detalle y aliases sin borrar imágenes compartidas (1.8s)
+  ok 12 [chromium-pwa] › e2e\pwa\offline.spec.ts:230:5 › manifiesto único, iconos y headers del worker (1.5s)
+  ok 13 [chromium-pwa] › e2e\pwa\offline.spec.ts:256:5 › actualización silenciosa espera hasta cerrar todas las pestañas y conserva datos (5.6s)
+  ok 14 [chromium-pwa] › e2e\pwa\offline.spec.ts:292:5 › la nueva versión se activa al cerrar y reabrir el navegador sin confirmación (5.0s)
+  ok 15 [chromium-pwa] › e2e\pwa\offline.spec.ts:318:5 › cuota transitoria permite un solo reintento y cuota permanente muestra aviso (2.1s)
+  ok 16 [chromium-pwa] › e2e\pwa\offline.spec.ts:343:5 › instalación nativa no se intercepta y no hay botón propio en desktop ni móvil (1.9s)
+  ok 17 [chromium-pwa] › e2e\pwa\offline.spec.ts:358:5 › reconecta sin presentar información comercial vieja y conserva imágenes públicas guardadas (2.3s)
+[WebServer] ⨯ Error: The destination stream closed early.
+[WebServer]     at ignore-listed frames {
+[WebServer]   digest: '932717606'
+[WebServer] }
+  ok 18 [chromium-pwa] › e2e\pwa\offline.spec.ts:383:5 › persiste tras cerrar y reiniciar un navegador con el mismo perfil (9.9s)
+  ok 19 [chromium-pwa] › e2e\pwa\offline.spec.ts:432:5 › abre el inicio offline, navega por documentos y borra datos sin perder el respaldo esencial (2.8s)
+  ok 20 [chromium-pwa] › e2e\pwa\offline.spec.ts:449:5 › conserva el header y las páginas públicas y avisa con toast al bloquear una ruta (2.7s)
+  ok 21 [chromium-pwa] › e2e\pwa\offline.spec.ts:473:5 › conserva el menú móvil y el drawer de filtros sin conexión (3.0s)
+  ok 22 [chromium-pwa] › e2e\pwa\offline.spec.ts:509:5 › detalle básico avisa por toast y galería guardada conserva controles en móvil (2.0s)
+  ok 23 [chromium-pwa] › e2e\pwa\offline.spec.ts:550:5 › prepara las 24 fotos de la página inicial sin depender de scroll o del primer render (2.3s)
+
+  23 passed (1.3m)

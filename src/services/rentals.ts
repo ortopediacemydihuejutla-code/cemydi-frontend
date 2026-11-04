@@ -81,7 +81,7 @@ export type RentalRequest = {
     correo: string;
     telefono: string | null;
     direccion: string | null;
-  };
+  } | null;
   approvedBy: {
     id: number;
     nombre: string;

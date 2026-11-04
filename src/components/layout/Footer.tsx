@@ -144,6 +144,7 @@ export default function Footer() {
           © {new Date().getFullYear()} CEMYDI. Todos los derechos reservados.
         </small>
         <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2" aria-label="Legal">
+          <Link href="/eliminar-cuenta" className="min-h-0 text-muted-foreground no-underline hover:text-primary hover:underline">Eliminar cuenta</Link>
           <Link href="/politicas-de-privacidad" className="min-h-0 text-muted-foreground no-underline hover:text-primary hover:underline">
             Política de privacidad
           </Link>

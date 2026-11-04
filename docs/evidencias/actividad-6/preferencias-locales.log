@@ -1,0 +1,9 @@
+
+ RUN  v4.1.11 C:/Users/Victo/Documents/ortopedia-cemydi-web/cemydi-frontend
+
+
+ Test Files  1 passed (1)
+      Tests  1 passed (1)
+   Start at  11:22:49
+   Duration  3.48s (transform 85ms, setup 719ms, import 60ms, tests 170ms, environment 2.27s)
+

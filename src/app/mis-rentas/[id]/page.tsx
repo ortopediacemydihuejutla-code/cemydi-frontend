@@ -638,7 +638,7 @@ export default function RentalDetailPage() {
                   <UserRound className="mt-0.5 size-5 shrink-0 text-[#1f6a67]" />
                   <div>
                     <strong className="text-[#17333f]">
-                      {rental.applicantName ?? rental.user.nombre}
+                      {rental.applicantName ?? rental.user?.nombre}
                     </strong>
                     {rental.isForAnotherPerson ? (
                       <p className="mt-1">
@@ -655,12 +655,12 @@ export default function RentalDetailPage() {
                 <div className="grid gap-2">
                   <p className="flex items-center gap-2">
                     <Mail className="size-4 text-[#1f6a67]" />
-                    {rental.applicantEmail ?? rental.user.correo}
+                    {rental.applicantEmail ?? rental.user?.correo}
                   </p>
                   <p className="flex items-center gap-2">
                     <Phone className="size-4 text-[#1f6a67]" />
                     {rental.applicantPhone ??
-                      rental.user.telefono ??
+                      rental.user?.telefono ??
                       "Sin teléfono"}
                   </p>
                 </div>

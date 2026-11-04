@@ -1,0 +1,9 @@
+{
+  "command": "npm run build && npm test -- --runInBand",
+  "build": "passed",
+  "testSuites": 76,
+  "passed": 379,
+  "failed": 0,
+  "seconds": 218.927,
+  "source": "Observed terminal output from the actual run on 2026-10-27; assertions include mocks, not proof of authenticated production flows."
+}

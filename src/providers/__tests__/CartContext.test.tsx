@@ -1,6 +1,6 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
-import { describe, expect, it, vi, beforeEach } from "vitest";
+import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { CartProvider, useCart } from "../CartContext";
 import type { ShoppingCart } from "@/services/cart";
 
@@ -21,7 +21,8 @@ const mockRemoveCartCoupon = vi.fn();
 vi.mock("@/services/cart", () => ({
   getMyCart: () => mockGetMyCart(),
   addCartItem: (payload: unknown) => mockAddCartItem(payload),
-  updateCartItem: (id: number, payload: unknown) => mockUpdateCartItem(id, payload),
+  updateCartItem: (id: number, payload: unknown) =>
+    mockUpdateCartItem(id, payload),
   removeCartItem: (id: number) => mockRemoveCartItem(id),
   clearMyCart: () => mockClearMyCart(),
   clearMyRentalItems: () => mockClearMyRentalItems(),
@@ -86,12 +87,139 @@ describe("CartContext", () => {
   };
 
   beforeEach(() => {
-    vi.clearAllMocks();
+    vi.resetAllMocks();
     mockUseAuth.mockReturnValue({
       user: { id: 1, rol: "CLIENT" },
       loading: false,
     });
     mockGetMyCart.mockResolvedValue({ cart: dummyCart });
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.restoreAllMocks();
+  });
+
+  const wrapper = ({ children }: { children: ReactNode }) => (
+    <CartProvider>{children}</CartProvider>
+  );
+  const changedCart: ShoppingCart = {
+    ...dummyCart,
+    items: [{ ...dummyCart.items[0], quantity: 4 }],
+    summary: { ...dummyCart.summary, totalQuantity: 4, total: 2000 },
+  };
+
+  it("loads external changes on focus and after reconnect, preserving data on failure", async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    mockGetMyCart.mockRejectedValueOnce(new Error("Sin conexión"));
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+    });
+    expect(result.current.cart).toEqual(dummyCart);
+    expect(result.current.error).toBe("Sin conexión");
+    mockGetMyCart.mockResolvedValue({ cart: changedCart });
+    await act(async () => {
+      window.dispatchEvent(new Event("online"));
+    });
+    expect(result.current.cart.items[0].quantity).toBe(4);
+    expect(result.current.error).toBeNull();
+  });
+
+  it("polls while visible, pauses offline/hidden, and cleans up on unmount", async () => {
+    vi.useFakeTimers();
+    const { result, unmount } = renderHook(() => useCart(), { wrapper });
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(result.current.loading).toBe(false);
+    mockGetMyCart.mockResolvedValue({ cart: changedCart });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    expect(result.current.cart.items[0].quantity).toBe(4);
+    const calls = mockGetMyCart.mock.calls.length;
+    const visibility = vi
+      .spyOn(document, "visibilityState", "get")
+      .mockReturnValue("hidden");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(20_000);
+    });
+    expect(mockGetMyCart).toHaveBeenCalledTimes(calls);
+    visibility.mockReturnValue("visible");
+    vi.spyOn(navigator, "onLine", "get").mockReturnValue(false);
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10_000);
+    });
+    expect(mockGetMyCart).toHaveBeenCalledTimes(calls);
+    unmount();
+    await vi.advanceTimersByTimeAsync(20_000);
+    expect(mockGetMyCart).toHaveBeenCalledTimes(calls);
+  });
+
+  it("ignores an older read after a write and skips background sync during the write", async () => {
+    const { result } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    let finishRead!: (value: { cart: ShoppingCart }) => void;
+    mockGetMyCart.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishRead = resolve;
+      }),
+    );
+    let read!: Promise<ShoppingCart>;
+    act(() => {
+      read = result.current.refreshCart();
+    });
+    let finishWrite!: (value: { cart: ShoppingCart; message: string }) => void;
+    mockUpdateCartItem.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finishWrite = resolve;
+      }),
+    );
+    let write!: ReturnType<typeof result.current.updateItemQuantity>;
+    act(() => {
+      write = result.current.updateItemQuantity({ itemId: 10, quantity: 4 });
+    });
+    const calls = mockGetMyCart.mock.calls.length;
+    await act(async () => {
+      window.dispatchEvent(new Event("focus"));
+    });
+    expect(mockGetMyCart).toHaveBeenCalledTimes(calls);
+    await act(async () => {
+      finishWrite({ cart: changedCart, message: "Actualizado" });
+      await write;
+      finishRead({ cart: dummyCart });
+      await read;
+    });
+    expect(result.current.cart.items[0].quantity).toBe(4);
+  });
+
+  it("discards a late write when changing accounts", async () => {
+    const { result, rerender } = renderHook(() => useCart(), { wrapper });
+    await waitFor(() => expect(result.current.loading).toBe(false));
+    let finish!: (value: { cart: ShoppingCart; message: string }) => void;
+    mockUpdateCartItem.mockReturnValueOnce(
+      new Promise((resolve) => {
+        finish = resolve;
+      }),
+    );
+    let write!: ReturnType<typeof result.current.updateItemQuantity>;
+    act(() => {
+      write = result.current.updateItemQuantity({ itemId: 10, quantity: 4 });
+    });
+    const otherCart = { ...dummyCart, id: "cart-2", items: [] };
+    mockUseAuth.mockReturnValue({
+      user: { id: 2, rol: "CLIENT" },
+      loading: false,
+    });
+    mockGetMyCart.mockResolvedValue({ cart: otherCart });
+    rerender();
+    expect(result.current.cart.items).toHaveLength(0);
+    await waitFor(() => expect(result.current.cart.id).toBe("cart-2"));
+    await act(async () => {
+      finish({ cart: changedCart, message: "Actualizado" });
+      await expect(write).rejects.toThrow("La sesión cambió");
+    });
+    expect(result.current.cart.id).toBe("cart-2");
   });
 
   it("throws an error when useCart is used outside of CartProvider", () => {
@@ -189,7 +317,11 @@ describe("CartContext", () => {
     });
 
     await act(async () => {
-      await result.current.addItem({ productId: 101, quantity: 1, mode: "VENTA" });
+      await result.current.addItem({
+        productId: 101,
+        quantity: 1,
+        mode: "VENTA",
+      });
     });
 
     expect(mockAddCartItem).toHaveBeenCalledWith({

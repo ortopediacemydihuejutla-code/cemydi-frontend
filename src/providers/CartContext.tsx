@@ -5,7 +5,9 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { useAuth } from "@/providers/AuthContext";
@@ -151,7 +153,44 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   const clientUserId = user?.rol === "CLIENT" ? user.id : null;
   const loading = authLoading || state.ownerUserId !== clientUserId;
-  const cart = state.cart;
+  const emptyCart = useMemo(createEmptyCart, []);
+  const cart =
+    !authLoading && state.ownerUserId === clientUserId ? state.cart : emptyCart;
+  const currentUserId = useRef(clientUserId);
+  const sessionVersion = useRef(0);
+  const requestVersion = useRef(0);
+  const pendingWrites = useRef(0);
+  useLayoutEffect(() => {
+    currentUserId.current = authLoading ? null : clientUserId;
+    sessionVersion.current += 1;
+    requestVersion.current += 1;
+    pendingWrites.current = 0;
+  }, [authLoading, clientUserId]);
+  const performMutation = useCallback(
+    async <T,>(operation: () => Promise<T>): Promise<T> => {
+      const expected = clientUserId;
+      const session = sessionVersion.current;
+      if (expected === null || currentUserId.current !== expected)
+        throw new Error("La sesión cambió. Vuelve a iniciar sesión.");
+      requestVersion.current += 1;
+      pendingWrites.current += 1;
+      try {
+        const result = await operation();
+        if (
+          currentUserId.current !== expected ||
+          sessionVersion.current !== session
+        )
+          throw new Error("La sesión cambió. Revisa el carrito de tu cuenta.");
+        return result;
+      } finally {
+        if (sessionVersion.current === session) {
+          pendingWrites.current -= 1;
+          requestVersion.current += 1;
+        }
+      }
+    },
+    [clientUserId],
+  );
 
   const refreshCart = useCallback(async () => {
     if (clientUserId === null) {
@@ -164,22 +203,64 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     }
 
     setError(null);
+    const version = ++requestVersion.current;
     try {
       const result = await getMyCart();
-      setState((previous) => ({
-        ownerUserId: clientUserId,
-        cart: preserveCartItemOrder(previous.cart, result.cart),
-      }));
+      if (
+        currentUserId.current === clientUserId &&
+        version === requestVersion.current
+      )
+        setState((previous) => ({
+          ownerUserId: clientUserId,
+          cart: preserveCartItemOrder(previous.cart, result.cart),
+        }));
       return result.cart;
     } catch (loadError) {
-      setError(
-        loadError instanceof Error
-          ? loadError.message
-          : "No se pudo cargar el carrito.",
-      );
+      if (
+        currentUserId.current === clientUserId &&
+        version === requestVersion.current
+      )
+        setError(
+          loadError instanceof Error
+            ? loadError.message
+            : "No se pudo cargar el carrito.",
+        );
       throw loadError;
     }
   }, [clientUserId]);
+
+  useEffect(() => {
+    if (loading || clientUserId === null) return;
+    let active = true;
+    let refreshing = false;
+    const sync = () => {
+      if (
+        !active ||
+        refreshing ||
+        document.visibilityState !== "visible" ||
+        !navigator.onLine ||
+        pendingWrites.current > 0
+      )
+        return;
+      refreshing = true;
+      void refreshCart()
+        .catch(() => undefined)
+        .finally(() => {
+          refreshing = false;
+        });
+    };
+    const timer = window.setInterval(sync, 10_000);
+    window.addEventListener("focus", sync);
+    window.addEventListener("online", sync);
+    document.addEventListener("visibilitychange", sync);
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      window.removeEventListener("focus", sync);
+      window.removeEventListener("online", sync);
+      document.removeEventListener("visibilitychange", sync);
+    };
+  }, [loading, clientUserId, refreshCart]);
 
   useEffect(() => {
     let cancelled = false;
@@ -207,9 +288,10 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       };
     }
 
+    const version = ++requestVersion.current;
     void getMyCart()
       .then((result) => {
-        if (cancelled) {
+        if (cancelled || version !== requestVersion.current) {
           return;
         }
 
@@ -220,7 +302,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         }));
       })
       .catch((loadError: unknown) => {
-        if (cancelled) {
+        if (cancelled || version !== requestVersion.current) {
           return;
         }
 
@@ -260,14 +342,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       rentalNotes?: string;
     }) => {
       assertClientSession();
-      const result = await addCartItem(payload);
+      const result = await performMutation(() => addCartItem(payload));
       setState((previous) => ({
         ownerUserId: clientUserId,
         cart: preserveCartItemOrder(previous.cart, result.cart),
       }));
       return result;
     },
-    [assertClientSession, clientUserId],
+    [assertClientSession, clientUserId, performMutation],
   );
 
   const updateItemQuantity = useCallback(
@@ -279,76 +361,78 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       rentalNotes?: string;
     }) => {
       assertClientSession();
-      const result = await updateCartItem(payload.itemId, {
-        quantity: payload.quantity,
-        rentalStartDate: payload.rentalStartDate,
-        rentalEndDate: payload.rentalEndDate,
-        rentalNotes: payload.rentalNotes,
-      });
+      const result = await performMutation(() =>
+        updateCartItem(payload.itemId, {
+          quantity: payload.quantity,
+          rentalStartDate: payload.rentalStartDate,
+          rentalEndDate: payload.rentalEndDate,
+          rentalNotes: payload.rentalNotes,
+        }),
+      );
       setState((previous) => ({
         ownerUserId: clientUserId,
         cart: preserveCartItemOrder(previous.cart, result.cart),
       }));
       return result;
     },
-    [assertClientSession, clientUserId],
+    [assertClientSession, clientUserId, performMutation],
   );
 
   const removeItem = useCallback(
     async (itemId: number) => {
       assertClientSession();
-      const result = await removeCartItem(itemId);
+      const result = await performMutation(() => removeCartItem(itemId));
       setState((previous) => ({
         ownerUserId: clientUserId,
         cart: preserveCartItemOrder(previous.cart, result.cart),
       }));
       return result;
     },
-    [assertClientSession, clientUserId],
+    [assertClientSession, clientUserId, performMutation],
   );
 
   const clearCart = useCallback(async () => {
     assertClientSession();
-    const result = await clearMyCart();
+    const result = await performMutation(clearMyCart);
     setState({
       ownerUserId: clientUserId,
       cart: result.cart,
     });
     return result;
-  }, [assertClientSession, clientUserId]);
+  }, [assertClientSession, clientUserId, performMutation]);
 
   const clearRentals = useCallback(async () => {
     assertClientSession();
-    const result = await clearMyRentalItems();
+    const result = await performMutation(clearMyRentalItems);
     setState((previous) => ({
       ownerUserId: clientUserId,
       cart: preserveCartItemOrder(previous.cart, result.cart),
     }));
     return result;
-  }, [assertClientSession, clientUserId]);
+  }, [assertClientSession, clientUserId, performMutation]);
 
   const applyCoupon = useCallback(
     async (code: string) => {
       assertClientSession();
-      const result = await applyCartCoupon(code);
+      const result = await performMutation(() => applyCartCoupon(code));
       setState((previous) => ({
         ownerUserId: clientUserId,
         cart: preserveCartItemOrder(previous.cart, result.cart),
       }));
       return result;
     },
-    [assertClientSession, clientUserId],
+    [assertClientSession, clientUserId, performMutation],
   );
 
   const removeCoupon = useCallback(async () => {
     assertClientSession();
-    const result = await removeCartCoupon();
+    const result = await performMutation(removeCartCoupon);
     setState((previous) => ({
       ownerUserId: clientUserId,
       cart: preserveCartItemOrder(previous.cart, result.cart),
     }));
     return result;
-  }, [assertClientSession, clientUserId]);
+  }, [assertClientSession, clientUserId, performMutation]);
 
   const value = useMemo(
     () => ({

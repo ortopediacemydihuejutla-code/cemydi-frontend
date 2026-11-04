@@ -1,0 +1,22 @@
+{
+  "provider": "PostgreSQL",
+  "readOnly": true,
+  "count": 57,
+  "publicProducts": [
+    {
+      "id": 1,
+      "nombre": "Muletas",
+      "slug": "muletas"
+    },
+    {
+      "id": 2,
+      "nombre": "Nebulizador",
+      "slug": "nebulizador"
+    },
+    {
+      "id": 3,
+      "nombre": "Concentrador De Oxígeno",
+      "slug": "concentrador-de-oxigeno"
+    }
+  ]
+}

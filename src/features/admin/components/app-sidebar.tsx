@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import {
+  Bell,
   Package,
   Users,
   BarChart3,
@@ -89,6 +90,11 @@ const data = {
           icon: TicketPercent,
           title: "Cupones",
           url: "/admin/coupons",
+        },
+        {
+          icon: Bell,
+          title: "Notificaciones",
+          url: "/admin/notifications",
         },
       ],
     },

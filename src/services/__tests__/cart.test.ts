@@ -49,7 +49,7 @@ describe("Cart Service", () => {
     const spy = vi.spyOn(apiFetchModule, "apiFetch").mockResolvedValue(mockResponse as unknown as Response);
 
     const result = await getMyCart();
-    expect(spy).toHaveBeenCalledWith("/cart", { method: "GET" });
+    expect(spy).toHaveBeenCalledWith("/cart", { method: "GET", cache: "no-store" });
     expect(result.cart).toEqual(dummyCart);
   });
 

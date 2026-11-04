@@ -1,0 +1,81 @@
+▲ Next.js 16.3.8 (Turbopack)
+- Environments: .env.local, .env
+✓ Running next.config.ts took 122ms
+Attention: Next.js now collects completely anonymous telemetry regarding usage.
+This information is used to shape Next.js' roadmap and prioritize features.
+You can learn more, including how to opt-out if you'd not like to participate in this anonymous program, by visiting the following URL:
+https://nextjs.org/telemetry
+
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 13.9s
+  Running TypeScript ...
+  Finished TypeScript in 10.2s ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/43) ...
+  Generating static pages using 15 workers (10/43) 
+  Generating static pages using 15 workers (21/43) 
+  Generating static pages using 15 workers (32/43) 
+✓ Generating static pages using 15 workers (43/43) in 1483ms
+  Finalizing page optimization ...
+
+Route (app)                          Revalidate  Expire
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /admin
+├ ƒ /admin/about
+├ ƒ /admin/analytics
+├ ƒ /admin/brands
+├ ƒ /admin/categories
+├ ƒ /admin/coupons
+├ ƒ /admin/database
+├ ƒ /admin/legal
+├ ƒ /admin/notifications
+├ ƒ /admin/products
+├ ƒ /admin/products/[id]/edit
+├ ƒ /admin/products/new
+├ ƒ /admin/promotions
+├ ƒ /admin/rentals
+├ ƒ /admin/reviews
+├ ƒ /admin/suppliers
+├ ƒ /admin/users
+├ ƒ /api/observability/client-error
+├ ƒ /carrito
+├ ƒ /catalogo
+├ ƒ /configuracion
+├ ƒ /contactanos
+├ ƒ /favoritos
+├ ƒ /forgot-password
+├ ƒ /login
+├ ○ /manifest.webmanifest
+├ ƒ /mi-cuenta
+├ ƒ /mis-pedidos
+├ ƒ /mis-rentas
+├ ƒ /mis-rentas/[id]
+├ ƒ /mis-resenas
+├ ƒ /notificaciones
+├ ƒ /notificaciones/[id]
+├ ƒ /ofertas/[id]
+├ ƒ /offline
+├ ƒ /perfil
+├ ƒ /politicas-de-privacidad
+├ ƒ /producto/[id]
+├ ƒ /pwa/legal/[slug]
+├ ƒ /quienes-somos
+├ ƒ /register
+├ ƒ /reset-password
+├ ○ /robots.txt
+├ ○ /sitemap.xml                             1h      1y
+├ ƒ /terminos-y-condiciones
+└ ƒ /verify-email
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+✓ Running next.config.ts took 313ms
+Using configuration from C:\Users\Victo\Documents\ortopedia-cemydi-web\cemydi-frontend\serwist.config.mjs.
+The service worker file was written to public/sw.js.
+The service worker will precache 110 URLs, totaling 9.67 MB.

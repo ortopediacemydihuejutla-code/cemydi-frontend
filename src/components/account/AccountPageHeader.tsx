@@ -1,21 +1,34 @@
+import { cn } from "@/lib/utils";
+
 export function AccountPageHeader({
   title,
   description,
   actions,
+  className,
+  compact = false,
 }: {
   title: string;
-  description: string;
+  description?: string;
   actions?: React.ReactNode;
+  className?: string;
+  compact?: boolean;
 }) {
   return (
-    <header className="mb-10 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+    <header
+      className={cn(
+        `${compact ? "mb-0" : "mb-10"} flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between`,
+        className,
+      )}
+    >
       <div>
         <h2 className="text-3xl font-extrabold tracking-tight text-[#134e4c]">
           {title}
         </h2>
-        <p className="mt-3 max-w-3xl text-sm leading-6 text-[#5e7472]">
-          {description}
-        </p>
+        {description && (
+          <p className="mt-3 max-w-3xl text-sm leading-6 text-[#5e7472]">
+            {description}
+          </p>
+        )}
       </div>
       {actions}
     </header>

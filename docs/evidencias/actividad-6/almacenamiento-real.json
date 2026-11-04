@@ -1,0 +1,628 @@
+{
+  "worker": "http://localhost:3001/sw.js",
+  "products": [
+    {
+      "id": 34,
+      "slug": "regulador-click-cga-870",
+      "nombre": "Regulador click CGA 870",
+      "marca": "Infra",
+      "modelo": "RC210114C",
+      "descripcion": "Regulador tipo click R1833-15G CGA 870",
+      "clasificacion": "Soporte",
+      "tipoAdquisicion": "RENTA",
+      "requiereReceta": true,
+      "createdAt": "2026-03-12T16:04:52.361Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1784185803/cemydi/products/81a277cd-a255-44cf-82ed-0f829be04942.webp"
+      ],
+      "aliases": [
+        "34",
+        "regulador-click-cga-870"
+      ],
+      "updatedAt": 1793122489790
+    },
+    {
+      "id": 35,
+      "slug": "asiento-nylon-silla-ruedas",
+      "nombre": "Asiento nylon silla ruedas",
+      "marca": "Medline",
+      "modelo": "AS210115C",
+      "descripcion": "Asiento de nylon para silla de ruedas",
+      "clasificacion": "Movilidad",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-12T16:04:52.364Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775516898/cemydi/products/2185a5bb-1ca3-43dd-8666-1bf09b929e6a.webp"
+      ],
+      "aliases": [
+        "35",
+        "asiento-nylon-silla-ruedas"
+      ],
+      "updatedAt": 1793122489790
+    },
+    {
+      "id": 36,
+      "slug": "elevapiernas-cromado-silla-ruedas",
+      "nombre": "Elevapiernas cromado silla ruedas",
+      "marca": "Drive Medical",
+      "modelo": "EL210116C",
+      "descripcion": "Elevapiernas cromado para silla de ruedas",
+      "clasificacion": "Movilidad",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-12T16:04:52.367Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775516861/cemydi/products/bcc2d913-25a6-4ce7-8aad-83907df0c1ec.png"
+      ],
+      "aliases": [
+        "36",
+        "elevapiernas-cromado-silla-ruedas"
+      ],
+      "updatedAt": 1793122489789
+    },
+    {
+      "id": 37,
+      "slug": "asiento-silla-ruedas",
+      "nombre": "Asiento silla ruedas",
+      "marca": "Medline",
+      "modelo": "AS210117C",
+      "descripcion": "Asiento de repuesto para silla de ruedas",
+      "clasificacion": "Movilidad",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-12T16:04:52.370Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775516758/cemydi/products/f9cd87eb-b70e-4365-86be-f9f64584a814.jpg"
+      ],
+      "aliases": [
+        "37",
+        "asiento-silla-ruedas"
+      ],
+      "updatedAt": 1793122489789
+    },
+    {
+      "id": 38,
+      "slug": "llanta-neumatica-silla-ruedas",
+      "nombre": "Llanta neumatica silla ruedas",
+      "marca": "Drive Medical",
+      "modelo": "LN210118C",
+      "descripcion": "Llanta neumatica para silla de ruedas",
+      "clasificacion": "Movilidad",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-12T16:04:52.373Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775516676/cemydi/products/60077d46-11a4-441e-a076-6de060873e18.png"
+      ],
+      "aliases": [
+        "38",
+        "llanta-neumatica-silla-ruedas"
+      ],
+      "updatedAt": 1793122489789
+    },
+    {
+      "id": 39,
+      "slug": "puno-freno-silla-ruedas",
+      "nombre": "Puño freno silla ruedas",
+      "marca": "Drive Medical",
+      "modelo": "PF210119C",
+      "descripcion": "Puño para freno de silla de ruedas",
+      "clasificacion": "Movilidad",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-12T16:04:52.376Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775516590/cemydi/products/ce67771b-74c5-4bfd-8ee2-93607b613cf9.jpg"
+      ],
+      "aliases": [
+        "39",
+        "puno-freno-silla-ruedas"
+      ],
+      "updatedAt": 1793122489789
+    },
+    {
+      "id": 40,
+      "slug": "regaton-muleta",
+      "nombre": "Regaton muleta",
+      "marca": "GRAVITA",
+      "modelo": "RM210120C",
+      "descripcion": "Regaton para muleta par",
+      "clasificacion": "Ortopedia",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-12T16:04:52.379Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1784185648/cemydi/products/3868007d-1134-429c-bc2b-e7a799159686.jpg"
+      ],
+      "aliases": [
+        "40",
+        "regaton-muleta"
+      ],
+      "updatedAt": 1793122489789
+    },
+    {
+      "id": 41,
+      "slug": "regaton-baston-3-puntos",
+      "nombre": "Regaton baston 3 puntos",
+      "marca": "GRAVITA",
+      "modelo": "RB210121C",
+      "descripcion": "Regaton para baston de 3 puntos",
+      "clasificacion": "Ortopedia",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-12T16:04:52.381Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1784185581/cemydi/products/fefe664e-312b-424f-9e02-7c6698158bf5.png"
+      ],
+      "aliases": [
+        "41",
+        "regaton-baston-3-puntos"
+      ],
+      "updatedAt": 1793122489789
+    },
+    {
+      "id": 42,
+      "slug": "axilar-para-muleta",
+      "nombre": "Axilar para muleta",
+      "marca": "GRAVITA",
+      "modelo": "AX210122C",
+      "descripcion": "Axilar de repuesto para muleta",
+      "clasificacion": "Ortopedia",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-12T16:04:52.385Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1784185431/cemydi/products/1afcb26d-17d7-4707-9151-3c6a1901bb1b.avif"
+      ],
+      "aliases": [
+        "42",
+        "axilar-para-muleta"
+      ],
+      "updatedAt": 1793122489789
+    },
+    {
+      "id": 43,
+      "slug": "descansapie-silla-ruedas",
+      "nombre": "Descansapie silla ruedas",
+      "marca": "Drive Medical",
+      "modelo": "DS210123C",
+      "descripcion": "Descansapie plastico para silla de ruedas",
+      "clasificacion": "Movilidad",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-12T16:04:52.388Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775514818/cemydi/products/6a7ae2c1-a897-44bf-bf70-f374014cc7f3.jpg"
+      ],
+      "aliases": [
+        "43",
+        "descansapie-silla-ruedas"
+      ],
+      "updatedAt": 1793122489789
+    },
+    {
+      "id": 44,
+      "slug": "guia-tipo-y-larga",
+      "nombre": "Guia tipo Y larga",
+      "marca": "Drive Medical",
+      "modelo": "GY210124C",
+      "descripcion": "Guia tipo Y larga para silla de ruedas",
+      "clasificacion": "Movilidad",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-12T16:04:52.391Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775514766/cemydi/products/67d413b9-807f-4d78-a318-18d0189219d8.jpg"
+      ],
+      "aliases": [
+        "44",
+        "guia-tipo-y-larga"
+      ],
+      "updatedAt": 1793122489789
+    },
+    {
+      "id": 45,
+      "slug": "silla-comodo-xtranche",
+      "nombre": "Silla comodo Xtranche",
+      "marca": "Medline",
+      "modelo": "SC210125C",
+      "descripcion": "Silla comodo Xtranche brazo abatible",
+      "clasificacion": "Hospitalario",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-12T16:04:52.394Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775514698/cemydi/products/0c425b10-d78d-40fc-ab27-3dc614368bdd.png"
+      ],
+      "aliases": [
+        "45",
+        "silla-comodo-xtranche"
+      ],
+      "updatedAt": 1793122489789
+    },
+    {
+      "id": 46,
+      "slug": "filtro-aire-concentrador",
+      "nombre": "Filtro aire concentrador",
+      "marca": "Philips Respironics",
+      "modelo": "FA220201C",
+      "descripcion": "Filtro de aire para concentrador de oxigeno DMH",
+      "clasificacion": "Equipo Medico",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-13T00:28:00.343Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775514419/cemydi/products/18288c95-fbd1-4216-9a47-27ccdd105f1e.jpg"
+      ],
+      "aliases": [
+        "46",
+        "filtro-aire-concentrador"
+      ],
+      "updatedAt": 1793122489789
+    },
+    {
+      "id": 47,
+      "slug": "concentrador-oxigeno-10l",
+      "nombre": "Concentrador oxigeno 10L",
+      "marca": "Philips Respironics",
+      "modelo": "CO220202C",
+      "descripcion": "Concentrador de oxigeno OX-10A 10L DMH",
+      "clasificacion": "Equipo Medico",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": true,
+      "createdAt": "2026-03-13T00:28:00.368Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775514348/cemydi/products/862983bf-ae6d-4e5b-b037-91a0976653f6.png"
+      ],
+      "aliases": [
+        "47",
+        "concentrador-oxigeno-10l"
+      ],
+      "updatedAt": 1793122489789
+    },
+    {
+      "id": 48,
+      "slug": "concentrador-oxigeno-5l",
+      "nombre": "Concentrador oxigeno 5L",
+      "marca": "Magnimed",
+      "modelo": "CO220203C",
+      "descripcion": "Concentrador de oxigeno 5 litros LUMAO",
+      "clasificacion": "Equipo Medico",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": true,
+      "createdAt": "2026-03-13T00:28:00.375Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775514194/cemydi/products/31b6e511-3c2d-43af-9dd2-bd50004e0544.jpg"
+      ],
+      "aliases": [
+        "48",
+        "concentrador-oxigeno-5l"
+      ],
+      "updatedAt": 1793122489789
+    },
+    {
+      "id": 49,
+      "slug": "tanque-oxigeno-680l",
+      "nombre": "Tanque oxigeno 680L",
+      "marca": "Infra",
+      "modelo": "TO220204C",
+      "descripcion": "Tanque de oxigeno 680 litros FAREI",
+      "clasificacion": "Equipo Medico",
+      "tipoAdquisicion": "RENTA",
+      "requiereReceta": true,
+      "createdAt": "2026-03-13T00:28:00.380Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775514133/cemydi/products/d9b5c141-0cdc-450f-8664-890b0ba83f43.jpg"
+      ],
+      "aliases": [
+        "49",
+        "tanque-oxigeno-680l"
+      ],
+      "updatedAt": 1793122489788
+    },
+    {
+      "id": 50,
+      "slug": "concentrador-everflo",
+      "nombre": "Concentrador Everflo",
+      "marca": "Philips Respironics",
+      "modelo": "CO220205C",
+      "descripcion": "Concentrador de oxigeno Everflo FAREI",
+      "clasificacion": "Equipo Medico",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": true,
+      "createdAt": "2026-03-13T00:28:00.385Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775514028/cemydi/products/eb84ce4f-9c2e-4f5a-aa58-4a6ceb8a793b.jpg"
+      ],
+      "aliases": [
+        "50",
+        "concentrador-everflo"
+      ],
+      "updatedAt": 1793122489788
+    },
+    {
+      "id": 51,
+      "slug": "filtro-aire-everflo",
+      "nombre": "Filtro aire Everflo",
+      "marca": "Philips Respironics",
+      "modelo": "FA220206C",
+      "descripcion": "Filtro de aire para concentrador Everflo FAREI",
+      "clasificacion": "Equipo Medico",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-13T00:28:00.389Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775513962/cemydi/products/651c518c-e2dc-4191-9ef3-55e28b30a413.jpg"
+      ],
+      "aliases": [
+        "51",
+        "filtro-aire-everflo"
+      ],
+      "updatedAt": 1793122489788
+    },
+    {
+      "id": 52,
+      "slug": "tanque-oxigeno-416l",
+      "nombre": "Tanque oxigeno 416L",
+      "marca": "Infra",
+      "modelo": "TO220207C",
+      "descripcion": "Tanque de oxigeno 416 litros FAREI",
+      "clasificacion": "Equipo Medico",
+      "tipoAdquisicion": "RENTA",
+      "requiereReceta": true,
+      "createdAt": "2026-03-13T00:28:00.393Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775513879/cemydi/products/d2af479f-c62b-4bbe-af23-ecae71468771.jpg"
+      ],
+      "aliases": [
+        "52",
+        "tanque-oxigeno-416l"
+      ],
+      "updatedAt": 1793122489788
+    },
+    {
+      "id": 53,
+      "slug": "tanque-oxigeno-3455l",
+      "nombre": "Tanque oxigeno 3455L",
+      "marca": "Infra",
+      "modelo": "TO220208C",
+      "descripcion": "El Tanque De Oxígeno M122 3455 Lts Kit Completo Oxiplus es un equipo esencial para personas con enfermedades en vías respiratorias. Este equipo completo de oxígeno libera oxígeno medicinal para controlar las enfermedades. Son la forma más confiable para alguna emergencia en caso de alguna falla en el suministro de energía eléctrica de los concentradores de oxígeno y también son la opción más económica en cuanto a oxígeno medicinal fuera de casa.\r\n\r\n¡¡ SE ENVIAN VACÍOS POR TEMAS DE SEGURIDAD!!\r\n\r\nFabricados con tecnología de última generación en las costas este y oeste de EE. UU.\r\n\r\nESPECIFICACIONES:\r\nMarca:OXIPLUS\r\nModelo: R-EC3455OP\r\nCapacidad en volumen: 3455 L\r\nEs portátil: No\r\nDIMENCIONES                                                                                                                                                                             Diámetro: 20 cm\r\nLongitud: 80 cm\r\nPeso: 14 kg\r\nRegulador de .12 a 15 LPM: 1\r\nVaso humificador: 1\r\nCanula nasal: 1 \r\n\r\nLO QUE OBTIENES:\r\n1 Tanque de Oxígeno de 3455 litros (vacío), 1 Regulador ,1 Vaso Humificador SALTER LABS, 1 Cánula Nasal WESTMED",
+      "clasificacion": "Equipo Medico",
+      "tipoAdquisicion": "RENTA",
+      "requiereReceta": true,
+      "createdAt": "2026-03-13T00:28:00.398Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775513803/cemydi/products/502003d5-42b2-4c89-84c3-3a6392db36e3.webp",
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1782862850/cemydi/products/4c1bb42c-b6a8-4d05-a2f6-74c8375b1d63.webp"
+      ],
+      "aliases": [
+        "53",
+        "tanque-oxigeno-3455l"
+      ],
+      "updatedAt": 1793122489788
+    },
+    {
+      "id": 54,
+      "slug": "tanque-oxigeno-1699l",
+      "nombre": "Tanque oxigeno 1699L",
+      "marca": "Infra",
+      "modelo": "TO220209C",
+      "descripcion": "Tanque de oxigeno 1699 litros FAREI",
+      "clasificacion": "Equipo Medico",
+      "tipoAdquisicion": "RENTA",
+      "requiereReceta": true,
+      "createdAt": "2026-03-13T00:28:00.403Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775513760/cemydi/products/88b44713-b6ab-405f-8662-abbcf4e6cb98.png"
+      ],
+      "aliases": [
+        "54",
+        "tanque-oxigeno-1699l"
+      ],
+      "updatedAt": 1793122489788
+    },
+    {
+      "id": 55,
+      "slug": "tanque-oxigeno-2549l",
+      "nombre": "Tanque oxigeno 2549L",
+      "marca": "Infra",
+      "modelo": "TO220210C",
+      "descripcion": "Tanque de oxígeno 2549 litros FAREI",
+      "clasificacion": "Equipo Medico",
+      "tipoAdquisicion": "RENTA",
+      "requiereReceta": true,
+      "createdAt": "2026-03-13T00:28:00.408Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775513675/cemydi/products/f80e3c8f-0754-40e7-999e-41687e38ef4e.png",
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1782197526/cemydi/products/e23aabc0-2bec-4369-9c10-7757b1f34dba.webp"
+      ],
+      "aliases": [
+        "55",
+        "tanque-oxigeno-2549l"
+      ],
+      "updatedAt": 1793122489788
+    },
+    {
+      "id": 56,
+      "slug": "silla-de-ruedas-brazo-fijo",
+      "nombre": "Silla de ruedas brazo fijo",
+      "marca": "Drive Medical",
+      "modelo": "SR210126C",
+      "descripcion": "Silla de ruedas brazo fijo DYM1901B",
+      "clasificacion": "Movilidad",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-13T00:28:16.522Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775513413/cemydi/products/1cebdaf8-c74b-4005-b5e6-bd3deb845255.webp"
+      ],
+      "aliases": [
+        "56",
+        "silla-de-ruedas-brazo-fijo"
+      ],
+      "updatedAt": 1793122489788
+    },
+    {
+      "id": 57,
+      "slug": "silla-de-ruedas-tipo-cama",
+      "nombre": "Silla de ruedas tipo cama",
+      "marca": "Drive Medical",
+      "modelo": "SR210127C",
+      "descripcion": "Silla de ruedas tipo cama acolchonada",
+      "clasificacion": "Movilidad",
+      "tipoAdquisicion": "VENTA",
+      "requiereReceta": false,
+      "createdAt": "2026-03-13T00:28:16.563Z",
+      "imageUrls": [
+        "https://res.cloudinary.com/dfjjrkinf/image/upload/v1775249449/cemydi/products/bb94cad3-c31c-428a-8652-4e7ebd97ffc9.webp"
+      ],
+      "aliases": [
+        "57",
+        "silla-de-ruedas-tipo-cama"
+      ],
+      "updatedAt": 1793122489787
+    }
+  ],
+  "cacheEntries": {
+    "serwist-precache-v2-http://localhost:3001/": [
+      "http://localhost:3001/pwa/legal/politicas-de-privacidad?__WB_REVISION__=dn2hZ4ynNX35o-xE-_HoD",
+      "http://localhost:3001/pwa/legal/terminos-y-condiciones?__WB_REVISION__=dn2hZ4ynNX35o-xE-_HoD",
+      "http://localhost:3001/icon-192.png?__WB_REVISION__=8e47ef2b34d61051d4ad5e446ebe2e90",
+      "http://localhost:3001/icon-512.png?__WB_REVISION__=91d16791298abdfb54da4875b259d675",
+      "http://localhost:3001/icon-96.png?__WB_REVISION__=06c5bf16a4903e813716b758cac7c8d7",
+      "http://localhost:3001/offline?__WB_REVISION__=dn2hZ4ynNX35o-xE-_HoD",
+      "http://localhost:3001/icon-maskable-192.png?__WB_REVISION__=73d8b896da8a7d8cad3d40c16c34f26b",
+      "http://localhost:3001/icon-maskable-512.png?__WB_REVISION__=a580205801ef6c58a89d7004f39dcec5",
+      "http://localhost:3001/rehabilitacion.webp?__WB_REVISION__=2e60bd19d04195f3b39ebd2af2570356",
+      "http://localhost:3001/img_Contactanos.png?__WB_REVISION__=4f276f7472e70d569320cc9384be51d1",
+      "http://localhost:3001/img_QuienesSomos.png?__WB_REVISION__=0ef54b9c962bcff8bbd39d1f3c668220",
+      "http://localhost:3001/fondowan.png?__WB_REVISION__=0352202d87255ceea2d7feaa2057ad50",
+      "http://localhost:3001/logo-horizontal-white.png?__WB_REVISION__=0ad0c019c5335db76dd07d56c17876a3",
+      "http://localhost:3001/_next/static/chunks/0--h69amo_43g.js",
+      "http://localhost:3001/_next/static/chunks/0-v18v1z4u_wf.js",
+      "http://localhost:3001/_next/static/chunks/00-egp-a_prie.js",
+      "http://localhost:3001/_next/static/chunks/05z5n_zkh31u3.js",
+      "http://localhost:3001/logoOriginalEslogan.svg?__WB_REVISION__=024c35f5bcef04ede8e5677b9435469d",
+      "http://localhost:3001/_next/static/chunks/0a03bj2m0vd8s.js",
+      "http://localhost:3001/_next/static/chunks/0ajq2fe3ssy5c.js",
+      "http://localhost:3001/_next/static/chunks/0a15e1smo2r-9.js",
+      "http://localhost:3001/_next/static/chunks/0biwsm0h--kir.js",
+      "http://localhost:3001/_next/static/chunks/0c6j_teg3xlwp.js",
+      "http://localhost:3001/_next/static/chunks/0g0xbhmipv4hf.js",
+      "http://localhost:3001/_next/static/chunks/0cz1d0mv5g_q7.js",
+      "http://localhost:3001/_next/static/chunks/0gbv1fxn_5pji.js",
+      "http://localhost:3001/_next/static/chunks/0ivfamra-d_v2.js",
+      "http://localhost:3001/_next/static/chunks/0lhwgrzep7k4x.js",
+      "http://localhost:3001/_next/static/chunks/0n3pv67k1ctix.js",
+      "http://localhost:3001/_next/static/chunks/0r6o1vj_7lpav.js",
+      "http://localhost:3001/_next/static/chunks/1--lek9y9rhii.js",
+      "http://localhost:3001/_next/static/chunks/0gvtg5tv5_2nv.js",
+      "http://localhost:3001/_next/static/chunks/0ye-sj4z0_0hc.js",
+      "http://localhost:3001/_next/static/chunks/1-yfeqfgg3ib_.js",
+      "http://localhost:3001/_next/static/chunks/15458s3hleq8x.js",
+      "http://localhost:3001/_next/static/chunks/18jt76zvn6ych.js",
+      "http://localhost:3001/_next/static/chunks/1a4d_u_0t9k9l.js",
+      "http://localhost:3001/_next/static/chunks/1cft4cvuuo13d.js",
+      "http://localhost:3001/_next/static/chunks/1ch4gz_t4w27w.js",
+      "http://localhost:3001/_next/static/chunks/1cst_d8j-met6.js",
+      "http://localhost:3001/_next/static/chunks/1d7x5wqy1aprd.js",
+      "http://localhost:3001/_next/static/chunks/1ex0542ok-dzy.js",
+      "http://localhost:3001/_next/static/chunks/1fchwruyd23jc.js",
+      "http://localhost:3001/_next/static/chunks/1h6ze-x097tr0.js",
+      "http://localhost:3001/_next/static/chunks/1kwc_88qwx-_z.js",
+      "http://localhost:3001/_next/static/chunks/1q73rmx5ippoy.js",
+      "http://localhost:3001/_next/static/chunks/1qchfq7mcbhbi.js",
+      "http://localhost:3001/_next/static/chunks/1pyb6s3x-85a7.js",
+      "http://localhost:3001/_next/static/chunks/1tywrtjn1wixo.js",
+      "http://localhost:3001/_next/static/chunks/1uibzwtfhlcba.js",
+      "http://localhost:3001/_next/static/chunks/1upacwjrjfosk.js",
+      "http://localhost:3001/_next/static/chunks/1u6xl_33s89vb.js",
+      "http://localhost:3001/_next/static/chunks/1vpnzzcmwsxtg.js",
+      "http://localhost:3001/_next/static/chunks/1whcwba_5qe4m.js",
+      "http://localhost:3001/_next/static/chunks/20koeps1cgr7q.js",
+      "http://localhost:3001/_next/static/chunks/21fb96ma5sm0y.js",
+      "http://localhost:3001/_next/static/chunks/22w8qkdtv76g3.js",
+      "http://localhost:3001/_next/static/chunks/24j0z7p5hpblz.js",
+      "http://localhost:3001/_next/static/chunks/256s0xt_xjvfp.js",
+      "http://localhost:3001/_next/static/chunks/271u400nobhob.js",
+      "http://localhost:3001/_next/static/chunks/27kpse28o8uf2.js",
+      "http://localhost:3001/_next/static/chunks/27u7wvfv9me2q.js",
+      "http://localhost:3001/_next/static/chunks/28u0l81etql3j.js",
+      "http://localhost:3001/_next/static/chunks/2d6yt6la0rk55.js",
+      "http://localhost:3001/_next/static/chunks/29l3p7ma47tpf.js",
+      "http://localhost:3001/_next/static/chunks/2g5y_w829ux3o.js",
+      "http://localhost:3001/_next/static/chunks/2dmdo8t780jki.js",
+      "http://localhost:3001/_next/static/chunks/2i45v0uc-6ox8.js",
+      "http://localhost:3001/_next/static/chunks/2g2y230k_bcpm.js",
+      "http://localhost:3001/_next/static/chunks/2jdxdxt21dq5t.js",
+      "http://localhost:3001/_next/static/chunks/2l53ohear9jqk.css",
+      "http://localhost:3001/_next/static/chunks/2lv5q4fkbxex5.js",
+      "http://localhost:3001/_next/static/chunks/2nmyhjbheh9da.js",
+      "http://localhost:3001/_next/static/chunks/2o5t63slfonyd.js",
+      "http://localhost:3001/_next/static/chunks/2p5jhqikjupa8.js",
+      "http://localhost:3001/_next/static/chunks/2rdxhf2rpwv9n.js",
+      "http://localhost:3001/_next/static/chunks/2vp45f5tw5fk2.js",
+      "http://localhost:3001/_next/static/chunks/2nwzfzwzx_ntc.js",
+      "http://localhost:3001/_next/static/chunks/2z9s5do50xgmu.css",
+      "http://localhost:3001/_next/static/chunks/2wng67hdpt_7l.js",
+      "http://localhost:3001/_next/static/chunks/2xa16oab30f28.js",
+      "http://localhost:3001/_next/static/chunks/33t46atd3n2zd.js",
+      "http://localhost:3001/_next/static/chunks/37ek212c91vny.js",
+      "http://localhost:3001/_next/static/chunks/3d8khoe8hytup.js",
+      "http://localhost:3001/_next/static/chunks/3drtkc72_orbs.js",
+      "http://localhost:3001/_next/static/chunks/3e6l1s8oggu65.js",
+      "http://localhost:3001/_next/static/chunks/3gux02ujtd335.js",
+      "http://localhost:3001/_next/static/chunks/3ftfusc9fc8j3.js",
+      "http://localhost:3001/_next/static/chunks/3j7612lt6gqp9.js",
+      "http://localhost:3001/_next/static/chunks/3i2su9agzsvtc.js",
+      "http://localhost:3001/_next/static/chunks/3id79p7xm7ay9.js",
+      "http://localhost:3001/_next/static/chunks/3mzfkfy3vhfzq.js",
+      "http://localhost:3001/_next/static/chunks/3rwxkhwak9xcg.js",
+      "http://localhost:3001/_next/static/chunks/3jg6r5ecxsuxm.js",
+      "http://localhost:3001/_next/static/chunks/3u0gc6df__c8y.js",
+      "http://localhost:3001/_next/static/chunks/3u4_mlsauvch9.js",
+      "http://localhost:3001/_next/static/chunks/3sdeld0v9jca9.js",
+      "http://localhost:3001/_next/static/chunks/3wjdgw650kf9q.js",
+      "http://localhost:3001/_next/static/chunks/3wsqivndby_oo.js",
+      "http://localhost:3001/_next/static/chunks/3x06i1iiyobu3.js",
+      "http://localhost:3001/_next/static/chunks/40r6jdy11r4fj.js",
+      "http://localhost:3001/_next/static/chunks/423h5v60s14fi.js",
+      "http://localhost:3001/_next/static/chunks/42mtryoe_tyi5.js",
+      "http://localhost:3001/_next/static/chunks/41nyg71tpi1-1.js",
+      "http://localhost:3001/_next/static/chunks/turbopack-31jd62x0bb8lt.js",
+      "http://localhost:3001/_next/static/chunks/43mgagrcf6qfe.js",
+      "http://localhost:3001/_next/static/chunks/45ayc-56sayc8.js",
+      "http://localhost:3001/_next/static/dn2hZ4ynNX35o-xE-_HoD/_buildManifest.js",
+      "http://localhost:3001/_next/static/dn2hZ4ynNX35o-xE-_HoD/_clientMiddlewareManifest.js",
+      "http://localhost:3001/_next/static/dn2hZ4ynNX35o-xE-_HoD/_ssgManifest.js"
+    ],
+    "cemydi-public-images-v1": [
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775513413%2Fcemydi%2Fproducts%2F1cebdaf8-c74b-4005-b5e6-bd3deb845255.webp&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775513675%2Fcemydi%2Fproducts%2Ff80e3c8f-0754-40e7-999e-41687e38ef4e.png&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775513760%2Fcemydi%2Fproducts%2F88b44713-b6ab-405f-8662-abbcf4e6cb98.png&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775513803%2Fcemydi%2Fproducts%2F502003d5-42b2-4c89-84c3-3a6392db36e3.webp&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775513962%2Fcemydi%2Fproducts%2F651c518c-e2dc-4191-9ef3-55e28b30a413.jpg&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775513879%2Fcemydi%2Fproducts%2Fd2af479f-c62b-4bbe-af23-ecae71468771.jpg&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775514028%2Fcemydi%2Fproducts%2Feb84ce4f-9c2e-4f5a-aa58-4a6ceb8a793b.jpg&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775514133%2Fcemydi%2Fproducts%2Fd9b5c141-0cdc-450f-8664-890b0ba83f43.jpg&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775514194%2Fcemydi%2Fproducts%2F31b6e511-3c2d-43af-9dd2-bd50004e0544.jpg&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775514348%2Fcemydi%2Fproducts%2F862983bf-ae6d-4e5b-b037-91a0976653f6.png&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775514419%2Fcemydi%2Fproducts%2F18288c95-fbd1-4216-9a47-27ccdd105f1e.jpg&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775514698%2Fcemydi%2Fproducts%2F0c425b10-d78d-40fc-ab27-3dc614368bdd.png&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775514766%2Fcemydi%2Fproducts%2F67d413b9-807f-4d78-a318-18d0189219d8.jpg&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775514818%2Fcemydi%2Fproducts%2F6a7ae2c1-a897-44bf-bf70-f374014cc7f3.jpg&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1784185431%2Fcemydi%2Fproducts%2F1afcb26d-17d7-4707-9151-3c6a1901bb1b.avif&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1784185581%2Fcemydi%2Fproducts%2Ffefe664e-312b-424f-9e02-7c6698158bf5.png&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1784185648%2Fcemydi%2Fproducts%2F3868007d-1134-429c-bc2b-e7a799159686.jpg&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775516590%2Fcemydi%2Fproducts%2Fce67771b-74c5-4bfd-8ee2-93607b613cf9.jpg&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775516676%2Fcemydi%2Fproducts%2F60077d46-11a4-441e-a076-6de060873e18.png&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775516758%2Fcemydi%2Fproducts%2Ff9cd87eb-b70e-4365-86be-f9f64584a814.jpg&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775516861%2Fcemydi%2Fproducts%2Fbcc2d913-25a6-4ce7-8aad-83907df0c1ec.png&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775516898%2Fcemydi%2Fproducts%2F2185a5bb-1ca3-43dd-8666-1bf09b929e6a.webp&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1784185803%2Fcemydi%2Fproducts%2F81a277cd-a255-44cf-82ed-0f829be04942.webp&w=640&q=75",
+      "http://localhost:3001/_next/image?url=https%3A%2F%2Fres.cloudinary.com%2Fdfjjrkinf%2Fimage%2Fupload%2Fv1775249449%2Fcemydi%2Fproducts%2Fbb94cad3-c31c-428a-8652-4e7ebd97ffc9.webp&w=640&q=75"
+    ]
+  },
+  "localStorageKeys": []
+}

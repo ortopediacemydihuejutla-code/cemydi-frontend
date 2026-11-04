@@ -1,0 +1,275 @@
+
+> cemydi-frontend@0.1.0 test:e2e:pwa
+> node e2e/pwa/run.mjs
+
+▲ Next.js 16.3.8 (Turbopack)
+- Environments: .env.local, .env
+✓ Running next.config.ts took 89ms
+
+  Creating an optimized production build ...
+✓ Compiled successfully in 9.0s
+  Running TypeScript ...
+  Finished TypeScript in 7.3s ...
+  Collecting page data using 15 workers ...
+  Generating static pages using 15 workers (0/43) ...
+  Generating static pages using 15 workers (10/43) 
+  Generating static pages using 15 workers (21/43) 
+  Generating static pages using 15 workers (32/43) 
+✓ Generating static pages using 15 workers (43/43) in 1583ms
+  Finalizing page optimization ...
+
+Route (app)                          Revalidate  Expire
+┌ ƒ /
+├ ƒ /_not-found
+├ ƒ /admin
+├ ƒ /admin/about
+├ ƒ /admin/analytics
+├ ƒ /admin/brands
+├ ƒ /admin/categories
+├ ƒ /admin/coupons
+├ ƒ /admin/database
+├ ƒ /admin/legal
+├ ƒ /admin/notifications
+├ ƒ /admin/products
+├ ƒ /admin/products/[id]/edit
+├ ƒ /admin/products/new
+├ ƒ /admin/promotions
+├ ƒ /admin/rentals
+├ ƒ /admin/reviews
+├ ƒ /admin/suppliers
+├ ƒ /admin/users
+├ ƒ /api/observability/client-error
+├ ƒ /carrito
+├ ƒ /catalogo
+├ ƒ /configuracion
+├ ƒ /contactanos
+├ ƒ /favoritos
+├ ƒ /forgot-password
+├ ƒ /login
+├ ○ /manifest.webmanifest
+├ ƒ /mi-cuenta
+├ ƒ /mis-pedidos
+├ ƒ /mis-rentas
+├ ƒ /mis-rentas/[id]
+├ ƒ /mis-resenas
+├ ƒ /notificaciones
+├ ƒ /notificaciones/[id]
+├ ƒ /ofertas/[id]
+├ ƒ /offline
+├ ƒ /perfil
+├ ƒ /politicas-de-privacidad
+├ ƒ /producto/[id]
+├ ƒ /pwa/legal/[slug]
+├ ƒ /quienes-somos
+├ ƒ /register
+├ ƒ /reset-password
+├ ○ /robots.txt
+├ ○ /sitemap.xml                             1h      1y
+├ ƒ /terminos-y-condiciones
+└ ƒ /verify-email
+
+
+ƒ Proxy (Middleware)
+
+○  (Static)   prerendered as static content
+ƒ  (Dynamic)  server-rendered on demand
+
+✓ Running next.config.ts took 147ms
+Using configuration from C:\Users\Victo\Documents\ortopedia-cemydi-web\cemydi-frontend\serwist.config.mjs.
+The service worker file was written to public/sw.js.
+The service worker will precache 110 URLs, totaling 9.67 MB.
+[WebServer] (node:19352) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+[WebServer] (node:6808) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+[WebServer] (Use `node --trace-warnings ...` to show where the warning was created)
+
+Running 23 tests using 1 worker
+
+(node:41912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:41912) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  1 [chromium-pwa] › e2e\pwa\legal-precache.spec.ts:7:5 › precarga ambos documentos desde catálogo y los abre offline sin visitas previas (5.0s)
+  ok  2 [chromium-pwa] › e2e\pwa\legal-precache.spec.ts:47:5 › rechaza errores y slugs desconocidos e impide instalar documentos incompletos (1.8s)
+  ok  3 [chromium-pwa] › e2e\pwa\offline.spec.ts:30:5 › guarda páginas vistas, deduplica, filtra y pagina offline sin datos comerciales (3.9s)
+  ok  4 [chromium-pwa] › e2e\pwa\offline.spec.ts:58:5 › conserva el orden online y muestra un aviso persistente que se confirma al reconectar (7.7s)
+  x   5 [chromium-pwa] › e2e\pwa\offline.spec.ts:91:5 › abre detalle por ID y slug después de cerrar la pestaña (9.2s)
+(node:25940) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:25940) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok  6 [chromium-pwa] › e2e\pwa\offline.spec.ts:115:5 › conserva ambas páginas informativas y evita mapas offline (5.4s)
+  ok  7 [chromium-pwa] › e2e\pwa\offline.spec.ts:140:5 › 5xx permite respaldo y no renueva productos ni contenido institucional (2.4s)
+  ok  8 [chromium-pwa] › e2e\pwa\offline.spec.ts:163:5 › expira registros, mantiene estado vacío y no cachea datos privados (2.0s)
+  ok  9 [chromium-pwa] › e2e\pwa\offline.spec.ts:196:5 › IndexedDB bloqueado no rompe la navegación online (728ms)
+  ok 10 [chromium-pwa] › e2e\pwa\offline.spec.ts:203:5 › Quiénes somos avisa si IndexedDB está bloqueado sin ocultar contenido online (1.4s)
+  ok 11 [chromium-pwa] › e2e\pwa\offline.spec.ts:211:5 › un 404 confirmado por ID elimina producto, detalle y aliases sin borrar imágenes compartidas (1.8s)
+  ok 12 [chromium-pwa] › e2e\pwa\offline.spec.ts:226:5 › manifiesto único, iconos y headers del worker (1.5s)
+  ok 13 [chromium-pwa] › e2e\pwa\offline.spec.ts:252:5 › actualización silenciosa espera hasta cerrar todas las pestañas y conserva datos (5.4s)
+  ok 14 [chromium-pwa] › e2e\pwa\offline.spec.ts:288:5 › la nueva versión se activa al cerrar y reabrir el navegador sin confirmación (4.7s)
+  ok 15 [chromium-pwa] › e2e\pwa\offline.spec.ts:314:5 › cuota transitoria permite un solo reintento y cuota permanente muestra aviso (1.8s)
+  ok 16 [chromium-pwa] › e2e\pwa\offline.spec.ts:339:5 › instalación nativa no se intercepta y no hay botón propio en desktop ni móvil (1.6s)
+  ok 17 [chromium-pwa] › e2e\pwa\offline.spec.ts:354:5 › reconecta sin presentar información comercial vieja y conserva imágenes públicas guardadas (2.3s)
+[WebServer] ⨯ Error: The destination stream closed early.
+[WebServer]     at ignore-listed frames {
+[WebServer]   digest: '932717606'
+[WebServer] }
+[WebServer] ⨯ Error: The destination stream closed early.
+[WebServer]     at ignore-listed frames {
+[WebServer]   digest: '932717606'
+[WebServer] }
+  x  18 [chromium-pwa] › e2e\pwa\offline.spec.ts:379:5 › persiste tras cerrar y reiniciar un navegador con el mismo perfil (7.6s)
+(node:27944) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:27944) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 19 [chromium-pwa] › e2e\pwa\offline.spec.ts:428:5 › abre el inicio offline, navega por documentos y borra datos sin perder el respaldo esencial (3.1s)
+  ok 20 [chromium-pwa] › e2e\pwa\offline.spec.ts:445:5 › conserva el header y las páginas públicas y avisa con toast al bloquear una ruta (3.2s)
+  x  21 [chromium-pwa] › e2e\pwa\offline.spec.ts:469:5 › conserva el menú móvil y el drawer de filtros sin conexión (8.9s)
+(node:36252) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:36252) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.
+(Use `node --trace-warnings ...` to show where the warning was created)
+  ok 22 [chromium-pwa] › e2e\pwa\offline.spec.ts:504:5 › detalle básico avisa por toast y galería guardada conserva controles en móvil (2.3s)
+  x  23 [chromium-pwa] › e2e\pwa\offline.spec.ts:545:5 › prepara las 24 fotos de la página inicial sin depender de scroll o del primer render (16.8s)
+
+
+  1) [chromium-pwa] › e2e\pwa\offline.spec.ts:91:5 › abre detalle por ID y slug después de cerrar la pestaña 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByRole('heading', { name: 'Producto no guardado' })
+    Expected: visible
+    Timeout: 5000ms
+    Error: element(s) not found
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByRole('heading', { name: 'Producto no guardado' })[22m
+
+
+      110 |   await expect(reopened.getByRole("heading", { name: "Producto 01", exact: true })).toBeVisible();
+      111 |   await reopened.goto("http://localhost:3199/producto/no-guardado");
+    > 112 |   await expect(reopened.getByRole("heading", { name: "Producto no guardado" })).toBeVisible();
+          |                                                                                 ^
+      113 | });
+      114 |
+      115 | test("conserva ambas páginas informativas y evita mapas offline", async ({ page, context }) => {
+        at C:\Users\Victo\Documents\ortopedia-cemydi-web\cemydi-frontend\e2e\pwa\offline.spec.ts:112:81
+
+    Error Context: test-results\offline-abre-detalle-por-I-c3719-espués-de-cerrar-la-pestaña-chromium-pwa\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\offline-abre-detalle-por-I-c3719-espués-de-cerrar-la-pestaña-chromium-pwa\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\offline-abre-detalle-por-I-c3719-espués-de-cerrar-la-pestaña-chromium-pwa\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [chromium-pwa] › e2e\pwa\offline.spec.ts:379:5 › persiste tras cerrar y reiniciar un navegador con el mismo perfil 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoBeVisible[2m([22m[2m)[22m failed
+
+    Locator: getByText('20 cm')
+    Expected: visible
+    Error: strict mode violation: getByText('20 cm') resolved to 2 elements:
+        1) <dd class="mt-1 whitespace-pre-line text-[0.98rem] leading-6 text-[#1b3141]">20 cm</dd> aka getByRole('definition')
+        2) <dd class="mt-1 whitespace-pre-line text-[0.98rem] leading-6 text-[#1b3141]">20 cm</dd> aka locator('section').filter({ hasText: 'InicioCatálogoProducto 01P0Imagen del productoModelo: Modelo pú' }).locator('dd')
+
+    Call log:
+    [2m  - Expect "toBeVisible" with timeout 5000ms[22m
+    [2m  - waiting for getByText('20 cm')[22m
+    [2m    2 × locator resolved to <dd class="mt-1 whitespace-pre-line text-[0.98rem] leading-6 text-[#1b3141]">20 cm</dd>[22m
+    [2m      - unexpected value "hidden"[22m
+
+
+      416 |       await page.goto(`http://localhost:3199${route}`);
+      417 |       await expect(page.getByRole("heading", { name: "Producto 01", exact: true })).toBeVisible();
+    > 418 |       await expect(page.getByText("20 cm")).toBeVisible();
+          |                                             ^
+      419 |     }
+      420 |     await page.goto("http://localhost:3199/quienes-somos");
+      421 |     await expect(page.getByText("Misión pública guardada")).toBeVisible();
+        at C:\Users\Victo\Documents\ortopedia-cemydi-web\cemydi-frontend\e2e\pwa\offline.spec.ts:418:45
+
+    Error Context: test-results\offline-persiste-tras-cerr-5ed84-vegador-con-el-mismo-perfil-chromium-pwa\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\offline-persiste-tras-cerr-5ed84-vegador-con-el-mismo-perfil-chromium-pwa\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\offline-persiste-tras-cerr-5ed84-vegador-con-el-mismo-perfil-chromium-pwa\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [chromium-pwa] › e2e\pwa\offline.spec.ts:469:5 › conserva el menú móvil y el drawer de filtros sin conexión 
+
+    Error: [2mexpect([22m[31mlocator[39m[2m).[22mtoHaveCount[2m([22m[32mexpected[39m[2m)[22m failed
+
+    Locator:  locator('article')
+    Expected: [32m12[39m
+    Received: [31m36[39m
+    Timeout:  5000ms
+
+    Call log:
+    [2m  - Expect "toHaveCount" with timeout 5000ms[22m
+    [2m  - waiting for locator('article')[22m
+    [2m    14 × locator resolved to 36 elements[22m
+    [2m       - unexpected value "36"[22m
+
+
+      497 |   await expect(drawer).not.toBeVisible();
+      498 |   await expect(page.locator("main").getByRole("button", { name: /Filtros/ })).toBeFocused();
+    > 499 |   await expect(page.locator("article")).toHaveCount(12);
+          |                                         ^
+      500 |   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+      501 | });
+      502 |
+        at C:\Users\Victo\Documents\ortopedia-cemydi-web\cemydi-frontend\e2e\pwa\offline.spec.ts:499:41
+
+    Error Context: test-results\offline-conserva-el-menú-m-63a07-wer-de-filtros-sin-conexión-chromium-pwa\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\offline-conserva-el-menú-m-63a07-wer-de-filtros-sin-conexión-chromium-pwa\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\offline-conserva-el-menú-m-63a07-wer-de-filtros-sin-conexión-chromium-pwa\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4) [chromium-pwa] › e2e\pwa\offline.spec.ts:545:5 › prepara las 24 fotos de la página inicial sin depender de scroll o del primer render 
+
+    Error: [2mexpect([22m[31mreceived[39m[2m).[22mtoBe[2m([22m[32mexpected[39m[2m) // Object.is equality[22m
+
+    Expected: [32m24[39m
+    Received: [31m0[39m
+
+    Call Log:
+    - Timeout 15000ms exceeded while waiting on the predicate
+
+      554 |     const keys = await cache.keys();
+      555 |     return keys.filter((key) => new URL(key.url).searchParams.has("product")).length;
+    > 556 |   }), { timeout: 15000 }).toBe(24);
+          |                           ^
+      557 |   await expect(page.getByText(/Ficha guardada para consultar sin conexión/)).toHaveCount(0);
+      558 |   await context.setOffline(true);
+      559 |   await page.goto("/catalogo");
+        at C:\Users\Victo\Documents\ortopedia-cemydi-web\cemydi-frontend\e2e\pwa\offline.spec.ts:556:27
+
+    Error Context: test-results\offline-prepara-las-24-fot-c238b--scroll-o-del-primer-render-chromium-pwa\error-context.md
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results\offline-prepara-las-24-fot-c238b--scroll-o-del-primer-render-chromium-pwa\trace.zip
+    Usage:
+
+        npx playwright show-trace test-results\offline-prepara-las-24-fot-c238b--scroll-o-del-primer-render-chromium-pwa\trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  4 failed
+    [chromium-pwa] › e2e\pwa\offline.spec.ts:91:5 › abre detalle por ID y slug después de cerrar la pestaña 
+    [chromium-pwa] › e2e\pwa\offline.spec.ts:379:5 › persiste tras cerrar y reiniciar un navegador con el mismo perfil 
+    [chromium-pwa] › e2e\pwa\offline.spec.ts:469:5 › conserva el menú móvil y el drawer de filtros sin conexión 
+    [chromium-pwa] › e2e\pwa\offline.spec.ts:545:5 › prepara las 24 fotos de la página inicial sin depender de scroll o del primer render 
+  19 passed (1.9m)

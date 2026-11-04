@@ -20,6 +20,7 @@ import {
   accountInputClassName,
 } from "@/components/account/AccountPageHeader";
 import { CustomerAccountShell } from "@/components/account/CustomerAccountShell";
+import { EmailChangePanel } from "@/components/account/EmailChangePanel";
 import { AuthRouteLoading } from "@/components/auth/auth-route-loading";
 import { useAuth } from "@/providers/AuthContext";
 import { isProfileComplete } from "@/lib/profile-completion";
@@ -71,22 +72,15 @@ export default function PerfilPage() {
   const saveProfile = async (event: React.FormEvent) => {
     event.preventDefault();
     const nombre = form.nombre.trim();
-    const correo = form.correo.trim();
 
     if (!nombre) {
       toast.error("El nombre es obligatorio.");
       return;
     }
-    if (!correo || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(correo)) {
-      toast.error("Ingresa un correo válido.");
-      return;
-    }
-
     try {
       setIsSaving(true);
       const result = await updateMyProfile({
         nombre,
-        correo,
         telefono: form.telefono.trim(),
         direccion: form.direccion.trim(),
       });
@@ -216,17 +210,12 @@ export default function PerfilPage() {
                     name="correo"
                     type="email"
                     value={form.correo}
-                    onChange={(event) =>
-                      setForm((current) => ({
-                        ...current,
-                        correo: event.target.value,
-                      }))
-                    }
-                    disabled={!isEditing}
+                    readOnly
                     className={`${accountInputClassName} pl-11`}
-                    required
+                    aria-describedby="perfil-correo-ayuda"
                   />
                 </span>
+                <span id="perfil-correo-ayuda" className="text-xs font-normal text-[#5e7472]">Usa la verificación de seguridad para cambiarlo.</span>
               </label>
 
               <label className="grid gap-2 text-sm font-bold text-[#0f3d3b]">
@@ -323,6 +312,7 @@ export default function PerfilPage() {
               </p>
             </div>
           </div>
+          <EmailChangePanel currentEmail={user.correo} />
         </div>
       </div>
     </CustomerAccountShell>

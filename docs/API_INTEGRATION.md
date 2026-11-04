@@ -87,6 +87,10 @@ Los hooks administrativos combinan varios patrones:
 
 Las páginas públicas usan opciones `cache`, `next.revalidate` o carga dinámica según el service. No existe una política de caché global fuera de admin.
 
+El carrito público usa `CartContext` y `apiFetch`, con cookies de sesión. `GET /cart` solicita `cache: no-store`; el contexto consulta cada 10 segundos mientras la página está visible y conectada, y también al recuperar foco, visibilidad o conexión. Evita consultas periódicas durante escrituras y descarta lecturas atrasadas y resultados de una sesión anterior. Un error de actualización conserva el último carrito disponible.
+
+Para compartir carrito con la app móvil, ambos clientes deben consultar el mismo backend con la misma cuenta. En desarrollo, `/api` se redirige al `INTERNAL_API_URL` privado de la web; debe coincidir con el origen configurado en la app. La configuración local está ignorada por Git. Cambiar el servidor no migra datos entre bases y requiere iniciar sesión nuevamente. La actualización periódica no reemplaza control transaccional de ediciones simultáneas en el backend.
+
 ## Current behavior — serialización y uploads
 
 - JSON: headers explícitos y `JSON.stringify` en services.
@@ -120,3 +124,33 @@ Las restricciones del cliente, incluidas las de archivo, son UX. El backend debe
 ## Future improvement
 
 Una futura tarea puede consolidar las llamadas directas equivalentes y decidir una estrategia uniforme de validación runtime para responses. Debe hacerse por dominio, con contratos del backend y pruebas, no como cambio mecánico global.
+
+# Cambios de credenciales del perfil
+
+La edición ordinaria de `/perfil` envía a `PATCH /users/me` solo `nombre`, `telefono` y `direccion`; el correo se muestra como lectura. El cambio de correo usa `POST /users/me/email-change/request` con `newEmail` y `currentPassword`, `/resend` sin datos y `/confirm` con `newEmail` y `codigo` de ocho dígitos. La configuración de contraseña usa las rutas equivalentes `/users/me/password-change/request`, `/resend` y `/confirm`; confirma con `codigo` y `newPassword`. Ambos flujos muestran el tiempo de reenvío del servidor. Al confirmar, todas las sesiones quedan revocadas y la web dirige a login. Las llamadas pasan por `apiFetch` para conservar cookies y CSRF existentes.
+
+# Notificaciones de clientes
+
+El nuevo módulo `/notifications` y la gestión `/admin/notification-campaigns` están documentados en [NOTIFICATIONS.md](./NOTIFICATIONS.md). Las preferencias de `/configuracion` se guardan en el backend y se sincronizan con móvil.
+
+## Moderación de reseñas — 1 de noviembre de 2026
+
+Se confirmó e implementó con autorización del usuario `PATCH /reviews/:id/reject`
+en el backend. Requiere JWT y rol ADMIN, sin body; devuelve `{ message, review }`
+con la misma forma administrativa de aprobación. Rechazar conserva la opinión,
+la deja `REJECTED`, quita su visibilidad en Inicio y limpia `approvedAt` y
+`approvedBy`. `rejectReview` valida la respuesta mediante Zod antes de actualizar
+la tabla. El diálogo conserva el estado ante errores y bloquea acciones durante
+el envío. Las reseñas rechazadas pueden aprobarse posteriormente.
+
+Aprobación y rechazo generan un aviso `SYSTEM`/`REVIEW_STATUS` para el cliente
+activo, con destino `PRODUCT`. Estado, bandeja y trabajos de push se guardan
+atómicamente. Repetir un estado no repite el aviso; un cambio concurrente devuelve 409. El historial administrativo admite el origen `REVIEW_STATUS`. No hay nuevos
+roles, preferencias o destinos ni cambios en cookies/CSRF.
+
+Validación de esta ampliación: build de producción Next.js/Serwist, 283 pruebas
+Vitest y 11 escenarios Playwright aprobados contra el build en un servidor local
+aislado, sin reintentos. Playwright cubre smoke público, formularios y CSP; la
+moderación se cubre con Testing Library/Radix y servicios simulados, y la API con
+pruebas HTTP de permisos. ESLint no presenta errores y conserva los 94 warnings
+existentes en skills. No se comprobó entrega externa de push para reseñas.

@@ -1,5 +1,6 @@
 import { adminRequest } from "./request";
 import type { AdminReview, ReviewStatus } from "./types";
+import { reviewModerationResponseSchema } from "@/lib/schemas/admin-review";
 
 export function listAdminReviews(params?: {
   status?: ReviewStatus | "ALL";
@@ -28,6 +29,19 @@ export function approveReview(id: number) {
     `/reviews/${id}/approve`,
     { method: "PATCH" },
   );
+}
+
+export async function rejectReview(id: number) {
+  const result = await adminRequest<unknown>(`/reviews/${id}/reject`, {
+    method: "PATCH",
+  });
+  const parsed = reviewModerationResponseSchema.safeParse(result);
+  if (!parsed.success) {
+    throw new Error(
+      "No pudimos confirmar el rechazo. Actualiza la lista de reseñas.",
+    );
+  }
+  return parsed.data;
 }
 
 export function setReviewHomeVisibility(id: number, showOnHome: boolean) {

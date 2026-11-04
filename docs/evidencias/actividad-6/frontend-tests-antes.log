@@ -1,0 +1,9 @@
+
+> cemydi-frontend@0.1.0 test
+> vitest run --maxWorkers=2
+
+
+ RUN  v4.1.11 C:/Users/Victo/Documents/ortopedia-cemydi-web/cemydi-frontend
+
+ ❯ src/providers/__tests__/PwaProvider.test.tsx (2 tests | 1 failed) 188ms
+     × conserva el tiempo restante después de recargar y no avisa en una visita normal 14ms

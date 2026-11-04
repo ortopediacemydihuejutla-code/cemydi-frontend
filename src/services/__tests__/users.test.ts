@@ -1,5 +1,14 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
-import { getMyProfile, updateMyProfile } from "../users";
+import {
+  confirmEmailChange,
+  confirmPasswordChange,
+  getMyProfile,
+  requestEmailChange,
+  requestPasswordChange,
+  resendEmailChange,
+  resendPasswordChange,
+  updateMyProfile,
+} from "../users";
 import * as apiFetchModule from "@/lib/api-fetch";
 
 describe("Users Service", () => {
@@ -50,7 +59,6 @@ describe("Users Service", () => {
 
     const payload = {
       nombre: "Juan Carlos",
-      correo: "juan@example.com",
       telefono: "7899876543",
       direccion: "Calle Hidalgo #10",
     };
@@ -63,5 +71,29 @@ describe("Users Service", () => {
     });
     expect(result.message).toBe("Perfil actualizado");
     expect(result.user.nombre).toBe("Juan Carlos");
+  });
+
+  it("envía cambios sensibles por los seis endpoints OTP sin usar PATCH", async () => {
+    const spy = vi.spyOn(apiFetchModule, "apiFetch").mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ message: "Código enviado", resendAt: new Date().toISOString(), expiresAt: new Date().toISOString() }),
+    } as unknown as Response);
+    await requestEmailChange("nuevo@example.com", "Actual123!");
+    await resendEmailChange();
+    await confirmEmailChange("nuevo@example.com", "12345678");
+    await requestPasswordChange("Actual123!");
+    await resendPasswordChange();
+    await confirmPasswordChange("12345678", "Nueva1234!");
+    expect(spy.mock.calls.map(([path]) => path)).toEqual([
+      "/users/me/email-change/request",
+      "/users/me/email-change/resend",
+      "/users/me/email-change/confirm",
+      "/users/me/password-change/request",
+      "/users/me/password-change/resend",
+      "/users/me/password-change/confirm",
+    ]);
+    expect(spy.mock.calls[0][1]).toMatchObject({ method: "POST", body: JSON.stringify({ newEmail: "nuevo@example.com", currentPassword: "Actual123!" }) });
+    expect(spy.mock.calls[5][1]).toMatchObject({ method: "POST", body: JSON.stringify({ codigo: "12345678", newPassword: "Nueva1234!" }) });
   });
 });

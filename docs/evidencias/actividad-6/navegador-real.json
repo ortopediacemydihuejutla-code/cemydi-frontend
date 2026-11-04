@@ -1,0 +1,140 @@
+{
+  "date": "2026-10-27T17:34:45.009Z",
+  "base": "http://localhost:3001",
+  "backend": "http://127.0.0.1:4000",
+  "mocks": false,
+  "checks": [
+    {
+      "name": "HTTP real y PostgreSQL por API",
+      "passed": true,
+      "detail": {
+        "method": "GET",
+        "endpoint": "/products?page=1&pageSize=24",
+        "status": 200,
+        "count": 24,
+        "total": 57
+      }
+    },
+    {
+      "name": "Home móvil y Service Worker",
+      "passed": true,
+      "detail": {
+        "worker": "http://localhost:3001/sw.js",
+        "width": 390,
+        "contentWidth": 390
+      }
+    },
+    {
+      "name": "Manifiesto e iconos servidos",
+      "passed": true,
+      "detail": {
+        "status": 200,
+        "display": "standalone",
+        "icons": [
+          {
+            "src": "/icon-maskable-192.png?v=2",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "maskable"
+          },
+          {
+            "src": "/icon-maskable-512.png?v=2",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable"
+          },
+          {
+            "src": "/icon-192.png?v=2",
+            "sizes": "192x192",
+            "type": "image/png",
+            "purpose": "any"
+          },
+          {
+            "src": "/icon-512.png?v=2",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any"
+          }
+        ],
+        "physicalDevice": false
+      }
+    },
+    {
+      "name": "Carga de catálogo con red lenta real emulada por CDP",
+      "passed": true,
+      "detail": {
+        "latency": 1500,
+        "downloadBytesPerSecond": 61440,
+        "responseMocking": false
+      }
+    },
+    {
+      "name": "SSR comprobado en HTML HTTP y límite sin JavaScript",
+      "passed": true,
+      "detail": {
+        "status": 200,
+        "productOutsideScripts": true,
+        "visibleWithoutJavascript": false,
+        "note": "El HTML incluye el producto; el streaming de Suspense necesita JavaScript para revelar el segmento en este navegador. La captura principal usa hidratación normal."
+      }
+    },
+    {
+      "name": "CSR búsqueda funcional",
+      "passed": true,
+      "detail": {
+        "url": "http://localhost:3001/catalogo?q=Silla+de+ruedas+tipo+cama",
+        "query": "Silla de ruedas tipo cama"
+      }
+    },
+    {
+      "name": "IndexedDB y Cache Storage reales",
+      "passed": true,
+      "detail": {
+        "savedProducts": 24,
+        "cachedResources": 134,
+        "localStorageKeys": [],
+        "sensitiveCommercialFields": false
+      }
+    },
+    {
+      "name": "HTTP backend visible en navegador",
+      "passed": true,
+      "detail": {
+        "method": "GET",
+        "url": "http://localhost:3001/api/products?page=1&pageSize=1",
+        "status": 200
+      }
+    },
+    {
+      "name": "Detalle previamente visitado offline",
+      "passed": true,
+      "detail": {
+        "path": "/producto/silla-de-ruedas-tipo-cama",
+        "offline": true,
+        "commercialDataHidden": true
+      }
+    },
+    {
+      "name": "Catálogo offline y recuperación de conexión",
+      "passed": true,
+      "detail": {
+        "online": true,
+        "savedPresentationReplaced": true
+      }
+    },
+    {
+      "name": "Escritorio sin desbordamiento",
+      "passed": true,
+      "detail": {
+        "viewport": 1440,
+        "content": 1440
+      }
+    }
+  ],
+  "errors": [],
+  "product": {
+    "id": 57,
+    "nombre": "Silla de ruedas tipo cama",
+    "slug": "silla-de-ruedas-tipo-cama"
+  }
+}

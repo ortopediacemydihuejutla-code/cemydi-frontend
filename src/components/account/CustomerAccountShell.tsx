@@ -19,11 +19,14 @@ import {
   SidebarTrigger,
 } from "@/features/admin/components/ui/sidebar";
 import { useAuth } from "@/providers/AuthContext";
+import { CustomerNotificationBell } from "./CustomerNotifications";
 
 export function CustomerAccountShell({
   children,
+  mainClassName = "",
 }: {
   children: React.ReactNode;
+  mainClassName?: string;
 }) {
   const router = useRouter();
   const { user, loading } = useAuth();
@@ -53,8 +56,11 @@ export function CustomerAccountShell({
         <CustomerAccountSidebar className="absolute! h-full! min-h-full! border-r border-[#e2ecec] bg-[#f9fbfb]" />
 
         <section className="relative flex min-w-0 flex-1 flex-col bg-white">
-          <div className="mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10 xl:px-12">
+          <div
+            className={`mx-auto w-full max-w-6xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10 xl:px-12 ${mainClassName ? "flex flex-1 flex-col" : ""}`}
+          >
             <div className="mb-5 flex min-h-9 items-center gap-3">
+              <CustomerNotificationBell />
               <SidebarTrigger
                 className="size-9 rounded-lg border border-[#d7e4e4] bg-white text-[#1f6a67] shadow-sm hover:bg-[#edf7f6] hover:text-[#154f4d] md:hidden"
                 aria-label="Abrir el menú de Mi cuenta"
@@ -81,7 +87,7 @@ export function CustomerAccountShell({
 
             <main
               data-account-main-container
-              className="min-h-[680px] min-w-0 pb-20"
+              className={`min-h-[680px] min-w-0 pb-20 ${mainClassName}`}
             >
               {children}
             </main>

@@ -1,0 +1,217 @@
+[
+  {
+    "file": "Actividad 6 - Reporte actualizado.docx",
+    "bytes": 934000,
+    "sha256": "f43c63e568f434f2b9e4163985b3646253f71030af7b0851f285acfec35d9200"
+  },
+  {
+    "file": "almacenamiento-real.json",
+    "bytes": 29868,
+    "sha256": "fdd72fee90dfb02438688b347b3c7bc613a237980a874ea6579ab66fbba6881d"
+  },
+  {
+    "file": "AUDITORIA.md",
+    "bytes": 15361,
+    "sha256": "29284f703ea078cbf4cf74cb08a544dde0126795cc23207ef1f10ba7b97bad81"
+  },
+  {
+    "file": "backend-tests.json",
+    "bytes": 300,
+    "sha256": "3025eb649ef1d658167b2b2d37acc3333333e406a665441cb03768643c1aeade"
+  },
+  {
+    "file": "catalogo-escritorio.png",
+    "bytes": 193214,
+    "sha256": "7a013df946c90854f003185cc61673668fd273fa1367b9adf637e8159c82a82e"
+  },
+  {
+    "file": "componente-cliente.txt",
+    "bytes": 11655,
+    "sha256": "aea65a5fb00b295c19fb9b92d44300c450a582248fae3914c98cb226ddd015c8"
+  },
+  {
+    "file": "componente-servidor.txt",
+    "bytes": 2579,
+    "sha256": "e8b251b815e800046ab49ff62cd53d3f983d6423a6771578e14ae2e2c0ded063"
+  },
+  {
+    "file": "figura-01-inicio-movil.png",
+    "bytes": 229886,
+    "sha256": "c3b9d27ee28ba54bc0c256e174d12a8e4640854461364ddd4c49a6c70aa29494"
+  },
+  {
+    "file": "figura-02-manifiesto-servido.png",
+    "bytes": 26868,
+    "sha256": "0eb50171ec3c68aec55dc32b9f87e32f07b344f7c46d258d333093f1ca072c4e"
+  },
+  {
+    "file": "figura-03-carga-catalogo-red-lenta.png",
+    "bytes": 49778,
+    "sha256": "46ffb2a75e5c906a9fedb2186d56562c9f705bd9b163f04f4aa1cc1bedab1fcc"
+  },
+  {
+    "file": "figura-04-catalogo-renderizado.png",
+    "bytes": 191338,
+    "sha256": "f77f86c359ab335f85632c5f301389fbe35fb17fcd7672fc29fdf20d78c854d2"
+  },
+  {
+    "file": "figura-05-busqueda-cliente.png",
+    "bytes": 91931,
+    "sha256": "dcfab6c7787873fc0811da03582bf8e1d295ef8433a7c326a7512a29b18bc741"
+  },
+  {
+    "file": "figura-08-respuesta-http-backend.png",
+    "bytes": 27817,
+    "sha256": "4416a135ecc2f77228965ac8d441c5387ac8cfc566a2232edc005772b872f9e5"
+  },
+  {
+    "file": "figura-09-detalle-sin-conexion.png",
+    "bytes": 263525,
+    "sha256": "92b7816fb1b5a86833b5498aa79b96a8f02ae8799cf6de25bef5ad644fda8a54"
+  },
+  {
+    "file": "figura-09b-catalogo-sin-conexion.png",
+    "bytes": 39794,
+    "sha256": "877c9b02f6e1fbd8a84a7f1f071fefcc7772e8ec834e086667fed43fc221702c"
+  },
+  {
+    "file": "frontend-build-despues.log",
+    "bytes": 2525,
+    "sha256": "c20d38161ee48271e755ce9995e21e0b549ad569ff20ba24815a7af1e28cd605"
+  },
+  {
+    "file": "frontend-build-final.log",
+    "bytes": 2195,
+    "sha256": "a053a64c7774b94fa34afefcf68928dfa44fd1eb064672caf266fc07bc2ea557"
+  },
+  {
+    "file": "frontend-build.log",
+    "bytes": 2281,
+    "sha256": "b676eeac56f8b4015f32732cf90d4f34460fbbbda258dac894291d098491c07b"
+  },
+  {
+    "file": "frontend-e2e-final.log",
+    "bytes": 2027,
+    "sha256": "cf2ea1a54a0574d2a71433628d3d09cae019d4422a8cab15a1c1f09397a47775"
+  },
+  {
+    "file": "frontend-e2e.log",
+    "bytes": 2026,
+    "sha256": "a8e0d4237ff2326f95298f3c1e91df1db4b8ee4b96741ff3a98696fb6e29c6e1"
+  },
+  {
+    "file": "frontend-lint.log",
+    "bytes": 12767,
+    "sha256": "f2ae02f6d0f9e6c841980cc7839f9df58e1cfbf8caf074575e9880eb37874e6e"
+  },
+  {
+    "file": "frontend-tests-antes.log",
+    "bytes": 317,
+    "sha256": "2e47bc30bdf32fb6f210e315d5bf0c87846f753fdb61e52f8665aface7fe652a"
+  },
+  {
+    "file": "frontend-tests-despues.log",
+    "bytes": 335,
+    "sha256": "0c801622265fb742b7e8a203473cfa8149b3b114d023f15484fb59b9c58e9619"
+  },
+  {
+    "file": "frontend-tests-final.log",
+    "bytes": 334,
+    "sha256": "ed7a68a3f6743dad2fbe8d6a42c9ee30d03f3a3562151bcd2aa0681fa86217c3"
+  },
+  {
+    "file": "http-backend.json",
+    "bytes": 221,
+    "sha256": "26a834c4b7e7e04887a8c9f632c9b0aa6ba869cec446df8579c2d66bdec4d674"
+  },
+  {
+    "file": "iconos-verificados.json",
+    "bytes": 387,
+    "sha256": "73516132a0e330ea4a04226a1ea3e92d24f55d2a9998deb6ad2558a72803bb05"
+  },
+  {
+    "file": "limite-streaming-sin-javascript.png",
+    "bytes": 49138,
+    "sha256": "c82a9a49f6d82aff3f228de9abb863ecfbb46d80f02c7fe3665c153d3e19ac53"
+  },
+  {
+    "file": "lint-cambios.log",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "file": "manifest-verificado.json",
+    "bytes": 1895,
+    "sha256": "68ec98889b00b90c259fcf4ee566372180b0e864339a4fbe3b1b5788428235fd"
+  },
+  {
+    "file": "navegador-primer-intento.json",
+    "bytes": 3584,
+    "sha256": "d01bd482fec01a9ffa7cc571d14796703cca505a44a7e2d9949ce16c27953285"
+  },
+  {
+    "file": "navegador-real.json",
+    "bytes": 3557,
+    "sha256": "2ec75fd86994ecb21f744fe3d72d74ce9c6122385568aaae5b36000402add818"
+  },
+  {
+    "file": "navegador-real.log",
+    "bytes": 3698,
+    "sha256": "5ed9c46b24f94d7aeb98e8d3276b270cb350ff8f313b2e1d5cef94d572dbacfe"
+  },
+  {
+    "file": "postgresql.json",
+    "bytes": 369,
+    "sha256": "202ff120c3ee9043c00ad01d26ac3c32d3086030e084b6eaeb5f3603495c1297"
+  },
+  {
+    "file": "preferencias-locales.log",
+    "bytes": 257,
+    "sha256": "5d101923e4b0710f35a2deda980022ba5f037328b6b3affb1ab51c708e394c63"
+  },
+  {
+    "file": "pwa-suite-antes-correccion.log",
+    "bytes": 16619,
+    "sha256": "fd26ee67854f26a6d60526646d8b3ee88cb38dad086acb4ae54f03158a115de1"
+  },
+  {
+    "file": "pwa-suite-final.log",
+    "bytes": 4258,
+    "sha256": "96f810223b63e743670dd9fa96fb7526494a148b9dfc189debb2172021ef327c"
+  },
+  {
+    "file": "pwa-suite-intermedio.log",
+    "bytes": 9897,
+    "sha256": "d7c48349a4c562260ac226953b095ff3d3a420d4f8460d820e8ec1becefcfc9e"
+  },
+  {
+    "file": "pwa-suite-primer-intento.log",
+    "bytes": 16285,
+    "sha256": "c7efacd15ce178d82d16e4d5e6ee5476f7310d6c9be1ea548730b2010cc7667f"
+  },
+  {
+    "file": "pwa-suite.log",
+    "bytes": 9897,
+    "sha256": "d7c48349a4c562260ac226953b095ff3d3a420d4f8460d820e8ec1becefcfc9e"
+  },
+  {
+    "file": "reconexion-catalogo.png",
+    "bytes": 93131,
+    "sha256": "82d100105cf4570e72363a47df07b3243f1681cbc072ae0455f4bbe08956c51b"
+  },
+  {
+    "file": "reconexion-despues.log",
+    "bytes": 261,
+    "sha256": "2cb20869ae6860c9799c4a14432a07b4df41404abee4c63a54cf901870f1302b"
+  },
+  {
+    "file": "RESULTADOS.md",
+    "bytes": 4536,
+    "sha256": "1bcd4fda8e20fe47fd564784f290f6e8f6105bed267d5145ac303845975c0d4d"
+  },
+  {
+    "file": "ssr-html-sin-scripts.txt",
+    "bytes": 215372,
+    "sha256": "23db4ec6fe507e443549ee9daf59ef2e60232198d1132e05afac12ea9cbda22d"
+  }
+]

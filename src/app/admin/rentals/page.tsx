@@ -494,10 +494,10 @@ export default function AdminRentalsPage() {
                       <TableCell>
                         <div className="grid gap-0.5">
                           <span className="font-medium">
-                            {rental.user.nombre}
+                            {rental.user?.nombre ?? "Cuenta eliminada"}
                           </span>
                           <span className="text-xs text-[var(--text-muted)]">
-                            {rental.user.correo}
+                            {rental.user?.correo ?? ""}
                           </span>
                         </div>
                       </TableCell>
@@ -684,15 +684,15 @@ export default function AdminRentalsPage() {
                     <p className="text-sm text-muted-foreground">Solicitante</p>
                     <strong>
                       {selectedRental.applicantName ??
-                        selectedRental.user.nombre}
+                        selectedRental.user?.nombre ?? "Cuenta eliminada"}
                     </strong>
                     <p className="text-sm text-muted-foreground">
                       {selectedRental.applicantEmail ??
-                        selectedRental.user.correo}
+                        selectedRental.user?.correo ?? ""}
                     </p>
                     <p className="text-sm text-muted-foreground">
                       {selectedRental.applicantPhone ??
-                        selectedRental.user.telefono ??
+                        selectedRental.user?.telefono ??
                         "Sin teléfono"}
                     </p>
                     {selectedRental.isForAnotherPerson ? (

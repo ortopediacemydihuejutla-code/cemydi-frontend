@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  Bell,
   Check,
   Eye,
   EyeOff,
@@ -11,6 +10,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import toast from "react-hot-toast";
 
 import {
@@ -23,142 +23,82 @@ import {
   validatePasswordPolicy,
 } from "@/lib/password-validation";
 import { useAuth } from "@/providers/AuthContext";
-import { updateMyProfile } from "@/services/users";
-
-type AccountPreferences = {
-  rentalUpdates: boolean;
-  reviewUpdates: boolean;
-  promotions: boolean;
-  careTips: boolean;
-};
-
-const defaultPreferences: AccountPreferences = {
-  rentalUpdates: true,
-  reviewUpdates: true,
-  promotions: false,
-  careTips: true,
-};
-
-function preferencesKey(userId: number) {
-  return `cemydi:account-preferences:${userId}`;
-}
-
-function PreferenceRow({
-  checked,
-  onChange,
-  label,
-  description,
-}: {
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-  label: string;
-  description: string;
-}) {
-  return (
-    <label className="flex cursor-pointer items-center gap-5 border-b border-[#deebeb] py-4 last:border-b-0">
-      <span className="min-w-0 flex-1">
-        <span className="block text-sm font-semibold text-[#17333f]">
-          {label}
-        </span>
-        <span className="mt-1 block text-xs leading-5 text-[#607173]">
-          {description}
-        </span>
-      </span>
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(event) => onChange(event.target.checked)}
-        className="peer sr-only"
-      />
-      <span
-        className={`relative h-6 w-11 shrink-0 rounded-full border transition ${
-          checked
-            ? "border-[#1f6a67] bg-[#1f6a67]"
-            : "border-[#cbd9d9] bg-[#e7eeee]"
-        }`}
-      >
-        <span
-          className={`absolute left-[3px] top-[3px] size-4 rounded-full bg-white shadow-sm transition ${
-            checked ? "translate-x-5" : ""
-          }`}
-        />
-      </span>
-    </label>
-  );
-}
+import { confirmPasswordChange, requestPasswordChange, resendPasswordChange } from "@/services/users";
+import { ApiError } from "@/lib/api-error";
+import { logoutUser } from "@/services/auth";
+import { NotificationPreferencesForm } from "@/components/account/NotificationPreferencesForm";
+import Link from 'next/link';
 
 export default function ConfiguracionPage() {
-  const { user, updateUser } = useAuth();
-  const [preferences, setPreferences] =
-    useState<AccountPreferences>(defaultPreferences);
+  const router = useRouter();
+  const { user, logout } = useAuth();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [showPasswords, setShowPasswords] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [codigo, setCodigo] = useState("");
+  const [passwordChallenge, setPasswordChallenge] = useState<{ resendAt: string } | null>(null);
+  const [now, setNow] = useState(Date.now);
 
   useEffect(() => {
-    if (!user) return;
-    try {
-      const stored = window.localStorage.getItem(preferencesKey(user.id));
-      if (stored) {
-        setPreferences({
-          ...defaultPreferences,
-          ...(JSON.parse(stored) as Partial<AccountPreferences>),
-        });
-      }
-    } catch {
-      // Conservamos las preferencias predeterminadas.
-    }
-  }, [user]);
+    if (!passwordChallenge) return;
+    const timer = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(timer);
+  }, [passwordChallenge]);
+
 
   const passwordRules = useMemo(
     () => getPasswordRulesStatus(password),
     [password],
   );
 
-  const setPreference = (
-    key: keyof AccountPreferences,
-    checked: boolean,
-  ) => {
-    if (!user) return;
-    const next = { ...preferences, [key]: checked };
-    setPreferences(next);
-    window.localStorage.setItem(preferencesKey(user.id), JSON.stringify(next));
-    toast.success("Preferencia guardada.");
-  };
 
   const changePassword = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!user) return;
-
-    const passwordError = validatePasswordPolicy(password);
-    if (passwordError) {
-      toast.error(passwordError);
-      return;
-    }
-    if (password !== confirmPassword) {
-      toast.error("Las contraseñas no coinciden.");
-      return;
-    }
-
     try {
       setSavingPassword(true);
-      const result = await updateMyProfile({
-        nombre: user.nombre,
-        correo: user.correo,
-        telefono: user.telefono ?? "",
-        direccion: user.direccion ?? "",
-        password,
-      });
-      updateUser(result.user);
+      if (!passwordChallenge) {
+        if (!currentPassword) {
+          toast.error("Ingresa tu contraseña actual.");
+          return;
+        }
+        setPasswordChallenge(await requestPasswordChange(currentPassword));
+        setCurrentPassword("");
+        toast.success("Enviamos un código a tu correo.");
+        return;
+      }
+      const passwordError = validatePasswordPolicy(password);
+      if (passwordError) {
+        toast.error(passwordError);
+        return;
+      }
+      if (password !== confirmPassword) {
+        toast.error("Las contraseñas no coinciden.");
+        return;
+      }
+      if (!/^\d{8}$/.test(codigo)) {
+        toast.error("Ingresa los ocho dígitos del código.");
+        return;
+      }
+      await confirmPasswordChange(codigo, password);
+      await logoutUser().catch(() => undefined);
+      logout();
       setPassword("");
       setConfirmPassword("");
-      toast.success("Contraseña actualizada correctamente.");
+      setCodigo("");
+      toast.success("Contraseña actualizada. Inicia sesión nuevamente.");
+      router.replace("/login");
     } catch (error) {
       toast.error(
-        error instanceof Error
-          ? error.message
-          : "No se pudo cambiar la contraseña.",
+        error instanceof ApiError && error.status === 429
+          ? "Espera antes de solicitar o verificar otro código."
+          : error instanceof ApiError && error.status === 401
+            ? "No pudimos confirmar tu identidad."
+            : error instanceof ApiError && error.status === 400
+              ? "Los datos o el código son inválidos o expiraron."
+              : "No se pudo cambiar la contraseña.",
       );
     } finally {
       setSavingPassword(false);
@@ -173,49 +113,7 @@ export default function ConfiguracionPage() {
           description="Administra las preferencias y la seguridad de tu cuenta."
         />
 
-        <section className="border-b border-[#deebeb] py-8">
-          <div className="flex items-start gap-3">
-            <Bell
-              className="mt-0.5 size-5 shrink-0 text-[#1f6a67]"
-              strokeWidth={1.8}
-            />
-            <div>
-              <h3 className="text-lg font-semibold text-[#17333f]">
-                Preferencias
-              </h3>
-              <p className="mt-1 text-sm text-[#607173]">
-                Elige la información que quieres tener presente en tu cuenta.
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-5">
-            <PreferenceRow
-              checked={preferences.rentalUpdates}
-              onChange={(checked) => setPreference("rentalUpdates", checked)}
-              label="Actualizaciones de rentas"
-              description="Seguimiento de estados, documentos y devoluciones."
-            />
-            <PreferenceRow
-              checked={preferences.reviewUpdates}
-              onChange={(checked) => setPreference("reviewUpdates", checked)}
-              label="Estado de mis reseñas"
-              description="Cambios en la revisión y publicación de opiniones."
-            />
-            <PreferenceRow
-              checked={preferences.promotions}
-              onChange={(checked) => setPreference("promotions", checked)}
-              label="Promociones y novedades"
-              description="Información sobre ofertas y nuevos productos."
-            />
-            <PreferenceRow
-              checked={preferences.careTips}
-              onChange={(checked) => setPreference("careTips", checked)}
-              label="Consejos de cuidado"
-              description="Recomendaciones para usar y conservar tus equipos."
-            />
-          </div>
-        </section>
+        <NotificationPreferencesForm />
 
         <section className="border-b border-[#deebeb] py-8">
           <div className="flex items-start gap-3">
@@ -237,6 +135,34 @@ export default function ConfiguracionPage() {
             onSubmit={changePassword}
             className="mt-6 grid max-w-[760px] gap-5 sm:grid-cols-2"
           >
+            {!passwordChallenge ? (
+              <label className="grid gap-2 text-sm font-medium text-[#405b65] sm:col-span-2">
+                Contraseña actual
+                <input type="password" autoComplete="current-password" value={currentPassword} onChange={(event) => setCurrentPassword(event.target.value)} className={accountInputClassName} />
+              </label>
+            ) : (
+              <div className="grid gap-4 sm:col-span-2">
+                <p className="text-sm text-[#607173]">Enviamos un código a {user?.correo}.</p>
+                <label className="grid gap-2 text-sm font-medium text-[#405b65]">
+                  Código de ocho dígitos
+                  <input inputMode="numeric" autoComplete="one-time-code" value={codigo} onChange={(event) => setCodigo(event.target.value.replace(/\D/g, "").slice(0, 8))} maxLength={8} className={accountInputClassName} />
+                </label>
+                <button type="button" disabled={savingPassword || now < Date.parse(passwordChallenge.resendAt)} onClick={() => void (async () => {
+                  setSavingPassword(true);
+                  try {
+                    setPasswordChallenge(await resendPasswordChange());
+                    setCodigo("");
+                    toast.success("Enviamos un código nuevo.");
+                  } catch {
+                    toast.error("No pudimos reenviar el código. Intenta más tarde.");
+                  } finally {
+                    setSavingPassword(false);
+                  }
+                })()} className="w-fit text-sm font-semibold text-[#1f6a67] disabled:opacity-60">
+                  {now < Date.parse(passwordChallenge.resendAt) ? `Reenviar en ${Math.ceil((Date.parse(passwordChallenge.resendAt) - now) / 1000)}s` : "Reenviar código"}
+                </button>
+              </div>
+            )}
             <label className="grid gap-2 text-sm font-medium text-[#405b65]">
               Nueva contraseña
               <span className="relative">
@@ -309,16 +235,18 @@ export default function ConfiguracionPage() {
                 type="submit"
                 disabled={
                   savingPassword ||
-                  !password ||
-                  !confirmPassword ||
-                  !passwordRules.isValid
+                  (passwordChallenge
+                    ? !password || !confirmPassword || !passwordRules.isValid || codigo.length !== 8
+                    : !currentPassword)
                 }
                 className="inline-flex items-center justify-center gap-2 rounded-[8px] bg-[#1f6a67] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#154f4d] disabled:cursor-not-allowed disabled:opacity-45"
               >
                 <Save className="size-4" />
                 {savingPassword
-                  ? "Guardando contraseña..."
-                  : "Guardar contraseña"}
+                  ? "Procesando..."
+                  : passwordChallenge
+                    ? "Confirmar contraseña"
+                    : "Enviar código"}
               </button>
             </div>
           </form>
@@ -351,6 +279,9 @@ export default function ConfiguracionPage() {
             {user?.emailVerified ? "Cuenta verificada" : "Verificación pendiente"}
           </span>
         </section>
+      </div>
+      <div className="mt-6 border-t border-border pt-6">
+        <Link href="/eliminar-cuenta" className="inline-flex min-h-11 items-center font-semibold text-destructive underline">Eliminar mi cuenta y datos</Link>
       </div>
     </CustomerAccountShell>
   );

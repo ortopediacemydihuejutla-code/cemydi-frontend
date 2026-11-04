@@ -12,6 +12,7 @@ export type { ShoppingCart, ShoppingCartItem };
 export async function getMyCart() {
   const res = await apiFetch("/cart", {
     method: "GET",
+    cache: "no-store",
   });
 
   return parseApiResponse(res, "No se pudo cargar el carrito", cartResponseSchema);

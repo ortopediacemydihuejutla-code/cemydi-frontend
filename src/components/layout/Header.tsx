@@ -13,6 +13,7 @@ import HeaderSearch, {
 } from "@/components/layout/header/HeaderSearch";
 import { cn } from "@/lib/utils";
 import { useOfflinePresentation } from "@/providers/PwaProvider";
+import { CustomerNotificationBell } from "@/components/account/CustomerNotifications";
 
 const NAV_LINKS = [
   { href: "/", label: "Inicio" },
@@ -47,7 +48,11 @@ export default function Header() {
           }
           if (currentScrollY <= 20) {
             setIsScrolledDown(false);
-          } else if (direction > 0 && currentScrollY - directionStart >= 16 && currentScrollY > 80) {
+          } else if (
+            direction > 0 &&
+            currentScrollY - directionStart >= 16 &&
+            currentScrollY > 80
+          ) {
             setIsScrolledDown(true);
           } else if (direction < 0 && directionStart - currentScrollY >= 48) {
             setIsScrolledDown(false);
@@ -77,10 +82,12 @@ export default function Header() {
   return (
     // Keep the header's document height fixed: collapsing it changes scrollY
     // through scroll anchoring and can repeatedly reverse the scroll direction.
-    <header className={cn(
-      "sticky z-50 overflow-hidden bg-[#258e8b] transition-[top] duration-300 ease-out motion-reduce:transition-none",
-      isTopBarHidden ? "-top-9" : "top-0",
-    )}>
+    <header
+      className={cn(
+        "sticky z-50 overflow-hidden bg-[#258e8b] transition-[top] duration-300 ease-out motion-reduce:transition-none",
+        isTopBarHidden ? "-top-9" : "top-0",
+      )}
+    >
       <HeaderTopBar isHidden={isTopBarHidden} />
       <div
         className={cn(
@@ -104,6 +111,7 @@ export default function Header() {
           </Link>
 
           <div className="flex shrink-0 items-center gap-1.5 lg:hidden">
+            <CustomerNotificationBell variant="header" />
             <div className="flex size-11 shrink-0 items-center justify-center">
               <HeaderCart />
             </div>
@@ -169,6 +177,7 @@ export default function Header() {
           <div className="flex min-h-11 w-64 shrink-0 items-center justify-end gap-2 [&>a]:whitespace-nowrap">
             <HeaderAuth />
           </div>
+          <CustomerNotificationBell variant="header" />
           <div className="flex size-11 shrink-0 items-center justify-center">
             <HeaderCart />
           </div>

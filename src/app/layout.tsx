@@ -9,6 +9,7 @@ import { ErrorMonitoringClient } from "@/providers/ErrorMonitoringClient";
 import AppShell from "@/components/layout/AppShell";
 import PwaProvider from "@/providers/PwaProvider";
 import { getSiteUrl } from "@/lib/site-config";
+import { WebPushSessionSync } from "@/components/account/NotificationPreferencesForm";
 
 const siteUrl = getSiteUrl();
 const iconVersion = "cemydi-20261013";
@@ -89,6 +90,7 @@ export default async function RootLayout({
           />
         ) : null}
         <AuthProvider>
+          <WebPushSessionSync />
           <CartProvider>
             <ToasterClient />
             <ErrorMonitoringClient />

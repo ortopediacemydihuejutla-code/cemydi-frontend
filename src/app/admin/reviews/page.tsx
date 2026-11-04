@@ -12,12 +12,14 @@ import {
   Star,
   TableProperties,
   Trash2,
+  XCircle,
 } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { ConfirmDialog } from "@/features/admin/components/confirm-dialog";
 import {
   approveReview,
+  rejectReview,
   deleteReview,
   listAdminReviews,
   setReviewHomeVisibility,
@@ -25,9 +27,15 @@ import {
   type ReviewStatus,
 } from "@/services/admin";
 
-import { formatNumberEsMx, getPaginationWindow } from "@/features/admin/lib/admin-list-utils";
+import {
+  formatNumberEsMx,
+  getPaginationWindow,
+} from "@/features/admin/lib/admin-list-utils";
 import { useAdminDataBootstrap } from "@/features/admin/hooks/use-admin-data-bootstrap";
-import { useClampPage, useResetPageOnChange } from "@/features/admin/hooks/use-admin-pagination";
+import {
+  useClampPage,
+  useResetPageOnChange,
+} from "@/features/admin/hooks/use-admin-pagination";
 import { AdminFilterTabs } from "@/features/admin/components/admin-filter-tabs";
 import { AdminTableSkeleton } from "@/features/admin/components/admin-content-skeletons";
 import { AdminMetricCard } from "@/features/admin/components/admin-metric-card";
@@ -36,7 +44,13 @@ import { AdminTablePagination } from "@/features/admin/components/admin-table-pa
 import { PageHeader } from "@/features/admin/components/page-header";
 import { Badge } from "@/features/admin/components/ui/badge";
 import { Button } from "@/features/admin/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/features/admin/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/features/admin/components/ui/card";
 import {
   Dialog,
   DialogContent,
@@ -149,7 +163,10 @@ function statusBadgeVariant(status: ReviewStatus) {
 function RatingStars({ rating }: { rating: number }) {
   const safe = Math.max(0, Math.min(5, Math.round(rating)));
   return (
-    <div className="flex items-center gap-0.5" aria-label={`${safe} de 5 estrellas`}>
+    <div
+      className="flex items-center gap-0.5"
+      aria-label={`${safe} de 5 estrellas`}
+    >
       {Array.from({ length: 5 }, (_, i) => (
         <Star
           key={i}
@@ -172,10 +189,13 @@ export default function AdminReviewsPage() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [actionId, setActionId] = useState<number | null>(null);
+  const [rejectTarget, setRejectTarget] = useState<AdminReview | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<AdminReview | null>(null);
-  const [fullCommentReview, setFullCommentReview] = useState<AdminReview | null>(null);
-  const [visibleColumns, setVisibleColumns] =
-    useState<Record<ReviewColumnId, boolean>>(DEFAULT_VISIBLE_COLUMNS);
+  const [fullCommentReview, setFullCommentReview] =
+    useState<AdminReview | null>(null);
+  const [visibleColumns, setVisibleColumns] = useState<
+    Record<ReviewColumnId, boolean>
+  >(DEFAULT_VISIBLE_COLUMNS);
 
   const load = useCallback(async () => {
     const reviewsResult = await listAdminReviews({ status: "ALL" });
@@ -231,7 +251,8 @@ export default function AdminReviewsPage() {
   const sorted = useMemo(
     () =>
       [...filtered].sort(
-        (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
+        (a, b) =>
+          new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
       ),
     [filtered],
   );
@@ -248,7 +269,8 @@ export default function AdminReviewsPage() {
   }, [sorted, page]);
 
   const visibleColumnCount = useMemo(
-    () => REVIEW_COLUMN_ORDER.filter((columnId) => visibleColumns[columnId]).length,
+    () =>
+      REVIEW_COLUMN_ORDER.filter((columnId) => visibleColumns[columnId]).length,
     [visibleColumns],
   );
 
@@ -258,7 +280,8 @@ export default function AdminReviewsPage() {
         720,
         REVIEW_COLUMN_ORDER.reduce(
           (total, columnId) =>
-            total + (visibleColumns[columnId] ? REVIEW_COLUMN_WIDTHS[columnId] : 0),
+            total +
+            (visibleColumns[columnId] ? REVIEW_COLUMN_WIDTHS[columnId] : 0),
           0,
         ) + 72,
       ),
@@ -272,10 +295,38 @@ export default function AdminReviewsPage() {
     try {
       setActionId(id);
       const result = await approveReview(id);
-      setReviews((prev) => prev.map((item) => (item.id === id ? result.review : item)));
+      setReviews((prev) =>
+        prev.map((item) => (item.id === id ? result.review : item)),
+      );
       toast.success(result.message);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "No se pudo aprobar la reseña.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No se pudo aprobar la reseña.",
+      );
+    } finally {
+      setActionId(null);
+    }
+  };
+
+  const confirmReject = async () => {
+    if (!rejectTarget || actionId !== null) return;
+    const id = rejectTarget.id;
+    try {
+      setActionId(id);
+      const result = await rejectReview(id);
+      setReviews((prev) =>
+        prev.map((item) => (item.id === id ? result.review : item)),
+      );
+      toast.success(result.message);
+      setRejectTarget(null);
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No se pudo rechazar la reseña.",
+      );
     } finally {
       setActionId(null);
     }
@@ -288,14 +339,21 @@ export default function AdminReviewsPage() {
     }
 
     if (!review.showOnHome && counts.featured >= HOME_TESTIMONIALS_MAX) {
-      toast.error(`Solo puedes mostrar hasta ${HOME_TESTIMONIALS_MAX} reseñas en inicio.`);
+      toast.error(
+        `Solo puedes mostrar hasta ${HOME_TESTIMONIALS_MAX} reseñas en inicio.`,
+      );
       return;
     }
 
     try {
       setActionId(review.id);
-      const result = await setReviewHomeVisibility(review.id, !review.showOnHome);
-      setReviews((prev) => prev.map((item) => (item.id === review.id ? result.review : item)));
+      const result = await setReviewHomeVisibility(
+        review.id,
+        !review.showOnHome,
+      );
+      setReviews((prev) =>
+        prev.map((item) => (item.id === review.id ? result.review : item)),
+      );
       toast.success(result.message);
     } catch (error) {
       toast.error(
@@ -318,13 +376,20 @@ export default function AdminReviewsPage() {
       toast.success("Reseña eliminada.");
       setDeleteTarget(null);
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "No se pudo eliminar la reseña.");
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "No se pudo eliminar la reseña.",
+      );
     } finally {
       setActionId(null);
     }
   };
 
-  const toggleColumnVisibility = (columnId: ReviewColumnId, checked: boolean) => {
+  const toggleColumnVisibility = (
+    columnId: ReviewColumnId,
+    checked: boolean,
+  ) => {
     if (!checked && visibleColumnCount === 1 && visibleColumns[columnId]) {
       toast.error("Debes mantener al menos una columna visible.");
       return;
@@ -345,7 +410,7 @@ export default function AdminReviewsPage() {
       <div className="flex flex-col gap-8">
         <PageHeader
           title="Reseñas"
-          subtitle="Revisa opiniones de clientes sobre productos: filtra por estado, aprueba las pendientes o elimina entradas que no deban mostrarse en la tienda."
+          subtitle="Revisa opiniones de clientes sobre productos: filtra por estado y aprueba o rechaza opiniones. El cliente recibirá un aviso de la decisión."
         />
 
         <section
@@ -387,8 +452,9 @@ export default function AdminReviewsPage() {
             <div className="min-w-0">
               <CardTitle>Moderación de reseñas</CardTitle>
               <p className="mt-2 text-sm text-[var(--text-muted)]">
-                Listado completo con fecha, autor, producto valorado y estado. Las pendientes pueden
-                aprobarse; selecciona de {HOME_TESTIMONIALS_MIN} a {HOME_TESTIMONIALS_MAX} reseñas
+                Listado completo con fecha, autor, producto valorado y estado.
+                Las pendientes pueden aprobarse; selecciona de{" "}
+                {HOME_TESTIMONIALS_MIN} a {HOME_TESTIMONIALS_MAX} reseñas
                 aprobadas para mostrarlas en el slider de inicio.
               </p>
             </div>
@@ -459,7 +525,9 @@ export default function AdminReviewsPage() {
           <CardContent className="w-full min-w-0 max-w-full pb-2">
             {initLoading ? (
               <AdminTableSkeleton
-                columns={Object.values(visibleColumns).filter(Boolean).length + 1}
+                columns={
+                  Object.values(visibleColumns).filter(Boolean).length + 1
+                }
                 rows={6}
                 showAvatar
                 className="my-2"
@@ -535,9 +603,10 @@ export default function AdminReviewsPage() {
                   </TableHeader>
                   <TableBody>
                     {pageRows.map((item) => {
-                      const busy = actionId === item.id;
+                      const busy = actionId !== null;
                       const homeLimitReached =
-                        !item.showOnHome && counts.featured >= HOME_TESTIMONIALS_MAX;
+                        !item.showOnHome &&
+                        counts.featured >= HOME_TESTIMONIALS_MAX;
                       return (
                         <TableRow key={item.id}>
                           {visibleColumns.date ? (
@@ -585,7 +654,9 @@ export default function AdminReviewsPage() {
                                   />
                                 </button>
                               ) : (
-                                <span className="text-sm text-[var(--text-muted)]">—</span>
+                                <span className="text-sm text-[var(--text-muted)]">
+                                  —
+                                </span>
                               )}
                             </TableCell>
                           ) : null}
@@ -635,31 +706,56 @@ export default function AdminReviewsPage() {
                                           aria-hidden
                                         />
                                       ) : (
-                                        <MoreHorizontal className="size-4" aria-hidden />
+                                        <MoreHorizontal
+                                          className="size-4"
+                                          aria-hidden
+                                        />
                                       )}
                                     </Button>
                                   </DropdownMenuTrigger>
                                 </TooltipTrigger>
-                                <TooltipContent sideOffset={6}>Acciones</TooltipContent>
+                                <TooltipContent sideOffset={6}>
+                                  Acciones
+                                </TooltipContent>
                               </Tooltip>
 
                               <DropdownMenuContent
                                 align="end"
                                 className="w-56 rounded-lg border-[var(--border-soft)] bg-[var(--card)] p-1.5 shadow-[var(--shadow-md)]"
                               >
-                                <DropdownMenuLabel>Gestionar reseña</DropdownMenuLabel>
+                                <DropdownMenuLabel>
+                                  Gestionar reseña
+                                </DropdownMenuLabel>
                                 <DropdownMenuSeparator />
-                                {item.status === "PENDING" ? (
+                                {item.status !== "APPROVED" ? (
                                   <DropdownMenuItem
-                                    onSelect={() => void approvePending(item.id)}
+                                    onSelect={() =>
+                                      void approvePending(item.id)
+                                    }
                                   >
-                                    <CheckCircle2 className="size-4" aria-hidden />
+                                    <CheckCircle2
+                                      className="size-4"
+                                      aria-hidden
+                                    />
                                     Aprobar reseña
                                   </DropdownMenuItem>
                                 ) : null}
+                                {item.status !== "REJECTED" ? (
+                                  <DropdownMenuItem
+                                    onSelect={() => setRejectTarget(item)}
+                                  >
+                                    <XCircle className="size-4" aria-hidden />
+                                    Rechazar reseña
+                                  </DropdownMenuItem>
+                                ) : null}
                                 <DropdownMenuItem
-                                  disabled={item.status !== "APPROVED" || homeLimitReached}
-                                  onSelect={() => void toggleHomeVisibility(item)}
+                                  disabled={
+                                    item.status !== "APPROVED" ||
+                                    homeLimitReached
+                                  }
+                                  onSelect={() =>
+                                    void toggleHomeVisibility(item)
+                                  }
                                   title={
                                     item.status === "APPROVED"
                                       ? item.showOnHome
@@ -675,7 +771,9 @@ export default function AdminReviewsPage() {
                                   ) : (
                                     <Eye className="size-4" aria-hidden />
                                   )}
-                                  {item.showOnHome ? "Quitar de inicio" : "Mostrar en inicio"}
+                                  {item.showOnHome
+                                    ? "Quitar de inicio"
+                                    : "Mostrar en inicio"}
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
                                 <DropdownMenuItem
@@ -705,7 +803,9 @@ export default function AdminReviewsPage() {
               page={page}
               totalPages={totalPages}
               onPrev={() => setPage((current) => Math.max(1, current - 1))}
-              onNext={() => setPage((current) => Math.min(totalPages, current + 1))}
+              onNext={() =>
+                setPage((current) => Math.min(totalPages, current + 1))
+              }
             />
           </CardFooter>
         </Card>
@@ -753,6 +853,23 @@ export default function AdminReviewsPage() {
         </DialogContent>
       </Dialog>
 
+      <ConfirmDialog
+        open={rejectTarget !== null}
+        title="Rechazar reseña"
+        description={
+          rejectTarget
+            ? `La reseña de «${rejectTarget.user.nombre}» sobre «${rejectTarget.product.nombre}» dejará de ser pública. El cliente recibirá un aviso y podrá editarla y enviarla de nuevo.`
+            : undefined
+        }
+        tone="danger"
+        busy={actionId !== null}
+        confirmLabel="Rechazar reseña"
+        onConfirm={() => void confirmReject()}
+        onCancel={() => {
+          if (actionId !== null) return;
+          setRejectTarget(null);
+        }}
+      />
       <ConfirmDialog
         open={deleteTarget !== null}
         title="Eliminar reseña"

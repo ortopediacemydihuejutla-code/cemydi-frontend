@@ -100,3 +100,11 @@ Al preparar esta documentación:
 ## Future improvement
 
 Una tarea de calidad podría aislar los scripts de skills de ESLint, ampliar E2E por flujos críticos y definir cobertura si el equipo acuerda un objetivo. No hay un umbral de cobertura oficialmente adoptado.
+
+## Carrito compartido con app — 16 de octubre de 2026
+
+CartContext y cart service: 16 pruebas aprobadas, incluyendo cambios externos por foco/red e intervalo, pausa offline/oculto, cleanup, conservación de datos tras error, lectura atrasada después de escritura y descarte de escritura al cambiar de cuenta. GET /cart usa no-store. La configuración privada local se alineó con el destino móvil y se verificó el rewrite activo; no se copiaron valores a Git ni se migraron bases de datos. Se requiere iniciar sesión nuevamente con la misma cuenta. La comparación con una sesión real móvil/web queda pendiente.
+
+`npm run lint`: 0 errores y 94 warnings preexistentes de scripts de skills; lint dirigido de los cuatro archivos TypeScript modificados sin warnings. `npm run test -- --maxWorkers=2`: 60 archivos aprobados y uno fallido; 224 pruebas aprobadas y una fallida en PwaProvider, sobre la recuperación del tiempo restante del aviso de reconexión. Se reprodujo ejecutando esa prueba por separado; tanto PwaProvider como su prueba permanecen sin cambios en esta tarea.
+
+`npm run build`: aprobado, incluida comprobación TypeScript y generación del service worker. Playwright completo: 11/11 aprobadas contra ese build servido temporalmente en el puerto 3001, con PLAYWRIGHT_BASE_URL y CI para evitar reutilizar el servidor de desarrollo. Los intentos contra Next dev mostraron fallos de scroll del encabezado y nonce CSP que no se reprodujeron contra producción. El servidor temporal se detuvo al terminar; el desarrollo local permanece disponible.

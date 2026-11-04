@@ -17,6 +17,8 @@ const PUBLIC_ROUTE_PREFIXES = [
   "/mis-pedidos",
   "/mis-resenas",
   "/mis-rentas",
+  "/notificaciones",
+  "/ofertas",
   "/favoritos",
   "/perfil",
   "/politicas-de-privacidad",

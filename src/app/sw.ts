@@ -10,6 +10,33 @@ declare global {
   }
 }
 declare const self: ServiceWorkerGlobalScope;
+
+// Push payloads never provide navigation URLs. Only an owned inbox detail is opened.
+self.addEventListener('push', (event) => {
+  let value: unknown;
+  try { value = event.data?.json(); } catch { return; }
+  if (!value || typeof value !== 'object') return;
+  const item = value as Record<string, unknown>;
+  if (typeof item.notificationId !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(item.notificationId) ||
+    typeof item.title !== 'string' || typeof item.body !== 'string') return;
+  event.waitUntil(self.registration.showNotification(item.title.slice(0, 100), {
+    body: item.body.slice(0, 500), icon: '/apple-icon.png', badge: '/favicon-32x32.png',
+    tag: item.notificationId, data: { notificationId: item.notificationId },
+  }));
+});
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const value: unknown = event.notification.data;
+  const id = value && typeof value === 'object' && 'notificationId' in value ? value.notificationId : null;
+  if (typeof id !== 'string' || !/^[a-zA-Z0-9_-]{1,100}$/.test(id)) return;
+  const url = new URL(`/notificaciones/${encodeURIComponent(id)}`, self.location.origin).href;
+  event.waitUntil((async () => {
+    const windows = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const existing = windows.find((client) => client.url === url);
+    if (existing) await existing.focus();
+    else await self.clients.openWindow(url);
+  })());
+});
 const validResponse = {
   cacheWillUpdate: async ({ response }: { response: Response }) => {
     if (!isUsableOfflineImage(response, false)) return null;
