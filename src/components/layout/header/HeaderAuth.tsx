@@ -54,13 +54,13 @@ export default function HeaderAuth() {
       <>
         <Link
           href="/login"
-          className="inline-flex h-10 items-center justify-center rounded-full border border-white/80 bg-transparent px-4 text-sm font-semibold text-white no-underline transition hover:border-white hover:bg-white/12 focus-visible:outline-2 focus-visible:outline-white"
+          className="inline-flex h-10 items-center justify-center rounded-full border border-white/80 bg-transparent px-4 text-sm font-semibold text-white no-underline transition hover:border-white hover:bg-black/10 focus-visible:outline-2 focus-visible:outline-white"
         >
           Iniciar sesión
         </Link>
         <Link
           href="/register"
-          className="inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-sm font-bold text-[#258e8b] no-underline shadow-sm transition hover:bg-[#e8f2f2] focus-visible:outline-2 focus-visible:outline-white"
+          className="inline-flex h-10 items-center justify-center rounded-full bg-white px-4 text-sm font-bold text-(--brand-800) no-underline shadow-sm transition hover:bg-[#e8f2f2] focus-visible:outline-2 focus-visible:outline-white"
         >
           Crear cuenta
         </Link>

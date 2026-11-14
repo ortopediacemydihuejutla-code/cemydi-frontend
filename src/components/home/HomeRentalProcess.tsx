@@ -58,7 +58,7 @@ export function HomeRentalProcess() {
               className="flex flex-col justify-between rounded-xl border border-[#deebeb] bg-[#f8fafc] p-6 shadow-sm transition-colors hover:border-[#258e8b]"
             >
               <div>
-                <span className="font-mono text-xs font-bold text-[#258e8b]">
+                <span className="font-mono text-xs font-bold text-(--brand-800)">
                   PASO {item.step}
                 </span>
                 <h3 className="mt-3 text-lg font-bold text-[#111827]">
@@ -80,7 +80,7 @@ export function HomeRentalProcess() {
         <div className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <Link
             href="/catalogo?tipos=RENTA"
-            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-[#258e8b] px-7 py-3 text-sm font-bold text-white no-underline shadow-sm transition-colors hover:bg-[#1d7370] focus-visible:outline-2 focus-visible:outline-[#258e8b]"
+            className="inline-flex min-h-[44px] items-center justify-center gap-2 rounded-full bg-(--brand-800) px-7 py-3 text-sm font-bold text-white no-underline shadow-sm transition-colors hover:bg-(--brand-900) focus-visible:outline-2 focus-visible:outline-[#258e8b]"
           >
             Ver catálogo de renta
             <ArrowRight className="size-4" aria-hidden="true" />
@@ -88,7 +88,7 @@ export function HomeRentalProcess() {
 
           <Link
             href="/contactanos"
-            className="inline-flex min-h-[44px] items-center justify-center rounded-full border-2 border-[#258e8b] bg-white px-7 py-3 text-sm font-bold text-[#258e8b] no-underline transition-colors hover:bg-[#e8f2f2] focus-visible:outline-2 focus-visible:outline-[#258e8b]"
+            className="inline-flex min-h-[44px] items-center justify-center rounded-full border-2 border-[#258e8b] bg-white px-7 py-3 text-sm font-bold text-(--brand-800) no-underline transition-colors hover:bg-[#e8f2f2] focus-visible:outline-2 focus-visible:outline-[#258e8b]"
           >
             Cotizar por WhatsApp o teléfono
           </Link>

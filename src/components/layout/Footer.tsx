@@ -43,8 +43,8 @@ export default function Footer() {
               src="/logoOriginalEslogan.svg"
               alt="CEMYDI"
               width={340}
-              height={152}
-              className="h-auto w-[15rem] object-contain sm:w-[17.5rem] md:w-[20rem]"
+              height={340}
+              className="aspect-square h-auto w-[15rem] object-contain sm:w-[17.5rem] md:w-[20rem]"
             />
           </Link>
 
@@ -76,7 +76,7 @@ export default function Footer() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="flex min-h-0 w-fit items-center py-1.5 text-muted-foreground no-underline transition hover:text-primary hover:underline"
+                className="flex min-h-0 w-fit items-center py-1.5 text-muted-foreground no-underline transition hover:text-(--brand-800) hover:underline"
               >
                 {link.label}
               </Link>
@@ -89,14 +89,14 @@ export default function Footer() {
           <address className="grid gap-3 text-sm not-italic text-muted-foreground">
             <Link
               href="tel:7896880251"
-              className="flex min-h-0 items-start gap-3 text-muted-foreground no-underline transition hover:text-primary"
+              className="flex min-h-0 items-start gap-3 text-muted-foreground no-underline transition hover:text-(--brand-800)"
             >
               <Phone className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
               <span>789 688 0251</span>
             </Link>
             <Link
               href="mailto:contacto@cemydi.com"
-              className="flex min-h-0 items-start gap-3 break-all text-muted-foreground no-underline transition hover:text-primary"
+              className="flex min-h-0 items-start gap-3 break-all text-muted-foreground no-underline transition hover:text-(--brand-800)"
             >
               <Mail className="mt-0.5 size-4 shrink-0 text-primary" aria-hidden="true" />
               <span>contacto@cemydi.com</span>
@@ -131,7 +131,7 @@ export default function Footer() {
               </Link>
             ))}
           </div>
-          <div className="grid gap-2 rounded-lg border border-border bg-background p-4 text-sm text-muted-foreground">
+          <div className="grid gap-2 rounded-lg border border-border bg-background p-4 text-sm text-[#4b5563]">
             <p className="m-0 font-semibold text-foreground">Horario de atencion</p>
             <p className="m-0">Lunes a sabado</p>
             <p className="m-0">9:00 am - 7:00 pm</p>
@@ -144,11 +144,11 @@ export default function Footer() {
           © {new Date().getFullYear()} CEMYDI. Todos los derechos reservados.
         </small>
         <nav className="flex flex-wrap justify-center gap-x-5 gap-y-2" aria-label="Legal">
-          <Link href="/eliminar-cuenta" className="min-h-0 text-muted-foreground no-underline hover:text-primary hover:underline">Eliminar cuenta</Link>
-          <Link href="/politicas-de-privacidad" className="min-h-0 text-muted-foreground no-underline hover:text-primary hover:underline">
+          <Link href="/eliminar-cuenta" className="min-h-0 text-muted-foreground no-underline hover:text-(--brand-800) hover:underline">Eliminar cuenta</Link>
+          <Link href="/politicas-de-privacidad" className="min-h-0 text-muted-foreground no-underline hover:text-(--brand-800) hover:underline">
             Política de privacidad
           </Link>
-          <Link href="/terminos-y-condiciones" className="min-h-0 text-muted-foreground no-underline hover:text-primary hover:underline">
+          <Link href="/terminos-y-condiciones" className="min-h-0 text-muted-foreground no-underline hover:text-(--brand-800) hover:underline">
             Términos y condiciones
           </Link>
         </nav>

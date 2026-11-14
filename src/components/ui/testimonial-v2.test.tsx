@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from "@testing-library/react";
+import { act, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import TestimonialsSection from "./testimonial-v2";
 
@@ -32,6 +32,20 @@ describe("testimonios", () => {
     vi.useRealTimers();
     vi.unstubAllGlobals();
   });
+
+  it.each([[4, 4], [5, 5], [3.6, 4], [0, 0]])(
+    "expone la valoración %s como %s estrellas y oculta sus iconos",
+    (rating, expected) => {
+      render(<TestimonialsSection testimonials={testimonials.map((item, index) =>
+        index === 0 ? { ...item, rating } : item,
+      )} />);
+
+      const text = within(screen.getAllByRole("article")[0]).getByText(`${expected} de 5 estrellas`);
+      expect(text).toHaveClass("sr-only");
+      expect(text.parentElement).not.toHaveAttribute("aria-label");
+      expect(text.parentElement?.querySelectorAll('svg[aria-hidden="true"]')).toHaveLength(5);
+    },
+  );
 
   it("permite pausar y reanudar el avance", () => {
     render(<TestimonialsSection testimonials={testimonials} />);

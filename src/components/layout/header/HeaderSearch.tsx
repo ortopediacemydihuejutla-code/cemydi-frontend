@@ -166,7 +166,7 @@ export default function HeaderSearch({ inputId = "header-search" }: HeaderSearch
 
   return (
     <form
-      className="relative flex h-11 w-full max-w-full items-center overflow-hidden rounded-full border border-white/35 bg-white/15 pl-3.5 shadow-inner transition-colors focus-within:border-white focus-within:bg-white/20 lg:max-w-[35rem]"
+      className="relative flex h-11 w-full max-w-full items-center overflow-hidden rounded-full border border-white/65 bg-white/5 pl-3.5 shadow-inner transition-colors focus-within:border-white focus-within:bg-white/8 lg:max-w-[35rem]"
       onSubmit={onSearchSubmit}
     >
       <label htmlFor={inputId} className="sr-only">
@@ -204,7 +204,7 @@ export default function HeaderSearch({ inputId = "header-search" }: HeaderSearch
         enterKeyHint="search"
         autoComplete="off"
         placeholder={isListening ? "Escuchando... habla ahora" : animatedPlaceholder}
-        className="h-full w-full min-w-0 bg-transparent px-3 text-sm text-white outline-none placeholder:text-white/80"
+        className="h-full w-full min-w-0 bg-transparent px-3 text-sm text-white outline-none placeholder:text-white"
         value={searchValue}
         onChange={(event) => setSearchValue(event.target.value)}
         onFocus={() => setIsFocused(true)}
@@ -220,7 +220,7 @@ export default function HeaderSearch({ inputId = "header-search" }: HeaderSearch
       </div>
       <button
         type="submit"
-        className="inline-flex h-full shrink-0 items-center justify-center bg-white px-5 text-xs font-bold text-[#258e8b] transition hover:bg-slate-100 focus-visible:outline-none"
+        className="inline-flex h-full shrink-0 items-center justify-center bg-white px-5 text-xs font-bold text-(--brand-800) transition hover:bg-slate-100 focus-visible:inset-ring-2 focus-visible:inset-ring-(--brand-800)"
       >
         Buscar
       </button>

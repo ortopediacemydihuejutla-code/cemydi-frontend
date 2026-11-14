@@ -84,14 +84,14 @@ export default function Header() {
     // through scroll anchoring and can repeatedly reverse the scroll direction.
     <header
       className={cn(
-        "sticky z-50 overflow-hidden bg-[#258e8b] transition-[top] duration-300 ease-out motion-reduce:transition-none",
+        "sticky z-50 overflow-hidden bg-(--brand-800) [--focus-ring:2px_solid_white] transition-[top] duration-300 ease-out motion-reduce:transition-none",
         isTopBarHidden ? "-top-9" : "top-0",
       )}
     >
       <HeaderTopBar isHidden={isTopBarHidden} />
       <div
         className={cn(
-          "overflow-hidden bg-[#258e8b] px-4 py-3.5 shadow-[0_4px_20px_rgba(15,61,59,0.12)] lg:grid lg:grid-cols-[auto_1fr_auto] lg:items-center lg:gap-5 xl:gap-6 lg:px-10 xl:px-14 lg:py-5 lg:shadow-none",
+          "overflow-hidden px-4 py-3.5 shadow-[0_4px_20px_rgba(15,61,59,0.12)] lg:grid lg:grid-cols-[auto_1fr_auto] lg:items-center lg:gap-5 xl:gap-6 lg:px-10 xl:px-14 lg:py-5 lg:shadow-none",
         )}
       >
         <div className="flex items-center justify-between gap-3 lg:contents">
@@ -154,7 +154,7 @@ export default function Header() {
                   "group relative inline-flex h-10 items-center justify-center px-3.5 text-sm font-semibold no-underline transition-colors duration-200",
                   isActive
                     ? "text-white font-bold"
-                    : "text-white/85 hover:text-white",
+                    : "text-white/95 hover:text-white",
                 )}
               >
                 <span>{link.label}</span>
@@ -198,8 +198,8 @@ export default function Header() {
                       key={link.href}
                       href={link.href}
                       className={cn(
-                        "flex min-h-10 items-center rounded-xl px-3.5 text-sm font-semibold text-white no-underline transition-colors hover:bg-white/12",
-                        isActive && "bg-white/20 font-bold",
+                        "flex min-h-10 items-center rounded-xl px-3.5 text-sm font-semibold text-white no-underline transition-colors hover:bg-black/10",
+                        isActive && "bg-black/15 font-bold",
                       )}
                     >
                       {link.label}

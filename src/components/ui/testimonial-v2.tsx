@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { motion, useReducedMotion, type PanInfo } from "framer-motion";
 import { ChevronLeft, ChevronRight, Pause, Play, Quote, Star } from "lucide-react";
 
 import type { HomeTestimonial } from "@/services/reviews";
 
 const MIN_HOME_TESTIMONIALS = 3;
+const emptySubscribe = () => () => {};
 
 type Props = {
   testimonials: HomeTestimonial[];
@@ -37,7 +38,8 @@ function RatingStars({ rating }: { rating: number }) {
   const safe = Math.max(0, Math.min(5, Math.round(rating)));
 
   return (
-    <div className="flex items-center gap-0.5" aria-label={`${safe} de 5 estrellas`}>
+    <div className="flex items-center gap-0.5">
+      <span className="sr-only">{safe} de 5 estrellas</span>
       {Array.from({ length: 5 }, (_, index) => (
         <Star
           key={index}
@@ -59,7 +61,9 @@ export default function TestimonialsSection({ testimonials }: Props) {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
   const [isHovered, setIsHovered] = useState(false);
   const [hasFocus, setHasFocus] = useState(false);
-  const reduceMotion = useReducedMotion();
+  const prefersReducedMotion = useReducedMotion();
+  // Keep the server and hydration markup identical until the browser preference is available.
+  const reduceMotion = useSyncExternalStore(emptySubscribe, () => prefersReducedMotion, () => false);
   const [direction, setDirection] = useState(1);
   const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -174,7 +178,7 @@ export default function TestimonialsSection({ testimonials }: Props) {
           transition={{ duration: 0.6 }}
           className="mb-8 text-center sm:mb-12 md:mb-16"
         >
-          <span className="inline-block rounded-full bg-[#258e8b]/10 px-3 py-1 text-xs font-semibold tracking-[0.18em] text-[#258e8b] uppercase">
+          <span className="inline-block rounded-full bg-[#258e8b]/10 px-3 py-1 text-xs font-semibold tracking-[0.18em] text-(--brand-800) uppercase">
             Testimonios
           </span>
           <h2
@@ -305,7 +309,7 @@ export default function TestimonialsSection({ testimonials }: Props) {
                             <h3 className="truncate text-sm font-bold text-[#0f2a32] sm:text-base">
                               {testimonial.name}
                             </h3>
-                            <p className="truncate text-xs font-semibold text-[#6b858c] sm:text-sm">
+                            <p className="truncate text-xs font-semibold text-[#4b5563] sm:text-sm">
                               {testimonial.username}
                             </p>
                           </div>

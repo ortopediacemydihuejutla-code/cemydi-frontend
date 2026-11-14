@@ -79,7 +79,7 @@ export function HomeCategories() {
 
           <Link
             href="/catalogo"
-            className="inline-flex items-center gap-1.5 text-sm font-bold text-[#258e8b] no-underline hover:text-[#1d7370] focus-visible:outline-2 focus-visible:outline-[#258e8b]"
+            className="inline-flex items-center gap-1.5 text-sm font-bold text-(--brand-800) no-underline hover:text-(--brand-900) focus-visible:outline-2 focus-visible:outline-[#258e8b]"
           >
             Ver todo el catálogo
             <ArrowRight className="size-4" aria-hidden="true" />
@@ -108,7 +108,7 @@ export function HomeCategories() {
                     ) : null}
                   </div>
 
-                  <h3 className="mt-4 text-lg font-bold text-[#111827] group-hover:text-[#258e8b]">
+                  <h3 className="mt-4 text-lg font-bold text-[#111827] group-hover:text-(--brand-800)">
                     {category.title}
                   </h3>
 
@@ -117,7 +117,7 @@ export function HomeCategories() {
                   </p>
                 </div>
 
-                <div className="mt-6 flex items-center gap-1 text-sm font-bold text-[#258e8b] group-hover:text-[#1d7370]">
+                <div className="mt-6 flex items-center gap-1 text-sm font-bold text-(--brand-800) group-hover:text-(--brand-900)">
                   <span>Explorar categoría</span>
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-1" aria-hidden="true" />
                 </div>
