@@ -12,19 +12,17 @@ export const metadata: Metadata = {
 export default function DeleteAccountPage() {
   return (
     <main className="min-h-dvh bg-background text-foreground">
-      <header className="bg-(--brand-900) text-white">
-        <div className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
-          <h1 className="max-w-3xl text-balance text-3xl font-semibold tracking-tight sm:text-5xl">
+      <div className="mx-auto grid max-w-6xl items-start gap-y-8 px-5 py-8 sm:px-8 sm:py-12 lg:grid-cols-2 lg:gap-x-16">
+        <div className="lg:col-span-2">
+          <h1 className="text-balance text-3xl font-semibold tracking-tight sm:text-4xl">
             Eliminar tu cuenta CEMYDI
           </h1>
-          <p className="mt-4 max-w-[55ch] leading-7 text-white/90">
-            Puedes solicitar la eliminación de tu cuenta y tus datos desde esta
-            página, aunque ya no tengas instalada la app.
+          <p className="mt-2 max-w-[55ch] leading-7 text-foreground/75">
+            Puedes solicitar la eliminación de tu cuenta y tus datos aunque ya
+            no tengas instalada la app.
           </p>
         </div>
-      </header>
 
-      <div className="mx-auto grid max-w-6xl items-start gap-10 px-5 py-8 sm:px-8 sm:py-12 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
         <div className="rounded-xl border border-border bg-card p-5 sm:p-8">
           <AccountDeletionForm />
         </div>
