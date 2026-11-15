@@ -21,6 +21,26 @@ describe("documentos legales sin conexión", () => {
     vi.mocked(publicFetch).mockResolvedValue(new Response(JSON.stringify({ document })));
     expect((await getLegalDocumentSnapshot("terminos-y-condiciones")).valid).toBe(false);
   });
+  it("muestra el aviso completo si la API devuelve un documento vacío", async () => {
+    const slug = "politicas-de-privacidad";
+    const document = { ...defaultLegalDocuments[slug], id: 1, description: "", fields: {}, sections: [] };
+    vi.mocked(publicFetch).mockResolvedValue(Response.json({ document }));
+    const snapshot = await getLegalDocumentSnapshot(slug);
+    expect(snapshot.document).toEqual(defaultLegalDocuments[slug]);
+    expect(snapshot.valid).toBe(false);
+  });
+  it("reemplaza los términos de demostración de una API anterior", async () => {
+    const slug = "terminos-y-condiciones";
+    const document = {
+      ...defaultLegalDocuments[slug],
+      description: "Contenido demostrativo para revisar la estructura visual de los términos y condiciones.",
+      sections: [{ id: "aceptacion-alcance", title: "Alcance de ejemplo", body: "Texto de demostración" }],
+    };
+    vi.mocked(publicFetch).mockResolvedValue(Response.json({ document }));
+    const snapshot = await getLegalDocumentSnapshot(slug);
+    expect(snapshot.document).toEqual(defaultLegalDocuments[slug]);
+    expect(snapshot.valid).toBe(false);
+  });
   it("usa la copia offline ante un fallo de transporte", async () => {
     vi.mocked(publicFetch).mockRejectedValue(new TypeError("fetch failed"));
     expect(await getLegalDocumentSnapshot("terminos-y-condiciones")).toMatchObject({ valid: false, unavailable: true });
