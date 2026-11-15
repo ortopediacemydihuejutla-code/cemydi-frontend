@@ -86,11 +86,14 @@ async function confirm(status: "WAITING_OBLIGATIONS" | "PROCESSING") {
     screen.getByRole("button", { name: "Enviar código de confirmación" }),
   );
   const code = await screen.findByLabelText("Código de ocho dígitos");
+  expect(code).toHaveFocus();
   fireEvent.change(code, { target: { value: "12345678" } });
   fireEvent.click(
     screen.getByRole("button", { name: "Confirmar eliminación definitiva" }),
   );
-  await screen.findByRole("heading", { name: "Solicitud registrada" });
+  expect(
+    await screen.findByRole("heading", { name: "Solicitud registrada" }),
+  ).toHaveFocus();
 }
 test("pending obligations keep access and link to rental management", async () => {
   await confirm("WAITING_OBLIGATIONS");
@@ -102,7 +105,8 @@ test("pending obligations keep access and link to rental management", async () =
 test("cleanup closes the matching browser session and presents a receipt", async () => {
   await confirm("PROCESSING");
   await waitFor(() => expect(logout).toHaveBeenCalledTimes(1));
-  expect(screen.getByText(/Referencia:/)).toBeInTheDocument();
+  expect(screen.getByText("Referencia")).toBeInTheDocument();
+  expect(screen.getByText("0cb2c7f9-e344-41f7-a307-c3a6adbde419")).toBeInTheDocument();
 });
 test("network failure stays in the form without reporting success", async () => {
   vi.mocked(requestAccountDeletion).mockRejectedValueOnce(new Error("offline"));
